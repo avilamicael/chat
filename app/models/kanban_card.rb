@@ -49,6 +49,8 @@
 #  fk_rails_...  (team_id => teams.id)
 #
 class KanbanCard < ApplicationRecord
+  audited only: %i[kanban_column_id assignee_id assignee_ids priority task_status outcome title]
+
   belongs_to :kanban_column
   belongs_to :kanban_board
   belongs_to :account

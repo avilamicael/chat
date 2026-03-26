@@ -201,11 +201,35 @@
       "TITLE": "Relatórios Kanban",
       "DESCRIPTION": "Acompanhe resultados de ganho e perda nos seus funis.",
       "SELECT_BOARD": "Selecione um funil",
-      "WIN_RATE": "Taxa de ganho",
       "METRICS": {
         "TOTAL": "Total arquivado",
         "WON": "Ganho",
-        "LOST": "Perdido"
+        "LOST": "Perdido",
+        "WIN_RATE": "Taxa de ganho"
+      },
+      "COLUMNS": {
+        "CARD": "Card",
+        "CONTACT": "Contato",
+        "PRIORITY": "Prioridade",
+        "ASSIGNEES": "Responsáveis",
+        "TEAM": "Time",
+        "TIME_IN_PIPELINE": "Tempo no pipeline",
+        "DAY": "dia",
+        "DAYS": "dias"
+      },
+      "CARD_DETAIL": {
+        "DETAILS": "Detalhes",
+        "ACTIVITY": "Atividade",
+        "LOADING": "Carregando...",
+        "NO_ACTIVITY": "Nenhuma atividade registrada.",
+        "OPEN_CONVERSATION": "Abrir conversa",
+        "SYSTEM": "Sistema",
+        "ACTIVITY_CREATED": "Card criado",
+        "ACTIVITY_MOVED": "Movido entre colunas",
+        "ACTIVITY_ASSIGNEE_CHANGED": "Responsável alterado",
+        "ACTIVITY_PRIORITY_CHANGED": "Prioridade alterada para {priority}",
+        "ACTIVITY_ARCHIVED_AS": "Arquivado como {outcome}",
+        "ACTIVITY_UPDATED": "Atualizado"
       }
     },
     "TASK": {

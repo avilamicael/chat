@@ -22,4 +22,8 @@ class KanbanCardPolicy < ApplicationPolicy
   def archived?
     @account_user.present?
   end
+
+  def activities?
+    @account_user.present?
+  end
 end

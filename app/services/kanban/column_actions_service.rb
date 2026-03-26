@@ -3,6 +3,7 @@ module Kanban
     def initialize(card, column, actions_type)
       @card = card
       @column = column
+      @actions_type = actions_type
       @actions = (column.public_send(actions_type) || []).select { |a| a.is_a?(Hash) }
       @account = column.account
     end
@@ -93,15 +94,53 @@ module Kanban
     end
 
     def webhook_payload
+      conv = @card.conversation
+      contact = conv&.contact
+      assignee = @card.assignee
+
       {
-        event: 'kanban.card_column_changed',
-        card_id: @card.id,
-        board_id: @column.kanban_board_id,
-        column_id: @column.id,
-        column_name: @column.name,
-        conversation_id: @card.conversation_id,
+        event: @actions_type == :enter_actions ? 'kanban.card_entered_column' : 'kanban.card_left_column',
+        account_id: @account.id,
+        board: {
+          id: @column.kanban_board_id,
+          name: @card.kanban_board.name
+        },
+        column: {
+          id: @column.id,
+          name: @column.name,
+          position: @column.position
+        },
+        card: {
+          id: @card.id,
+          title: @card.title,
+          description: @card.description,
+          priority: @card.priority,
+          task_status: @card.task_status,
+          due_date: @card.due_date&.iso8601,
+          reminder_at: @card.reminder_at&.iso8601,
+          outcome: @card.outcome,
+          outcome_reason: @card.outcome_reason,
+          assignees: @card.assignees.map { |u| { id: u.id, name: u.name, email: u.email } },
+          teams: @card.teams_list.map { |t| { id: t.id, name: t.name } }
+        },
+        conversation: conv && {
+          id: conv.id,
+          status: conv.status,
+          inbox_id: conv.inbox_id
+        },
+        contact: contact && {
+          id: contact.id,
+          name: contact.name,
+          email: contact.email,
+          phone_number: contact.phone_number
+        },
+        assignee: assignee && {
+          id: assignee.id,
+          name: assignee.name,
+          email: assignee.email
+        },
         timestamp: Time.zone.now.iso8601
-      }
+      }.compact
     end
   end
 end

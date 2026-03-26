@@ -1,7 +1,8 @@
 class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::BaseController
   before_action -> { check_authorization(KanbanCard) }
   before_action :set_board
-  before_action :set_card, only: [:destroy, :move, :update]
+  before_action :set_card, only: [:destroy, :move, :update, :activities]
+  around_action :audit_as_current_user, only: [:create, :update, :move, :destroy]
 
   def index
     @cards = @board.kanban_cards.active.includes(
@@ -85,7 +86,19 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
     @card = Kanban::CardMoveService.new(@card, move_params, current_user).perform
   end
 
+  def activities
+    @activities = Audited.audit_class
+                         .where(auditable_type: 'KanbanCard', auditable_id: @card.id)
+                         .includes(:user)
+                         .order(created_at: :desc)
+                         .limit(50)
+  end
+
   private
+
+  def audit_as_current_user(&block)
+    Audited.audit_class.as_user(current_user, &block)
+  end
 
   def set_board
     @board = Current.account.kanban_boards.find(params[:kanban_board_id])

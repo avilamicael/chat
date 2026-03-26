@@ -12,12 +12,12 @@ class Kanban::CardMoveService
     @target_column = @card.kanban_board.kanban_columns.find(@target_column_id)
     column_changed = @source_column.id != @target_column.id
 
-    @card.update!(
-      kanban_column_id: @target_column.id,
-      position: @new_position
-    )
+    @card.without_auditing do
+      @card.update!(kanban_column_id: @target_column.id, position: @new_position)
+    end
 
     if column_changed
+      record_move_audit
       @card.archive!(@target_column.column_type, @outcome_reason) if @target_column.column_won? || @target_column.column_lost?
       run_column_actions(@source_column.exit_actions)
       run_column_actions(@target_column.enter_actions)
@@ -36,6 +36,18 @@ class Kanban::CardMoveService
     Kanban::ColumnActionService.new(@card.conversation, actions, @card.account).perform
   rescue StandardError => e
     ChatwootExceptionTracker.new(e, account: @card.account).capture_exception
+  end
+
+  def record_move_audit
+    Audited.audit_class.create!(
+      auditable_type: 'KanbanCard',
+      auditable_id: @card.id,
+      action: 'update',
+      audited_changes: { 'kanban_column_id' => [@source_column.id, @target_column.id] },
+      user: @user
+    )
+  rescue StandardError => e
+    Rails.logger.error "[Kanban::CardMoveService] Failed to record move audit: #{e.message}"
   end
 
   def dispatch_card_moved(column_changed)

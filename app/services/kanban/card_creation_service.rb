@@ -25,7 +25,11 @@ class Kanban::CardCreationService
   private
 
   def permitted_task_attrs
-    @task_attrs.slice(:title, :description, :priority, :task_status, :due_date, :reminder_at, :created_by_id)
+    attrs = @task_attrs.slice(:title, :description, :priority, :task_status, :due_date, :reminder_at, :created_by_id)
+    if @conversation && attrs[:title].blank?
+      attrs[:title] = @conversation.contact.name
+    end
+    attrs
   end
 
   def next_position

@@ -80,6 +80,10 @@ class KanbanAPI extends ApiClient {
       params: { conversation_id: conversationId },
     });
   }
+
+  getCardActivities(boardId, cardId) {
+    return axios.get(`${this.url}/${boardId}/cards/${cardId}/activities`);
+  }
 }
 
 export default new KanbanAPI();

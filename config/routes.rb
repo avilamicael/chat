@@ -339,6 +339,7 @@ Rails.application.routes.draw do
               end
               member do
                 patch :move
+                get :activities
               end
             end
           end

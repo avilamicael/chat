@@ -201,11 +201,35 @@
       "TITLE": "Kanban Reports",
       "DESCRIPTION": "Track won and lost outcomes across your kanban boards.",
       "SELECT_BOARD": "Select a board",
-      "WIN_RATE": "Win rate",
       "METRICS": {
         "TOTAL": "Total archived",
         "WON": "Won",
-        "LOST": "Lost"
+        "LOST": "Lost",
+        "WIN_RATE": "Win rate"
+      },
+      "COLUMNS": {
+        "CARD": "Card",
+        "CONTACT": "Contact",
+        "PRIORITY": "Priority",
+        "ASSIGNEES": "Assignees",
+        "TEAM": "Team",
+        "TIME_IN_PIPELINE": "Time in pipeline",
+        "DAY": "day",
+        "DAYS": "days"
+      },
+      "CARD_DETAIL": {
+        "DETAILS": "Details",
+        "ACTIVITY": "Activity",
+        "LOADING": "Loading...",
+        "NO_ACTIVITY": "No activity recorded.",
+        "OPEN_CONVERSATION": "Open conversation",
+        "SYSTEM": "System",
+        "ACTIVITY_CREATED": "Card created",
+        "ACTIVITY_MOVED": "Moved between columns",
+        "ACTIVITY_ASSIGNEE_CHANGED": "Assignee changed",
+        "ACTIVITY_PRIORITY_CHANGED": "Priority changed to {priority}",
+        "ACTIVITY_ARCHIVED_AS": "Archived as {outcome}",
+        "ACTIVITY_UPDATED": "Updated"
       }
     },
     "TASK": {
