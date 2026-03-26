@@ -64,6 +64,8 @@ class KanbanListener < BaseListener
       Kanban::ColumnActionsService.new(card, card.kanban_column, :enter_actions).perform
     end
 
+    card = KanbanCard.includes(conversation: [:contact, :inbox, :assignee], assignee: []).find(card.id)
+
     broadcast(board.account, [account_token(board.account)], 'kanban.card_moved', {
       card: card_payload(card),
       board_id: board.id,

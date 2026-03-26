@@ -8,6 +8,7 @@
 #  description      :text
 #  due_date         :datetime
 #  outcome          :string
+#  outcome_reason   :text
 #  position         :float            default(0.0), not null
 #  priority         :integer
 #  reminder_at      :datetime

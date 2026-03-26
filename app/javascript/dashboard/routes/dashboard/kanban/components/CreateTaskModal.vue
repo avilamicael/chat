@@ -21,6 +21,7 @@ const emit = defineEmits(['close', 'created']);
 const { t } = useI18n();
 const store = useStore();
 const agents = useMapGetter('agents/getAgents');
+const teams = useMapGetter('teams/getTeams');
 
 // Form state
 const title = ref('');
@@ -30,6 +31,11 @@ const selectedPriority = ref(null);
 const dueDate = ref('');
 const isCreating = ref(false);
 const errorMessage = ref('');
+
+const selectedTeamId = ref(null);
+const teamOptions = computed(() =>
+  teams.value.map(tm => ({ value: tm.id, label: tm.name }))
+);
 
 // Assignees — TagInput pattern (same as CollaboratorsPage)
 const selectedAssigneeIds = ref([]);
@@ -133,6 +139,7 @@ const createTask = async () => {
     if (dueDate.value) payload.due_date = new Date(dueDate.value).toISOString();
     if (selectedAssigneeIds.value.length)
       payload.assignee_ids = [...selectedAssigneeIds.value];
+    if (selectedTeamId.value) payload.team_ids = [selectedTeamId.value];
 
     await store.dispatch('kanban/addCard', { boardId: props.boardId, ...payload });
     emit('created');
@@ -203,23 +210,35 @@ const createTask = async () => {
           </div>
         </div>
 
-        <!-- Assignees (TagInput — same as inbox agents) -->
-        <div>
-          <label class="block mb-1.5 text-xs font-medium text-n-slate-10">
-            {{ t('KANBAN.TASK.ASSIGNEE_LABEL') }}
-          </label>
-          <div
-            class="rounded-xl outline outline-1 -outline-offset-1 outline-n-weak hover:outline-n-strong px-2 py-1.5 min-h-[38px]"
-          >
-            <TagInput
-              :model-value="selectedAssigneeNames"
-              :placeholder="t('KANBAN.TASK.NO_ASSIGNEE')"
-              :menu-items="agentMenuItems"
-              show-dropdown
-              skip-label-dedup
-              :auto-open-dropdown="false"
-              @add="handleAssigneeAdd"
-              @remove="handleAssigneeRemove"
+        <!-- Assignees + Team side by side -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block mb-1.5 text-xs font-medium text-n-slate-10">
+              {{ t('KANBAN.TASK.ASSIGNEE_LABEL') }}
+            </label>
+            <div
+              class="rounded-xl outline outline-1 -outline-offset-1 outline-n-weak hover:outline-n-strong px-2 py-1.5 min-h-[38px]"
+            >
+              <TagInput
+                :model-value="selectedAssigneeNames"
+                :placeholder="t('KANBAN.TASK.NO_ASSIGNEE')"
+                :menu-items="agentMenuItems"
+                show-dropdown
+                skip-label-dedup
+                :auto-open-dropdown="false"
+                @add="handleAssigneeAdd"
+                @remove="handleAssigneeRemove"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block mb-1.5 text-xs font-medium text-n-slate-10">
+              {{ t('KANBAN.TASK.TEAM_LABEL') }}
+            </label>
+            <ComboBox
+              v-model="selectedTeamId"
+              :options="teamOptions"
+              :placeholder="t('KANBAN.TASK.NO_TEAM')"
             />
           </div>
         </div>
@@ -237,7 +256,7 @@ const createTask = async () => {
             :placeholder="t('KANBAN.TASK.DUE_DATE_LABEL')"
             :disabled-date="date => date < new Date(new Date().setHours(0, 0, 0, 0))"
             append-to-body
-            class="w-full"
+            class="!w-full [&_.mx-input-wrapper]:w-full [&_.mx-input]:w-full"
           />
         </div>
 

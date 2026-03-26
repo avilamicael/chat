@@ -37,8 +37,21 @@ class KanbanColumn < ApplicationRecord
   validates :position, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
   before_validation :set_account_from_board
+  after_save :ensure_single_intake_column, if: :has_auto_create_task?
 
   private
+
+  def has_auto_create_task?
+    enter_actions.any? { |a| a.is_a?(Hash) && a['action_name'] == 'auto_create_task' }
+  end
+
+  def ensure_single_intake_column
+    kanban_board.kanban_columns.where.not(id: id).each do |col|
+      next unless col.enter_actions.any? { |a| a.is_a?(Hash) && a['action_name'] == 'auto_create_task' }
+
+      col.update_columns(enter_actions: col.enter_actions.reject { |a| a['action_name'] == 'auto_create_task' })
+    end
+  end
 
   def set_account_from_board
     self.account_id ||= kanban_board&.account_id

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_26_000011) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_26_000012) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -981,6 +981,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_26_000011) do
     t.integer "team_ids", default: [], array: true
     t.datetime "archived_at"
     t.string "outcome"
+    t.text "outcome_reason"
     t.index ["account_id"], name: "index_kanban_cards_on_account_id"
     t.index ["archived_at"], name: "index_kanban_cards_on_archived_at"
     t.index ["assignee_id"], name: "index_kanban_cards_on_assignee_id"

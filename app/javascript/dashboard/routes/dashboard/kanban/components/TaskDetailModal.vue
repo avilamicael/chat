@@ -116,9 +116,6 @@ const handleTeamRemove = index => {
 
 onMounted(() => store.dispatch('teams/get'));
 
-const reminderAt = ref(props.card.reminder_at ? new Date(props.card.reminder_at) : null);
-const reminderPickerOpen = ref(false);
-
 const selectedColumnId = ref(props.card.kanban_column_id);
 const selectedPriority = ref(props.card.priority || null);
 const selectedStatus = ref(props.card.task_status || 'open');
@@ -329,16 +326,33 @@ const channelLabel = computed(() => CHANNEL_LABELS[conversation.value?.channel] 
           </div>
         </div>
 
-        <!-- Status (full width) -->
-        <div>
-          <label class="block mb-1.5 text-xs font-medium text-n-slate-10">
-            {{ t('KANBAN.TASK.STATUS_LABEL') }}
-          </label>
-          <ComboBox
-            v-model="selectedStatus"
-            :options="statusOptions"
-            :placeholder="t('KANBAN.TASK.STATUS_LABEL')"
-          />
+        <!-- Status + Due date — side by side -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block mb-1.5 text-xs font-medium text-n-slate-10">
+              {{ t('KANBAN.TASK.STATUS_LABEL') }}
+            </label>
+            <ComboBox
+              v-model="selectedStatus"
+              :options="statusOptions"
+              :placeholder="t('KANBAN.TASK.STATUS_LABEL')"
+            />
+          </div>
+          <div>
+            <label class="block mb-1.5 text-xs font-medium text-n-slate-10">
+              {{ t('KANBAN.TASK.DUE_DATE_LABEL') }}
+            </label>
+            <DatePicker
+              v-model:value="localDueDate"
+              type="date"
+              value-type="YYYY-MM-DD"
+              format="DD/MM/YYYY"
+              :placeholder="t('KANBAN.TASK.DUE_DATE_LABEL')"
+              :disabled-date="date => date < new Date(new Date().setHours(0, 0, 0, 0))"
+              append-to-body
+              class="!w-full [&_.mx-input-wrapper]:w-full [&_.mx-input]:w-full"
+            />
+          </div>
         </div>
 
         <!-- Assignees + Teams — side by side with TagInput -->
@@ -379,43 +393,6 @@ const channelLabel = computed(() => CHANNEL_LABELS[conversation.value?.channel] 
                 @remove="handleTeamRemove"
               />
             </div>
-          </div>
-        </div>
-
-        <!-- Due date + Reminder — side by side -->
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block mb-1.5 text-xs font-medium text-n-slate-10">
-              {{ t('KANBAN.TASK.DUE_DATE_LABEL') }}
-            </label>
-            <DatePicker
-              v-model:value="localDueDate"
-              type="date"
-              value-type="YYYY-MM-DD"
-              format="DD/MM/YYYY"
-              :placeholder="t('KANBAN.TASK.DUE_DATE_LABEL')"
-              :disabled-date="date => date < new Date(new Date().setHours(0, 0, 0, 0))"
-              append-to-body
-              class="w-full"
-            />
-          </div>
-          <div>
-            <label class="block mb-1.5 text-xs font-medium text-n-slate-10">
-              {{ t('KANBAN.TASK.REMINDER_LABEL') }}
-              <span class="ml-1 px-1.5 py-0.5 text-[10px] rounded bg-n-alpha-2 text-n-slate-9">
-                {{ t('KANBAN.TASK.COMING_SOON') }}
-              </span>
-            </label>
-            <DatePicker
-              v-model:value="reminderAt"
-              v-model:open="reminderPickerOpen"
-              type="datetime"
-              disabled
-              :placeholder="t('KANBAN.TASK.REMINDER_PLACEHOLDER')"
-              :show-second="false"
-              append-to-body
-              class="w-full"
-            />
           </div>
         </div>
 
