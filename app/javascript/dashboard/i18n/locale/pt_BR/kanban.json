@@ -185,7 +185,17 @@
     },
     "ARCHIVE": {
       "ARCHIVED_AT": "Arquivado em",
-      "BACK_TO_BOARD": "Voltar ao funil"
+      "BACK_TO_BOARD": "Voltar ao funil",
+      "REASON": "Motivo",
+      "REASON_PLACEHOLDER": "Por que este card foi arquivado? (opcional)"
+    },
+    "OUTCOME_REASON_MODAL": {
+      "TITLE_WON": "Arquivar como Ganho",
+      "TITLE_LOST": "Arquivar como Perdido",
+      "DESCRIPTION": "Este card será arquivado. Você pode adicionar um motivo opcionalmente.",
+      "REASON_LABEL": "Motivo (opcional)",
+      "CONFIRM": "Confirmar",
+      "CANCEL": "Cancelar"
     },
     "REPORTS": {
       "TITLE": "Relatórios Kanban",

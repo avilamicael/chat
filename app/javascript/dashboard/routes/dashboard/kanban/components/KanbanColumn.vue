@@ -15,7 +15,7 @@ const props = defineProps({
   filteredCards: { type: Array, default: null },
 });
 
-const emit = defineEmits(['add-card', 'open-card-detail']);
+const emit = defineEmits(['add-card', 'open-card-detail', 'outcome-move-pending']);
 
 const { t } = useI18n();
 const store = useStore();
@@ -73,10 +73,25 @@ const computeFractionalPosition = (list, newIndex) => {
 };
 
 const onDragChange = async event => {
+  if (!event.added && !event.moved) return;
   const moved = event.added || event.moved;
-  if (!moved) return;
   const { element: card, newIndex } = moved;
   const position = computeFractionalPosition(localCards.value, newIndex);
+
+  // Intercept cross-column move TO a terminal column — show reason modal
+  if (event.added && ['won', 'lost'].includes(props.column.column_type)) {
+    emit('outcome-move-pending', {
+      card,
+      targetColumnId: props.column.id,
+      targetPosition: position,
+      columnType: props.column.column_type,
+      sourceColumnId: card.kanban_column_id,
+      sourcePosition: card.position,
+    });
+    return;
+  }
+
+  // Normal move
   try {
     await store.dispatch('kanban/moveCard', {
       boardId: Number(props.boardId),
@@ -85,7 +100,6 @@ const onDragChange = async event => {
       position,
     });
   } catch {
-    // Revert to source order on error
     localCardIds.value = sourceCards.value.map(c => c.id);
   }
 };

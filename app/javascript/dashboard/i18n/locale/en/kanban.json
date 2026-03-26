@@ -185,7 +185,17 @@
     },
     "ARCHIVE": {
       "ARCHIVED_AT": "Archived at",
-      "BACK_TO_BOARD": "Back to board"
+      "BACK_TO_BOARD": "Back to board",
+      "REASON": "Reason",
+      "REASON_PLACEHOLDER": "Why was this card archived? (optional)"
+    },
+    "OUTCOME_REASON_MODAL": {
+      "TITLE_WON": "Archive as Won",
+      "TITLE_LOST": "Archive as Lost",
+      "DESCRIPTION": "This card will be archived. You can optionally add a reason.",
+      "REASON_LABEL": "Reason (optional)",
+      "CONFIRM": "Confirm",
+      "CANCEL": "Cancel"
     },
     "REPORTS": {
       "TITLE": "Kanban Reports",

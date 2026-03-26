@@ -159,11 +159,11 @@ export const actions = {
     return card;
   },
 
-  async moveCard({ commit, state: _state }, { boardId, cardId, columnId, position }) {
+  async moveCard({ commit, state: _state }, { boardId, cardId, columnId, position, outcomeReason }) {
     const original = (_state.cards[boardId] || []).find(c => c.id === cardId);
     commit('MOVE_CARD', { boardId, cardId, columnId, position });
     try {
-      await kanbanAPI.moveCard(boardId, cardId, { column_id: columnId, position });
+      await kanbanAPI.moveCard(boardId, cardId, { column_id: columnId, position, outcome_reason: outcomeReason });
     } catch (error) {
       if (original) {
         commit('MOVE_CARD', {

@@ -8,6 +8,7 @@ import { frontendURL } from 'dashboard/helper/URLHelper.js';
 import KanbanColumn from './components/KanbanColumn.vue';
 import CreateTaskModal from './components/CreateTaskModal.vue';
 import TaskDetailModal from './components/TaskDetailModal.vue';
+import OutcomeReasonModal from './components/OutcomeReasonModal.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import ComboBox from 'dashboard/components-next/combobox/ComboBox.vue';
 
@@ -35,6 +36,7 @@ const inboxFilter = ref(null);
 const showCreateTask = ref(false);
 const preselectedColumnId = ref(null);
 const selectedCardId = ref(null);
+const pendingOutcomeMove = ref(null);
 
 // Always reflects the latest store data — no manual reload needed after updates.
 const selectedCard = computed(() => {
@@ -108,6 +110,39 @@ const onCardCreated = () => {
 
 const openCardDetail = card => {
   selectedCardId.value = card.id;
+};
+
+const onOutcomeMovePending = moveData => {
+  pendingOutcomeMove.value = moveData;
+};
+
+const confirmOutcomeMove = async reason => {
+  const move = pendingOutcomeMove.value;
+  pendingOutcomeMove.value = null;
+  try {
+    await store.dispatch('kanban/moveCard', {
+      boardId: Number(boardId.value),
+      cardId: move.card.id,
+      columnId: move.targetColumnId,
+      position: move.targetPosition,
+      outcomeReason: reason || null,
+    });
+  } catch {
+    // error already reverted by store
+  }
+};
+
+const cancelOutcomeMove = () => {
+  const move = pendingOutcomeMove.value;
+  pendingOutcomeMove.value = null;
+  store
+    .dispatch('kanban/moveCard', {
+      boardId: Number(boardId.value),
+      cardId: move.card.id,
+      columnId: move.sourceColumnId,
+      position: move.sourcePosition,
+    })
+    .catch(() => {});
 };
 </script>
 
@@ -220,6 +255,7 @@ const openCardDetail = card => {
         :filtered-cards="filteredCards"
         @add-card="openCreateTask"
         @open-card-detail="openCardDetail"
+        @outcome-move-pending="onOutcomeMovePending"
       />
     </div>
   </div>
@@ -243,5 +279,14 @@ const openCardDetail = card => {
     :columns="columns"
     @close="selectedCardId = null"
     @deleted="selectedCardId = null"
+  />
+
+  <!-- Outcome Reason Modal -->
+  <OutcomeReasonModal
+    v-if="pendingOutcomeMove"
+    :column-type="pendingOutcomeMove.columnType"
+    :card-title="pendingOutcomeMove.card.title || `#${pendingOutcomeMove.card.conversation?.display_id}`"
+    @confirm="confirmOutcomeMove"
+    @cancel="cancelOutcomeMove"
   />
 </template>

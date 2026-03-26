@@ -72,8 +72,8 @@ class KanbanCard < ApplicationRecord
   before_save :sync_primary_assignee
   before_save :sync_primary_team
 
-  def archive!(outcome_value)
-    update!(archived_at: Time.current, outcome: outcome_value)
+  def archive!(outcome_value, reason = nil)
+    update!(archived_at: Time.current, outcome: outcome_value, outcome_reason: reason)
   end
 
   def assignees

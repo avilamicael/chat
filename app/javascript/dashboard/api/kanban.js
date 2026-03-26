@@ -59,9 +59,9 @@ class KanbanAPI extends ApiClient {
     return axios.delete(`${this.url}/${boardId}/cards/${cardId}`);
   }
 
-  moveCard(boardId, cardId, data) {
+  moveCard(boardId, cardId, { column_id, position, outcome_reason }) {
     return axios.patch(`${this.url}/${boardId}/cards/${cardId}/move`, {
-      kanban_card: data,
+      kanban_card: { column_id, position, outcome_reason },
     });
   }
 

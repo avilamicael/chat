@@ -3,6 +3,7 @@ class Kanban::CardMoveService
     @card = card
     @target_column_id = params[:column_id].to_i
     @new_position = params[:position].to_f
+    @outcome_reason = params[:outcome_reason]
     @user = user
     @source_column = card.kanban_column
   end
@@ -17,7 +18,7 @@ class Kanban::CardMoveService
     )
 
     if column_changed
-      @card.archive!(@target_column.column_type) if @target_column.column_won? || @target_column.column_lost?
+      @card.archive!(@target_column.column_type, @outcome_reason) if @target_column.column_won? || @target_column.column_lost?
       run_column_actions(@source_column.exit_actions)
       run_column_actions(@target_column.enter_actions)
     end

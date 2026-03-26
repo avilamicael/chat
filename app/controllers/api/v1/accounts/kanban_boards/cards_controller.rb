@@ -105,6 +105,6 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
   end
 
   def move_params
-    params.require(:kanban_card).permit(:column_id, :position)
+    params.require(:kanban_card).permit(:column_id, :position, :outcome_reason)
   end
 end

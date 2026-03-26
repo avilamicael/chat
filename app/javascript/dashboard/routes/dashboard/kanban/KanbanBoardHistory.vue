@@ -128,10 +128,11 @@ const setFilter = value => {
     <div v-else class="flex-1 overflow-y-auto px-6 py-4">
       <div class="flex flex-col gap-2">
         <!-- Table header -->
-        <div class="grid grid-cols-4 gap-4 px-3 py-2 text-xs font-medium text-n-slate-9 uppercase tracking-wide">
+        <div class="grid grid-cols-5 gap-4 px-3 py-2 text-xs font-medium text-n-slate-9 uppercase tracking-wide">
           <span>{{ t('KANBAN.TASK.TITLE_LABEL') }}</span>
           <span>{{ t('KANBAN.TASK.ASSIGNEE_LABEL') }}</span>
           <span class="text-center">{{ t('KANBAN.OUTCOME.WON') }} / {{ t('KANBAN.OUTCOME.LOST') }}</span>
+          <span>{{ t('KANBAN.ARCHIVE.REASON') }}</span>
           <span class="text-right">{{ t('KANBAN.ARCHIVE.ARCHIVED_AT') }}</span>
         </div>
 
@@ -139,7 +140,7 @@ const setFilter = value => {
         <div
           v-for="card in filteredCards"
           :key="card.id"
-          class="grid grid-cols-4 gap-4 items-center px-3 py-3 rounded-lg border border-n-weak bg-n-solid-1 hover:bg-n-solid-2 transition-colors"
+          class="grid grid-cols-5 gap-4 items-center px-3 py-3 rounded-lg border border-n-weak bg-n-solid-1 hover:bg-n-solid-2 transition-colors"
         >
           <!-- Title -->
           <span class="text-sm text-n-slate-12 truncate">
@@ -169,6 +170,11 @@ const setFilter = value => {
             </span>
             <span v-else class="text-xs text-n-slate-8">—</span>
           </div>
+
+          <!-- Reason -->
+          <span class="text-sm text-n-slate-10 truncate">
+            {{ card.outcome_reason || '—' }}
+          </span>
 
           <!-- Archived at -->
           <span class="text-sm text-n-slate-9 text-right">
