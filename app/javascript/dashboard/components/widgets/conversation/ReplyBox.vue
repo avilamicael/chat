@@ -447,7 +447,7 @@ export default {
       return `draft-${this.conversationIdByRoute}-${this.replyType}`;
     },
     audioRecordFormat() {
-      if (this.isAWhatsAppCloudChannel) {
+      if (this.isAWhatsAppCloudChannel || this.isAWhatsAppBaileysChannel) {
         return AUDIO_FORMATS.OGG;
       }
       if (this.isAWhatsAppChannel || this.isATelegramChannel) {
