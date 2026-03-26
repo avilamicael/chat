@@ -18,4 +18,8 @@ class KanbanCardPolicy < ApplicationPolicy
   def move?
     @account_user.present?
   end
+
+  def archived?
+    @account_user.present?
+  end
 end

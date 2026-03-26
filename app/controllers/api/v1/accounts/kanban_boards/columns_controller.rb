@@ -40,7 +40,7 @@ class Api::V1::Accounts::KanbanBoards::ColumnsController < Api::V1::Accounts::Ba
 
   def column_params
     params.require(:kanban_column).permit(
-      :name, :position, :color,
+      :name, :position, :color, :column_type,
       enter_actions: [:action_name, :url, :agent_id, :team_id],
       exit_actions: [:action_name, :url]
     )
