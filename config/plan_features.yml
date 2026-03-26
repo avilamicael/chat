@@ -1,0 +1,58 @@
+# Feature matrix per billing plan
+# Used by Billing::HandleBillingEventService and Billing::StartTrialService
+# to enable/disable account features when plan changes.
+#
+# IMPORTANT: Do NOT remove features from existing plans — only add.
+# Removing would silently downgrade existing customers.
+
+free: []
+
+trial:
+  - captain_integration
+  - captain_integration_v2
+  - captain_tasks
+  - sla
+  - custom_roles
+  - kanban
+  - audit_logs
+  - advanced_assignment
+  - csat_review_notes
+  - conversation_required_attributes
+  - help_center_embedding_search
+
+starter:
+  - captain_integration
+  - captain_integration_v2
+  - captain_tasks
+  - sla
+  - custom_roles
+
+pro:
+  - captain_integration
+  - captain_integration_v2
+  - captain_tasks
+  - sla
+  - custom_roles
+  - kanban
+  - audit_logs
+  - advanced_assignment
+  - csat_review_notes
+  - conversation_required_attributes
+  - help_center_embedding_search
+
+enterprise:
+  - captain_integration
+  - captain_integration_v2
+  - captain_tasks
+  - sla
+  - custom_roles
+  - kanban
+  - audit_logs
+  - advanced_assignment
+  - csat_review_notes
+  - conversation_required_attributes
+  - help_center_embedding_search
+  - disable_branding
+  - saml
+  - companies
+  - advanced_assignment

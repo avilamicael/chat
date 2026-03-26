@@ -1,0 +1,81 @@
+import ApiClient from './ApiClient';
+
+class KanbanAPI extends ApiClient {
+  constructor() {
+    super('kanban_boards', { accountScoped: true });
+  }
+
+  getBoards() {
+    return axios.get(this.url);
+  }
+
+  getBoard(boardId) {
+    return axios.get(`${this.url}/${boardId}`);
+  }
+
+  createBoard({ template, ...data }) {
+    return axios.post(this.url, { kanban_board: data, template });
+  }
+
+  updateBoard(boardId, data) {
+    return axios.patch(`${this.url}/${boardId}`, { kanban_board: data });
+  }
+
+  deleteBoard(boardId) {
+    return axios.delete(`${this.url}/${boardId}`);
+  }
+
+  getColumns(boardId) {
+    return axios.get(`${this.url}/${boardId}/columns`);
+  }
+
+  createColumn(boardId, data) {
+    return axios.post(`${this.url}/${boardId}/columns`, { kanban_column: data });
+  }
+
+  updateColumn(boardId, columnId, data) {
+    return axios.patch(`${this.url}/${boardId}/columns/${columnId}`, {
+      kanban_column: data,
+    });
+  }
+
+  deleteColumn(boardId, columnId) {
+    return axios.delete(`${this.url}/${boardId}/columns/${columnId}`);
+  }
+
+  reorderColumns(boardId, columns) {
+    return axios.patch(`${this.url}/${boardId}/columns/reorder`, { columns });
+  }
+
+  getCards(boardId, params = {}) {
+    return axios.get(`${this.url}/${boardId}/cards`, { params });
+  }
+
+  addCard(boardId, data) {
+    return axios.post(`${this.url}/${boardId}/cards`, { kanban_card: data });
+  }
+
+  removeCard(boardId, cardId) {
+    return axios.delete(`${this.url}/${boardId}/cards/${cardId}`);
+  }
+
+  moveCard(boardId, cardId, data) {
+    return axios.patch(`${this.url}/${boardId}/cards/${cardId}/move`, {
+      kanban_card: data,
+    });
+  }
+
+  updateCard(boardId, cardId, data) {
+    return axios.patch(`${this.url}/${boardId}/cards/${cardId}`, {
+      kanban_card: data,
+    });
+  }
+
+  getConversationCard(conversationId) {
+    return axios.get(`${this.url}/conversation_card`, {
+      params: { conversation_id: conversationId },
+    });
+  }
+}
+
+export default new KanbanAPI();
