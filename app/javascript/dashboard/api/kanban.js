@@ -71,6 +71,10 @@ class KanbanAPI extends ApiClient {
     });
   }
 
+  getArchivedCards(boardId, params = {}) {
+    return axios.get(`${this.url}/${boardId}/cards/archived`, { params });
+  }
+
   getConversationCard(conversationId) {
     return axios.get(`${this.url}/conversation_card`, {
       params: { conversation_id: conversationId },

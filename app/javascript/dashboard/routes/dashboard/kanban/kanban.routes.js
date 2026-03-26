@@ -26,6 +26,12 @@ export const routes = [
         name: 'kanban_board_settings',
         meta,
       },
+      {
+        path: 'boards/:boardId/history',
+        component: () => import('./KanbanBoardHistory.vue'),
+        name: 'kanban_board_history',
+        meta,
+      },
     ],
   },
 ];

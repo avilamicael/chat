@@ -110,6 +110,20 @@ const goToSettings = () => {
         <span class="text-xs text-white bg-white/20 px-1.5 py-0.5 rounded font-medium">
           {{ localCards.length }}
         </span>
+        <span
+          v-if="column.column_type === 'won'"
+          class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full bg-green-500/30 text-green-100 font-medium"
+        >
+          <Icon icon="i-lucide-trophy" class="size-3" />
+          {{ t('KANBAN.OUTCOME.WON') }}
+        </span>
+        <span
+          v-else-if="column.column_type === 'lost'"
+          class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full bg-red-500/30 text-red-100 font-medium"
+        >
+          <Icon icon="i-lucide-x-circle" class="size-3" />
+          {{ t('KANBAN.OUTCOME.LOST') }}
+        </span>
       </div>
       <div class="flex items-center gap-1">
         <button

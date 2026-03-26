@@ -4,6 +4,7 @@ json.position kanban_column.position
 json.color kanban_column.color
 json.enter_actions kanban_column.enter_actions
 json.exit_actions kanban_column.exit_actions
+json.column_type kanban_column.column_type
 json.kanban_board_id kanban_column.kanban_board_id
 json.account_id kanban_column.account_id
 json.cards_count kanban_column.kanban_cards.length

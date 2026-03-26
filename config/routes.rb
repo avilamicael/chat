@@ -334,6 +334,9 @@ Rails.application.routes.draw do
             end
             resources :cards, only: [:index, :create, :update, :destroy],
                               module: :kanban_boards do
+              collection do
+                get :archived
+              end
               member do
                 patch :move
               end

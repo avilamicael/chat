@@ -4,6 +4,7 @@ const state = {
   boards: [],
   columns: {}, // { boardId: [] }
   cards: {}, // { boardId: [] }
+  archivedCards: {}, // { boardId: [] }
   uiFlags: {
     fetchingBoards: false,
     fetchingCards: false,
@@ -20,6 +21,7 @@ export const getters = {
     (_state.cards[boardId] || [])
       .filter(c => c.kanban_column_id === columnId)
       .sort((a, b) => a.position - b.position),
+  archivedCardsByBoard: _state => boardId => _state.archivedCards[boardId] || [],
   uiFlags: _state => _state.uiFlags,
 };
 
@@ -78,6 +80,9 @@ export const mutations = {
         c.id === card.id ? { ...c, ...card, position: c.position } : c
       ),
     };
+  },
+  SET_ARCHIVED_CARDS(_state, { boardId, cards }) {
+    _state.archivedCards = { ..._state.archivedCards, [boardId]: cards };
   },
   SET_UI_FLAG(_state, flags) {
     _state.uiFlags = { ..._state.uiFlags, ...flags };
@@ -212,6 +217,11 @@ export const actions = {
   async updateColumn({ commit }, { boardId, columnId, ...data }) {
     const { data: response } = await kanbanAPI.updateColumn(boardId, columnId, data);
     commit('UPDATE_COLUMN', { boardId: Number(boardId), column: response });
+  },
+
+  async fetchArchivedCards({ commit }, { boardId, params = {} }) {
+    const { data } = await kanbanAPI.getArchivedCards(boardId, params);
+    commit('SET_ARCHIVED_CARDS', { boardId: Number(boardId), cards: data.payload });
   },
 };
 

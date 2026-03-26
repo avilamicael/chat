@@ -3,9 +3,11 @@
 # Table name: kanban_cards
 #
 #  id               :bigint           not null, primary key
+#  archived_at      :datetime
 #  assignee_ids     :integer          default([]), is an Array
 #  description      :text
 #  due_date         :datetime
+#  outcome          :string
 #  position         :float            default(0.0), not null
 #  priority         :integer
 #  reminder_at      :datetime
@@ -26,6 +28,7 @@
 #
 #  idx_unique_kanban_card_board_conversation            (kanban_board_id,conversation_id) UNIQUE WHERE (conversation_id IS NOT NULL)
 #  index_kanban_cards_on_account_id                     (account_id)
+#  index_kanban_cards_on_archived_at                    (archived_at)
 #  index_kanban_cards_on_assignee_id                    (assignee_id)
 #  index_kanban_cards_on_conversation_id                (conversation_id)
 #  index_kanban_cards_on_created_by_id                  (created_by_id)
@@ -58,6 +61,9 @@ class KanbanCard < ApplicationRecord
 
   enum priority: { low: 0, medium: 1, high: 2, urgent: 3 }
 
+  scope :active, -> { where(archived_at: nil) }
+  scope :archived, -> { where.not(archived_at: nil) }
+
   validates :position, presence: true
   validates :conversation_id, uniqueness: { scope: :kanban_board_id }, allow_nil: true
   validate :title_or_conversation_required
@@ -65,6 +71,10 @@ class KanbanCard < ApplicationRecord
   before_validation :set_denormalized_fields
   before_save :sync_primary_assignee
   before_save :sync_primary_team
+
+  def archive!(outcome_value)
+    update!(archived_at: Time.current, outcome: outcome_value)
+  end
 
   def assignees
     User.where(id: assignee_ids || [])

@@ -4,6 +4,7 @@
 #
 #  id              :bigint           not null, primary key
 #  color           :string           default("#6B7280")
+#  column_type     :string           default("normal"), not null
 #  enter_actions   :jsonb            not null
 #  exit_actions    :jsonb            not null
 #  name            :string           not null
@@ -16,6 +17,7 @@
 # Indexes
 #
 #  index_kanban_columns_on_account_id                    (account_id)
+#  index_kanban_columns_on_column_type                   (column_type)
 #  index_kanban_columns_on_kanban_board_id               (kanban_board_id)
 #  index_kanban_columns_on_kanban_board_id_and_position  (kanban_board_id,position)
 #
@@ -28,6 +30,8 @@ class KanbanColumn < ApplicationRecord
   belongs_to :kanban_board
   belongs_to :account
   has_many :kanban_cards, -> { order(:position) }, dependent: :destroy, inverse_of: :kanban_column
+
+  enum column_type: { normal: 'normal', won: 'won', lost: 'lost' }, _prefix: :column
 
   validates :name, presence: true
   validates :position, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }

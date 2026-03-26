@@ -535,6 +535,15 @@ const menuItems = computed(() => {
           label: t('SIDEBAR.REPORTS_BOT'),
           to: accountScopedRoute('bot_reports'),
         },
+        ...(isKanbanEnabled.value
+          ? [
+              {
+                name: 'Reports Kanban',
+                label: t('SIDEBAR.REPORTS_KANBAN'),
+                to: accountScopedRoute('kanban_reports'),
+              },
+            ]
+          : []),
       ],
     },
     {

@@ -99,12 +99,23 @@ const enterForm = ref(parseEnterActions(props.column.enter_actions));
 const exitForm = ref(parseExitActions(props.column.exit_actions));
 const isSaving = ref(false);
 
+const columnType = ref(props.column.column_type || 'normal');
+const isWon = computed({
+  get: () => columnType.value === 'won',
+  set: val => { columnType.value = val ? 'won' : 'normal'; },
+});
+const isLost = computed({
+  get: () => columnType.value === 'lost',
+  set: val => { columnType.value = val ? 'lost' : 'normal'; },
+});
+
 const save = async () => {
   isSaving.value = true;
   try {
     await store.dispatch('kanban/updateColumn', {
       boardId: props.boardId,
       columnId: props.column.id,
+      column_type: columnType.value,
       enter_actions: buildEnterActions(enterForm.value),
       exit_actions: buildExitActions(exitForm.value),
     });
@@ -139,8 +150,25 @@ const save = async () => {
       <!-- Body -->
       <div class="flex-1 overflow-y-auto px-6 py-4 space-y-3">
 
-        <!-- Enter Actions -->
+        <!-- Column Type -->
         <p class="text-xs font-semibold text-n-slate-10 uppercase tracking-wide">
+          {{ t('KANBAN.COLUMN.TYPE_LABEL') }}
+        </p>
+
+        <SettingsToggleSection
+          v-model="isWon"
+          :header="t('KANBAN.COLUMN.TYPE_WON')"
+          :description="t('KANBAN.COLUMN.TYPE_WON_DESC')"
+        />
+
+        <SettingsToggleSection
+          v-model="isLost"
+          :header="t('KANBAN.COLUMN.TYPE_LOST')"
+          :description="t('KANBAN.COLUMN.TYPE_LOST_DESC')"
+        />
+
+        <!-- Enter Actions -->
+        <p class="text-xs font-semibold text-n-slate-10 uppercase tracking-wide pt-2">
           {{ t('KANBAN.COLUMN.ENTER_ACTIONS_LABEL') }}
         </p>
 

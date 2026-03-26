@@ -28,6 +28,8 @@ json.teams teams_list do |team|
 end
 json.created_at kanban_card.created_at
 json.updated_at kanban_card.updated_at
+json.archived_at kanban_card.archived_at
+json.outcome kanban_card.outcome
 
 if kanban_card.association(:conversation).loaded? && kanban_card.conversation
   json.conversation do

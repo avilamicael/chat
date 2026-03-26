@@ -4,12 +4,23 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
   before_action :set_card, only: [:destroy, :move, :update]
 
   def index
-    @cards = @board.kanban_cards.includes(
+    @cards = @board.kanban_cards.active.includes(
       :kanban_card_conversations,
       :assignee,
       conversation: [:assignee, :inbox, :contact]
     )
     @cards = @cards.where(kanban_column_id: params[:column_id]) if params[:column_id].present?
+  end
+
+  def archived
+    @cards = @board.kanban_cards
+                   .archived
+                   .includes(:kanban_card_conversations, :assignee, conversation: [:assignee, :inbox, :contact])
+                   .order(archived_at: :desc)
+    @cards = @cards.where(outcome: params[:outcome]) if params[:outcome].present?
+    page = (params[:page] || 1).to_i
+    @cards = @cards.offset((page - 1) * 50).limit(50)
+    render :index
   end
 
   def create

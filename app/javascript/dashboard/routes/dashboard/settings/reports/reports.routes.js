@@ -168,6 +168,14 @@ export default {
           meta,
           component: BotReports,
         },
+        {
+          path: 'kanban',
+          name: 'kanban_reports',
+          meta: {
+            permissions: ['administrator', 'report_manage'],
+          },
+          component: () => import('./KanbanReports.vue'),
+        },
       ],
     },
   ],

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_26_000001) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_26_000011) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -979,7 +979,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_26_000001) do
     t.bigint "team_id"
     t.integer "assignee_ids", default: [], array: true
     t.integer "team_ids", default: [], array: true
+    t.datetime "archived_at"
+    t.string "outcome"
     t.index ["account_id"], name: "index_kanban_cards_on_account_id"
+    t.index ["archived_at"], name: "index_kanban_cards_on_archived_at"
     t.index ["assignee_id"], name: "index_kanban_cards_on_assignee_id"
     t.index ["conversation_id"], name: "index_kanban_cards_on_conversation_id"
     t.index ["created_by_id"], name: "index_kanban_cards_on_created_by_id"
@@ -1000,7 +1003,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_26_000001) do
     t.jsonb "exit_actions", default: [], null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "column_type", default: "normal", null: false
     t.index ["account_id"], name: "index_kanban_columns_on_account_id"
+    t.index ["column_type"], name: "index_kanban_columns_on_column_type"
     t.index ["kanban_board_id", "position"], name: "index_kanban_columns_on_kanban_board_id_and_position"
     t.index ["kanban_board_id"], name: "index_kanban_columns_on_kanban_board_id"
   end

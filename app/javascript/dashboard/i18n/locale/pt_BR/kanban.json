@@ -40,6 +40,11 @@
       "NO_CARDS": "Nenhuma conversa aqui ainda.",
       "EMPTY": "Solte conversas aqui",
       "SETTINGS_TITLE": "Configurações de automação da etapa",
+      "TYPE_LABEL": "Tipo da Etapa",
+      "TYPE_WON": "Ganho — resultado positivo",
+      "TYPE_WON_DESC": "Cards que entram nesta etapa são arquivados automaticamente como Ganho.",
+      "TYPE_LOST": "Perdido — resultado negativo",
+      "TYPE_LOST_DESC": "Cards que entram nesta etapa são arquivados automaticamente como Perdido.",
       "ENTER_ACTIONS_LABEL": "Ao Entrar — executa quando um card entra nesta etapa",
       "EXIT_ACTIONS_LABEL": "Ao Sair — executa quando um card sai desta etapa",
       "ACTION_AUTO_CREATE_TASK": "Criar tarefa automaticamente para novas conversas",
@@ -159,6 +164,39 @@
       "ADD_ERROR": "Falha ao adicionar ao funil. Pode já estar neste funil.",
       "LOADING": "Carregando...",
       "MOVED_SUCCESS": "Movido para nova etapa"
+    },
+    "HISTORY": {
+      "TITLE": "Histórico do Funil",
+      "EMPTY": "Nenhum card arquivado ainda.",
+      "FILTER": {
+        "ALL": "Todos",
+        "WON": "Ganho",
+        "LOST": "Perdido"
+      }
+    },
+    "COLUMN_TYPE": {
+      "NORMAL": "Normal",
+      "WON": "Ganho (Terminal)",
+      "LOST": "Perdido (Terminal)"
+    },
+    "OUTCOME": {
+      "WON": "Ganho",
+      "LOST": "Perdido"
+    },
+    "ARCHIVE": {
+      "ARCHIVED_AT": "Arquivado em",
+      "BACK_TO_BOARD": "Voltar ao funil"
+    },
+    "REPORTS": {
+      "TITLE": "Relatórios Kanban",
+      "DESCRIPTION": "Acompanhe resultados de ganho e perda nos seus funis.",
+      "SELECT_BOARD": "Selecione um funil",
+      "WIN_RATE": "Taxa de ganho",
+      "METRICS": {
+        "TOTAL": "Total arquivado",
+        "WON": "Ganho",
+        "LOST": "Perdido"
+      }
     },
     "TASK": {
       "CREATE_TITLE": "Criar tarefa",

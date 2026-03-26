@@ -17,6 +17,7 @@ class Kanban::CardMoveService
     )
 
     if column_changed
+      @card.archive!(@target_column.column_type) if @target_column.column_won? || @target_column.column_lost?
       run_column_actions(@source_column.exit_actions)
       run_column_actions(@target_column.enter_actions)
     end

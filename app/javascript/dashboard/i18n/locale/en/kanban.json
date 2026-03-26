@@ -40,6 +40,11 @@
       "NO_CARDS": "No conversations here yet.",
       "EMPTY": "Drop conversations here",
       "SETTINGS_TITLE": "Column automation settings",
+      "TYPE_LABEL": "Column Type",
+      "TYPE_WON": "Won — positive outcome",
+      "TYPE_WON_DESC": "Cards that enter this column are automatically archived as Won.",
+      "TYPE_LOST": "Lost — negative outcome",
+      "TYPE_LOST_DESC": "Cards that enter this column are automatically archived as Lost.",
       "ENTER_ACTIONS_LABEL": "On Enter — runs when a card enters this column",
       "EXIT_ACTIONS_LABEL": "On Exit — runs when a card leaves this column",
       "ACTION_AUTO_CREATE_TASK": "Auto-create task for new conversations",
@@ -159,6 +164,39 @@
       "ADD_ERROR": "Failed to add to funnel. It may already be there.",
       "LOADING": "Loading...",
       "MOVED_SUCCESS": "Moved to new stage"
+    },
+    "HISTORY": {
+      "TITLE": "Board History",
+      "EMPTY": "No archived cards yet.",
+      "FILTER": {
+        "ALL": "All",
+        "WON": "Won",
+        "LOST": "Lost"
+      }
+    },
+    "COLUMN_TYPE": {
+      "NORMAL": "Normal",
+      "WON": "Won (Terminal)",
+      "LOST": "Lost (Terminal)"
+    },
+    "OUTCOME": {
+      "WON": "Won",
+      "LOST": "Lost"
+    },
+    "ARCHIVE": {
+      "ARCHIVED_AT": "Archived at",
+      "BACK_TO_BOARD": "Back to board"
+    },
+    "REPORTS": {
+      "TITLE": "Kanban Reports",
+      "DESCRIPTION": "Track won and lost outcomes across your kanban boards.",
+      "SELECT_BOARD": "Select a board",
+      "WIN_RATE": "Win rate",
+      "METRICS": {
+        "TOTAL": "Total archived",
+        "WON": "Won",
+        "LOST": "Lost"
+      }
     },
     "TASK": {
       "CREATE_TITLE": "Create task",
