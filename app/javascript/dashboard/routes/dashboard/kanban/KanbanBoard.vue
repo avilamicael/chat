@@ -41,16 +41,31 @@ const pendingOutcomeMove = ref(null);
 const columnsRef = ref(null);
 let isScrollDragging = false;
 let scrollDragStartX = 0;
+let scrollDragStartY = 0;
 let scrollDragStartLeft = 0;
+let scrollDirectionLocked = false;
 
 function onDragMove(e) {
   if (!isScrollDragging || !columnsRef.value) return;
-  columnsRef.value.scrollLeft = scrollDragStartLeft - (e.clientX - scrollDragStartX);
+  const dx = e.clientX - scrollDragStartX;
+  const dy = e.clientY - scrollDragStartY;
+
+  if (!scrollDirectionLocked) {
+    if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+    scrollDirectionLocked = true;
+    // Cancel if drag is primarily vertical (user is dragging a card)
+    if (Math.abs(dy) > Math.abs(dx)) {
+      onDragEnd();
+      return;
+    }
+  }
+
+  columnsRef.value.scrollLeft = scrollDragStartLeft - dx;
 }
 
 function onDragEnd() {
-  if (!isScrollDragging) return;
   isScrollDragging = false;
+  scrollDirectionLocked = false;
   document.removeEventListener('mousemove', onDragMove);
   document.removeEventListener('mouseup', onDragEnd);
 }
@@ -58,9 +73,10 @@ function onDragEnd() {
 function onColumnsMousedown(e) {
   if (e.button !== 0) return;
   if (e.target.closest('button, a, input')) return;
-  e.preventDefault();
   isScrollDragging = true;
+  scrollDirectionLocked = false;
   scrollDragStartX = e.clientX;
+  scrollDragStartY = e.clientY;
   scrollDragStartLeft = columnsRef.value?.scrollLeft ?? 0;
   document.addEventListener('mousemove', onDragMove);
   document.addEventListener('mouseup', onDragEnd);
