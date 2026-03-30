@@ -8,7 +8,7 @@ module Middleware # rubocop:disable Style/ClassAndModuleChildren
 
     def call(env)
       status, headers, response = @app.call(env)
-      headers['X-Platform'] = 'avila.com.br'
+      headers['X-Platform'] = 'viaexata.com'
       [status, headers, response]
     end
   end

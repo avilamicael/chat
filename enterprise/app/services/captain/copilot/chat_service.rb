@@ -97,7 +97,7 @@ class Captain::Copilot::ChatService < Llm::BaseAiService
   end
 
   def current_viewing_history(conversation_id)
-    conversation = @account.conversations.find_by(display_id: conversation_id)
+    conversation = @account.conversations.find_by(id: conversation_id)
     return [] unless conversation
 
     Rails.logger.info("#{self.class.name} Assistant: #{@assistant.id}, Setting viewing history for conversation_id=#{conversation_id}")
@@ -106,7 +106,7 @@ class Captain::Copilot::ChatService < Llm::BaseAiService
       role: 'system',
       content: <<~HISTORY.strip
         You are currently viewing the conversation with the following details:
-        Conversation ID: #{conversation_id}
+        Conversation ID: #{conversation.display_id}
         Contact ID: #{contact_id}
       HISTORY
     }]

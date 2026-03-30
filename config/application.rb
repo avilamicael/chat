@@ -3,7 +3,7 @@
 require_relative 'boot'
 
 require 'rails/all'
-require_relative '../lib/middleware/fazer_ai_platform_header'
+require_relative '../lib/middleware/micael_platform_header'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.

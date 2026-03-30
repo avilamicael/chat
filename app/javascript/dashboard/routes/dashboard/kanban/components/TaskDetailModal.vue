@@ -10,6 +10,7 @@ import Icon from 'dashboard/components-next/icon/Icon.vue';
 import ComboBox from 'dashboard/components-next/combobox/ComboBox.vue';
 import TagInput from 'dashboard/components-next/taginput/TagInput.vue';
 import CardPriorityIcon from 'dashboard/components-next/Conversation/ConversationCard/CardPriorityIcon.vue';
+import OutcomeReasonModal from './OutcomeReasonModal.vue';
 
 const props = defineProps({
   card: { type: Object, required: true },
@@ -115,6 +116,36 @@ const handleTeamRemove = index => {
 onMounted(() => store.dispatch('teams/get'));
 
 const selectedColumnId = ref(props.card.kanban_column_id);
+const pendingColumnId = ref(null);
+const pendingColumnObject = computed(() => props.columns.find(c => c.id === pendingColumnId.value));
+
+const handleColumnChange = newVal => {
+  const targetCol = props.columns.find(c => c.id === newVal);
+  if (targetCol && ['won', 'lost'].includes(targetCol.column_type)) {
+    pendingColumnId.value = newVal;
+  } else {
+    selectedColumnId.value = newVal;
+    saveField('kanban_column_id', newVal);
+  }
+};
+
+const confirmColumnMove = async reason => {
+  const targetId = pendingColumnId.value;
+  pendingColumnId.value = null;
+  selectedColumnId.value = targetId;
+  await store.dispatch('kanban/moveCard', {
+    boardId: Number(props.boardId),
+    cardId: props.card.id,
+    columnId: targetId,
+    position: 0,
+    outcomeReason: reason || null,
+  });
+};
+
+const cancelColumnMove = () => {
+  pendingColumnId.value = null;
+};
+
 const selectedPriority = ref(props.card.priority || null);
 const selectedStatus = ref(props.card.task_status || 'open');
 
@@ -146,7 +177,6 @@ const saveField = async (field, value) => {
   }
 };
 
-watch(selectedColumnId, val => saveField('kanban_column_id', val));
 watch(selectedPriority, val => saveField('priority', val));
 watch(selectedStatus, val => saveField('task_status', val));
 watch(localDueDate, val => saveField('due_date', val ? new Date(val).toISOString() : null));
@@ -311,9 +341,10 @@ const channelLabel = computed(() => CHANNEL_LABELS[conversation.value?.channel] 
               {{ t('KANBAN.TASK.COLUMN_LABEL') }}
             </label>
             <ComboBox
-              v-model="selectedColumnId"
+              :model-value="selectedColumnId"
               :options="columnOptions"
               :placeholder="t('KANBAN.TASK.COLUMN_LABEL')"
+              @update:model-value="handleColumnChange"
             />
           </div>
           <div>
@@ -432,4 +463,13 @@ const channelLabel = computed(() => CHANNEL_LABELS[conversation.value?.channel] 
       </div>
     </div>
   </div>
+
+  <!-- Outcome Reason Modal (won/lost column change) -->
+  <OutcomeReasonModal
+    v-if="pendingColumnId"
+    :column-type="pendingColumnObject.column_type"
+    :card-title="card.title || (card.conversation ? `#${card.conversation.display_id}` : '')"
+    @confirm="confirmColumnMove"
+    @cancel="cancelColumnMove"
+  />
 </template>

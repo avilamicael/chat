@@ -53,7 +53,13 @@ const activityLabel = activity => {
   if (activity.action === 'create') return t('KANBAN.REPORTS.CARD_DETAIL.ACTIVITY_CREATED');
   if (activity.action === 'update') {
     const changes = activity.changes || {};
-    if (changes.kanban_column_id) return t('KANBAN.REPORTS.CARD_DETAIL.ACTIVITY_MOVED');
+    if (changes.kanban_column_id) {
+      const names = changes.kanban_column_name;
+      if (names && names[0] && names[1]) {
+        return t('KANBAN.REPORTS.CARD_DETAIL.ACTIVITY_MOVED_FROM_TO', { from: names[0], to: names[1] });
+      }
+      return t('KANBAN.REPORTS.CARD_DETAIL.ACTIVITY_MOVED');
+    }
     if (changes.assignee_id) return t('KANBAN.REPORTS.CARD_DETAIL.ACTIVITY_ASSIGNEE_CHANGED');
     if (changes.priority) {
       return t('KANBAN.REPORTS.CARD_DETAIL.ACTIVITY_PRIORITY_CHANGED', { priority: changes.priority[1] });

@@ -8,7 +8,11 @@ module Enterprise::Captain::ReplySuggestionService
   private
 
   def use_search_tool?
-    ChatwootApp.chatwoot_cloud? || ChatwootApp.self_hosted_enterprise?
+    return false unless ChatwootApp.chatwoot_cloud? || ChatwootApp.self_hosted_enterprise?
+
+    assistant = conversation&.inbox&.captain_assistant
+    responses = assistant.present? ? assistant.responses.approved : account.captain_assistant_responses.approved
+    responses.exists?
   end
 
   def prompt_variables

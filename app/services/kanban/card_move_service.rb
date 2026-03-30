@@ -19,6 +19,7 @@ class Kanban::CardMoveService
     if column_changed
       record_move_audit
       @card.archive!(@target_column.column_type, @outcome_reason) if @target_column.column_won? || @target_column.column_lost?
+      sync_conversation_status if @target_column.conversation_status.present?
       run_column_actions(@source_column.exit_actions)
       run_column_actions(@target_column.enter_actions)
     end
@@ -38,12 +39,24 @@ class Kanban::CardMoveService
     ChatwootExceptionTracker.new(e, account: @card.account).capture_exception
   end
 
+  def sync_conversation_status
+    conversation = @card.conversation
+    return unless conversation
+
+    conversation.public_send(:"#{@target_column.conversation_status}!")
+  rescue StandardError => e
+    Rails.logger.error "[Kanban::CardMoveService] Failed to sync conversation status: #{e.message}"
+  end
+
   def record_move_audit
     Audited.audit_class.create!(
       auditable_type: 'KanbanCard',
       auditable_id: @card.id,
       action: 'update',
-      audited_changes: { 'kanban_column_id' => [@source_column.id, @target_column.id] },
+      audited_changes: {
+        'kanban_column_id' => [@source_column.id, @target_column.id],
+        'kanban_column_name' => [@source_column.name, @target_column.name]
+      },
       user: @user
     )
   rescue StandardError => e

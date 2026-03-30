@@ -17,6 +17,12 @@ Rails.application.config.after_initialize do
       config.default_model = model
       config.debug = false
     end
+
+    # Register model in RubyLLM registry if unknown (e.g. Groq/custom OpenAI-compatible providers)
+    unless RubyLLM::Models.instance.all.any? { |m| m.id == model }
+      RubyLLM::Models.instance.instance_variable_get(:@models) <<
+        RubyLLM::Model::Info.default(model, 'openai')
+    end
   end
 rescue StandardError => e
   Rails.logger.error "Failed to configure AI Agents SDK: #{e.message}"
