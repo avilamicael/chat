@@ -65,7 +65,14 @@
       "ACTION_ASSIGN_TEAM_DESC": "Assign a specific team to every card that enters this column.",
       "WEBHOOK_URL_PLACEHOLDER": "https://your-api.com/webhook",
       "SELECT_TEAM": "Select team",
-      "WEBHOOK_FUTURE_NOTE": "In a future version, you will be able to wait for the webhook response and use it in automations — for example, connecting to a CRM or n8n to fetch data and send messages."
+      "WEBHOOK_FUTURE_NOTE": "In a future version, you will be able to wait for the webhook response and use it in automations — for example, connecting to a CRM or n8n to fetch data and send messages.",
+      "CONV_STATUS_LABEL": "Conversation Status Sync",
+      "CONV_STATUS_DESC": "When a linked conversation's status changes to the selected status, cards will be automatically moved to this column.",
+      "CONV_STATUS_NONE": "No sync",
+      "CONV_STATUS_OPEN": "Open",
+      "CONV_STATUS_PENDING": "Pending",
+      "CONV_STATUS_RESOLVED": "Resolved",
+      "CONV_STATUS_SNOOZED": "Snoozed"
     },
     "CARD": {
       "ADD_TO_BOARD": "Add to Board",
@@ -76,7 +83,9 @@
       "UNASSIGNED": "Unassigned",
       "NO_NAME": "Unnamed",
       "TODAY": "Today",
-      "TOMORROW": "Tomorrow"
+      "TOMORROW": "Tomorrow",
+      "STATUS_PENDING": "Pending reply",
+      "STATUS_SNOOZED": "Snoozed"
     },
     "OVERVIEW": {
       "TITLE": "Funnels",
@@ -226,6 +235,7 @@
         "SYSTEM": "System",
         "ACTIVITY_CREATED": "Card created",
         "ACTIVITY_MOVED": "Moved between columns",
+        "ACTIVITY_MOVED_FROM_TO": "Moved from {from} to {to}",
         "ACTIVITY_ASSIGNEE_CHANGED": "Assignee changed",
         "ACTIVITY_PRIORITY_CHANGED": "Priority changed to {priority}",
         "ACTIVITY_ARCHIVED_AS": "Archived as {outcome}",

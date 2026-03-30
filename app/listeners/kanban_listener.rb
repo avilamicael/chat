@@ -20,10 +20,22 @@ class KanbanListener < BaseListener
     return unless new_status
 
     cards.each do |card|
-      next if card.task_status == new_status
-
-      card.update_columns(task_status: new_status, updated_at: Time.zone.now)
       board = card.kanban_board
+      status_changed = card.task_status != new_status
+
+      if status_changed
+        card.update_columns(task_status: new_status, updated_at: Time.zone.now)
+      end
+
+      target_column = board.kanban_columns.find_by(conversation_status: new_status)
+      if target_column && target_column.id != card.kanban_column_id
+        max_position = board.kanban_cards.where(kanban_column_id: target_column.id).maximum(:position) || 0
+        Kanban::CardMoveService.new(card, { column_id: target_column.id, position: max_position + 1 }).perform
+        next
+      end
+
+      next unless status_changed
+
       broadcast(board.account, [account_token(board.account)], 'kanban.card_updated', {
         card: card_payload(card),
         board_id: board.id

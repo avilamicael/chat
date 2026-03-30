@@ -33,7 +33,10 @@ class KanbanColumn < ApplicationRecord
 
   enum column_type: { normal: 'normal', won: 'won', lost: 'lost' }, _prefix: :column
 
+  CONVERSATION_STATUSES = %w[open pending resolved snoozed].freeze
+
   validates :name, presence: true
+  validates :conversation_status, inclusion: { in: CONVERSATION_STATUSES }, allow_nil: true
   validates :position, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
   before_validation :set_account_from_board

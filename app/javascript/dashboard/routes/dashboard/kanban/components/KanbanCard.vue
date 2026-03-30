@@ -121,6 +121,17 @@ const openDetail = () => emit('open-detail', props.card);
       />
     </div>
 
+    <!-- Status badge (pending/snoozed need attention) -->
+    <div v-if="card.task_status === 'pending' || card.task_status === 'snoozed'" class="mb-2">
+      <span
+        class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium"
+        :class="card.task_status === 'pending' ? 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400' : 'bg-n-alpha-2 text-n-slate-9'"
+      >
+        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 animate-pulse" :class="card.task_status === 'pending' ? 'bg-yellow-500' : 'bg-n-slate-7'" />
+        {{ card.task_status === 'pending' ? t('KANBAN.CARD.STATUS_PENDING') : t('KANBAN.CARD.STATUS_SNOOZED') }}
+      </span>
+    </div>
+
     <!-- Channel badge (only for conversation cards) -->
     <div v-if="channelLabel && !isStandaloneTask" class="mb-2">
       <span

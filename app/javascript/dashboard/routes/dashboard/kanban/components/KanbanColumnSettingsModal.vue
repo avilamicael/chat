@@ -109,6 +109,15 @@ const isLost = computed({
   set: val => { columnType.value = val ? 'lost' : 'normal'; },
 });
 
+const conversationStatus = ref(props.column.conversation_status || null);
+const conversationStatusOptions = [
+  { value: null, label: t('KANBAN.COLUMN.CONV_STATUS_NONE') },
+  { value: 'open', label: t('KANBAN.COLUMN.CONV_STATUS_OPEN') },
+  { value: 'pending', label: t('KANBAN.COLUMN.CONV_STATUS_PENDING') },
+  { value: 'resolved', label: t('KANBAN.COLUMN.CONV_STATUS_RESOLVED') },
+  { value: 'snoozed', label: t('KANBAN.COLUMN.CONV_STATUS_SNOOZED') },
+];
+
 const save = async () => {
   isSaving.value = true;
   try {
@@ -116,6 +125,7 @@ const save = async () => {
       boardId: props.boardId,
       columnId: props.column.id,
       column_type: columnType.value,
+      conversation_status: conversationStatus.value,
       enter_actions: buildEnterActions(enterForm.value),
       exit_actions: buildExitActions(exitForm.value),
     });
@@ -165,6 +175,17 @@ const save = async () => {
           v-model="isLost"
           :header="t('KANBAN.COLUMN.TYPE_LOST')"
           :description="t('KANBAN.COLUMN.TYPE_LOST_DESC')"
+        />
+
+        <!-- Conversation Status Sync -->
+        <p class="text-xs font-semibold text-n-slate-10 uppercase tracking-wide pt-2">
+          {{ t('KANBAN.COLUMN.CONV_STATUS_LABEL') }}
+        </p>
+        <p class="text-xs text-n-slate-9">{{ t('KANBAN.COLUMN.CONV_STATUS_DESC') }}</p>
+        <ComboBox
+          v-model="conversationStatus"
+          :options="conversationStatusOptions"
+          :placeholder="t('KANBAN.COLUMN.CONV_STATUS_NONE')"
         />
 
         <!-- Enter Actions -->

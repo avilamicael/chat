@@ -65,7 +65,14 @@
       "ACTION_ASSIGN_TEAM_DESC": "Atribui um time específico a todo card que entrar nesta etapa.",
       "WEBHOOK_URL_PLACEHOLDER": "https://sua-api.com/webhook",
       "SELECT_TEAM": "Selecionar time",
-      "WEBHOOK_FUTURE_NOTE": "Em uma versão futura, será possível aguardar a resposta do webhook e usá-la em automações — por exemplo, conectar a um CRM ou n8n para buscar dados e enviar mensagens."
+      "WEBHOOK_FUTURE_NOTE": "Em uma versão futura, será possível aguardar a resposta do webhook e usá-la em automações — por exemplo, conectar a um CRM ou n8n para buscar dados e enviar mensagens.",
+      "CONV_STATUS_LABEL": "Sincronização de Status da Conversa",
+      "CONV_STATUS_DESC": "Quando o status da conversa vinculada mudar para o status selecionado, os cards serão movidos automaticamente para esta coluna.",
+      "CONV_STATUS_NONE": "Sem sincronização",
+      "CONV_STATUS_OPEN": "Aberta",
+      "CONV_STATUS_PENDING": "Pendente",
+      "CONV_STATUS_RESOLVED": "Resolvida",
+      "CONV_STATUS_SNOOZED": "Adiada"
     },
     "CARD": {
       "ADD_TO_BOARD": "Adicionar ao Funil",
@@ -76,7 +83,9 @@
       "UNASSIGNED": "Não atribuído",
       "NO_NAME": "Sem nome",
       "TODAY": "Hoje",
-      "TOMORROW": "Amanhã"
+      "TOMORROW": "Amanhã",
+      "STATUS_PENDING": "Aguardando resposta",
+      "STATUS_SNOOZED": "Adiada"
     },
     "OVERVIEW": {
       "TITLE": "Funis",
@@ -226,6 +235,7 @@
         "SYSTEM": "Sistema",
         "ACTIVITY_CREATED": "Card criado",
         "ACTIVITY_MOVED": "Movido entre colunas",
+        "ACTIVITY_MOVED_FROM_TO": "Movido de {from} para {to}",
         "ACTIVITY_ASSIGNEE_CHANGED": "Responsável alterado",
         "ACTIVITY_PRIORITY_CHANGED": "Prioridade alterada para {priority}",
         "ACTIVITY_ARCHIVED_AS": "Arquivado como {outcome}",
