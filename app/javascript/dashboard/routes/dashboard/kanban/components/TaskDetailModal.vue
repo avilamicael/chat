@@ -2,7 +2,6 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useStore, useMapGetter } from 'dashboard/composables/store.js';
-import { useRouter } from 'vue-router';
 import DatePicker from 'vue-datepicker-next';
 import 'vue-datepicker-next/index.css';
 import { frontendURL } from 'dashboard/helper/URLHelper.js';
@@ -23,7 +22,6 @@ const emit = defineEmits(['close', 'deleted']);
 
 const { t } = useI18n();
 const store = useStore();
-const router = useRouter();
 
 const localTitle = ref(props.card.title || '');
 const localDescription = ref(props.card.description || '');
@@ -184,7 +182,11 @@ const deleteCard = async () => {
 
 const openConversation = () => {
   if (!conversation.value?.id) return;
-  router.push(frontendURL(`accounts/${props.accountId}/conversations/${conversation.value.id}`));
+  window.open(
+    frontendURL(`accounts/${props.accountId}/conversations/${conversation.value.id}`),
+    '_blank',
+    'noopener,noreferrer'
+  );
 };
 
 const CHANNEL_COLORS = {
