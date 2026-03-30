@@ -38,6 +38,29 @@ const preselectedColumnId = ref(null);
 const selectedCardId = ref(null);
 const pendingOutcomeMove = ref(null);
 
+const columnsRef = ref(null);
+let isScrollDragging = false;
+let scrollDragStartX = 0;
+let scrollDragStartLeft = 0;
+
+function onColumnsMousedown(e) {
+  if (e.button !== 0) return;
+  if (e.target.closest('button, a, input')) return;
+  isScrollDragging = true;
+  scrollDragStartX = e.clientX;
+  scrollDragStartLeft = columnsRef.value?.scrollLeft ?? 0;
+}
+
+function onColumnsMousemove(e) {
+  if (!isScrollDragging || !columnsRef.value) return;
+  const dx = e.clientX - scrollDragStartX;
+  columnsRef.value.scrollLeft = scrollDragStartLeft - dx;
+}
+
+function onColumnsMouseup() {
+  isScrollDragging = false;
+}
+
 // Always reflects the latest store data — no manual reload needed after updates.
 const selectedCard = computed(() => {
   if (!selectedCardId.value) return null;
@@ -245,7 +268,15 @@ const cancelOutcomeMove = () => {
     </div>
 
     <!-- Kanban columns -->
-    <div v-else class="flex-1 min-h-0 flex gap-3 p-4 overflow-x-auto">
+    <div
+      ref="columnsRef"
+      v-else
+      class="flex-1 min-h-0 min-w-0 flex gap-3 p-4 overflow-x-auto select-none cursor-grab active:cursor-grabbing"
+      @mousedown="onColumnsMousedown"
+      @mousemove="onColumnsMousemove"
+      @mouseup="onColumnsMouseup"
+      @mouseleave="onColumnsMouseup"
+    >
       <KanbanColumn
         v-for="column in columns"
         :key="column.id"
