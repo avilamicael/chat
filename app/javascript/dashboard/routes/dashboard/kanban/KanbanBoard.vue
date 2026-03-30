@@ -43,22 +43,40 @@ let isScrollDragging = false;
 let scrollDragStartX = 0;
 let scrollDragStartLeft = 0;
 
+function onDragMove(e) {
+  if (!isScrollDragging || !columnsRef.value) return;
+  columnsRef.value.scrollLeft = scrollDragStartLeft - (e.clientX - scrollDragStartX);
+}
+
+function onDragEnd() {
+  if (!isScrollDragging) return;
+  isScrollDragging = false;
+  document.removeEventListener('mousemove', onDragMove);
+  document.removeEventListener('mouseup', onDragEnd);
+}
+
 function onColumnsMousedown(e) {
   if (e.button !== 0) return;
   if (e.target.closest('button, a, input')) return;
+  e.preventDefault();
   isScrollDragging = true;
   scrollDragStartX = e.clientX;
   scrollDragStartLeft = columnsRef.value?.scrollLeft ?? 0;
+  document.addEventListener('mousemove', onDragMove);
+  document.addEventListener('mouseup', onDragEnd);
 }
 
-function onColumnsMousemove(e) {
-  if (!isScrollDragging || !columnsRef.value) return;
-  const dx = e.clientX - scrollDragStartX;
-  columnsRef.value.scrollLeft = scrollDragStartLeft - dx;
-}
-
-function onColumnsMouseup() {
-  isScrollDragging = false;
+function onColumnsWheel(e) {
+  if (!columnsRef.value || e.deltaX !== 0) return;
+  // Redirect vertical wheel to horizontal scroll only if not over a scrollable column body
+  let el = e.target;
+  while (el && el !== columnsRef.value) {
+    const { overflowY } = window.getComputedStyle(el);
+    if ((overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight) return;
+    el = el.parentElement;
+  }
+  e.preventDefault();
+  columnsRef.value.scrollLeft += e.deltaY;
 }
 
 // Always reflects the latest store data — no manual reload needed after updates.
@@ -273,9 +291,7 @@ const cancelOutcomeMove = () => {
       v-else
       class="flex-1 min-h-0 min-w-0 flex gap-3 p-4 overflow-x-auto select-none cursor-grab active:cursor-grabbing"
       @mousedown="onColumnsMousedown"
-      @mousemove="onColumnsMousemove"
-      @mouseup="onColumnsMouseup"
-      @mouseleave="onColumnsMouseup"
+      @wheel="onColumnsWheel"
     >
       <KanbanColumn
         v-for="column in columns"
