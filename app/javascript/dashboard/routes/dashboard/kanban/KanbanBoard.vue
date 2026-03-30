@@ -45,11 +45,6 @@ let scrollDragStartLeft = 0;
 
 function onDragMove(e) {
   if (!isScrollDragging || !columnsRef.value) return;
-  // SortableJS is dragging a card — abort board scroll
-  if (document.querySelector('.sortable-drag')) {
-    onDragEnd();
-    return;
-  }
   columnsRef.value.scrollLeft = scrollDragStartLeft - (e.clientX - scrollDragStartX);
 }
 
@@ -61,7 +56,7 @@ function onDragEnd() {
 
 function onColumnsMousedown(e) {
   if (e.button !== 0) return;
-  if (e.target.closest('button, a, input')) return;
+  if (e.target.closest('button, a, input, [data-kanban-card]')) return;
   isScrollDragging = true;
   scrollDragStartX = e.clientX;
   scrollDragStartLeft = columnsRef.value?.scrollLeft ?? 0;

@@ -91,6 +91,7 @@ const openDetail = () => emit('open-detail', props.card);
 
 <template>
   <div
+    data-kanban-card
     class="bg-n-solid-2 rounded-lg p-3 cursor-pointer hover:bg-n-solid-3 transition-colors border border-n-weak"
     @click="openDetail"
   >
