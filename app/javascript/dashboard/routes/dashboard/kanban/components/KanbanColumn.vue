@@ -2,8 +2,6 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useStore } from 'dashboard/composables/store.js';
-import { useRouter } from 'vue-router';
-import { frontendURL } from 'dashboard/helper/URLHelper.js';
 import Draggable from 'vuedraggable';
 import KanbanCard from './KanbanCard.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
@@ -19,7 +17,6 @@ const emit = defineEmits(['add-card', 'open-card-detail', 'outcome-move-pending'
 
 const { t } = useI18n();
 const store = useStore();
-const router = useRouter();
 
 const storeCards = computed(() =>
   store.getters['kanban/cardsByColumn'](Number(props.boardId), props.column.id)
@@ -104,9 +101,6 @@ const onDragChange = async event => {
   }
 };
 
-const goToSettings = () => {
-  router.push(frontendURL(`accounts/${props.accountId}/kanban/boards/${props.boardId}/settings`));
-};
 </script>
 
 <template>
@@ -140,12 +134,6 @@ const goToSettings = () => {
         </span>
       </div>
       <div class="flex items-center gap-1">
-        <button
-          class="p-1 rounded text-white opacity-70 hover:opacity-100 hover:bg-white/10 transition-opacity"
-          @click.stop="goToSettings"
-        >
-          <Icon icon="i-lucide-settings" class="size-3.5" />
-        </button>
         <button
           class="p-1 rounded text-white opacity-70 hover:opacity-100 hover:bg-white/10 transition-opacity"
           @click.stop="emit('add-card', column.id)"
