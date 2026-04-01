@@ -45,6 +45,28 @@ class KanbanListener < BaseListener
     ChatwootExceptionTracker.new(e, account: conversation&.account).capture_exception
   end
 
+  def message_created(event)
+    message = event.data[:message]
+    return unless message&.incoming? || (message&.outgoing? && !message.private?)
+
+    conversation = message.conversation
+    return unless conversation
+
+    cards = KanbanCard.where(conversation_id: conversation.id)
+    return if cards.empty?
+
+    cards.each do |card|
+      board = card.kanban_board
+      card = KanbanCard.includes(conversation: [:contact, :inbox, :assignee], assignee: []).find(card.id)
+      broadcast(board.account, [account_token(board.account)], 'kanban.card_updated', {
+        card: card_payload(card),
+        board_id: board.id
+      })
+    end
+  rescue StandardError => e
+    ChatwootExceptionTracker.new(e, account: message&.account).capture_exception
+  end
+
   def kanban_card_added(event)
     card = event.data[:card]
     board = event.data[:board]
@@ -144,6 +166,7 @@ class KanbanListener < BaseListener
         status: conv.status,
         created_at: conv.created_at,
         channel: conv.inbox&.channel_type,
+        waiting_since: conv.waiting_since,
         meta: {
           sender: conv.contact ? { id: conv.contact.id, name: conv.contact.name, thumbnail: conv.contact.avatar_url } : nil,
           assignee: conv.assignee ? { id: conv.assignee.id, name: conv.assignee.name, thumbnail: conv.assignee.avatar_url } : nil

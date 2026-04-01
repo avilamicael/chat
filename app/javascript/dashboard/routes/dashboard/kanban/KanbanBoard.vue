@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'dashboard/composables/store.js';
 import { useMapGetter } from 'dashboard/composables/store';
+import { useAdmin } from 'dashboard/composables/useAdmin';
 import { useI18n } from 'vue-i18n';
 import { frontendURL } from 'dashboard/helper/URLHelper.js';
 import KanbanColumn from './components/KanbanColumn.vue';
@@ -16,6 +17,7 @@ const { t } = useI18n();
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
+const { isAdmin } = useAdmin();
 
 const accountId = computed(() => route.params.accountId);
 const boardId = computed(() => route.params.boardId);
@@ -251,6 +253,7 @@ const cancelOutcomeMove = () => {
       </button>
 
       <button
+        v-if="isAdmin"
         class="h-9 w-9 flex items-center justify-center rounded-lg text-n-slate-9 hover:text-n-slate-12 hover:bg-n-alpha-2"
         @click="goToSettings"
       >
@@ -278,7 +281,7 @@ const cancelOutcomeMove = () => {
     >
       <Icon icon="i-lucide-layout-kanban" class="size-10 text-n-slate-8" />
       <p class="text-sm text-n-slate-10">{{ t('KANBAN.BOARD.NO_COLUMNS') }}</p>
-      <button class="text-sm text-n-brand hover:underline" @click="goToSettings">
+      <button v-if="isAdmin" class="text-sm text-n-brand hover:underline" @click="goToSettings">
         {{ t('KANBAN.BOARD.ADD_COLUMNS') }}
       </button>
     </div>

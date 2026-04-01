@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useMapGetter } from 'dashboard/composables/store';
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import CardPriorityIcon from 'dashboard/components-next/Conversation/ConversationCard/CardPriorityIcon.vue';
@@ -14,11 +15,29 @@ const emit = defineEmits(['open-detail']);
 
 const { t } = useI18n();
 
+const agents = useMapGetter('agents/getAgents');
+const teams = useMapGetter('teams/getTeams');
+
 const conversation = computed(() => props.card.conversation);
 const isStandaloneTask = computed(() => !conversation.value?.id);
 
 const sender = computed(() => conversation.value?.meta?.sender);
-const assignee = computed(() => conversation.value?.meta?.assignee);
+
+const assignees = computed(() => {
+  const ids = props.card.assignee_ids || [];
+  if (ids.length === 0) return [];
+  return ids
+    .map(id => agents.value.find(a => a.id === id))
+    .filter(Boolean);
+});
+
+const cardTeams = computed(() => {
+  const ids = props.card.team_ids || [];
+  if (ids.length === 0) return [];
+  return ids
+    .map(id => teams.value.find(tm => tm.id === id))
+    .filter(Boolean);
+});
 
 const displayName = computed(() => {
   if (props.card.title) return props.card.title;
@@ -112,23 +131,37 @@ const openDetail = () => emit('open-detail', props.card);
       <span class="flex-1 text-sm font-medium text-n-slate-12 truncate leading-snug mt-0.5">
         {{ displayName }}
       </span>
-      <Avatar
-        v-if="assignee"
-        :name="assignee.name"
-        :src="assignee.thumbnail || ''"
-        :size="24"
-        class="flex-shrink-0"
-      />
+      <div v-if="assignees.length > 0" class="flex items-center flex-shrink-0">
+        <div class="flex -space-x-1.5">
+          <Avatar
+            v-for="agent in assignees.slice(0, 2)"
+            :key="agent.id"
+            :name="agent.name"
+            :src="agent.thumbnail || agent.avatar_url || ''"
+            :size="24"
+            class="ring-1 ring-n-solid-2"
+          />
+        </div>
+        <span
+          v-if="assignees.length > 2"
+          class="ml-0.5 text-xs text-n-slate-10 font-medium"
+        >+{{ assignees.length - 2 }}</span>
+      </div>
     </div>
 
-    <!-- Status badge (pending/snoozed need attention) -->
-    <div v-if="card.task_status === 'pending' || card.task_status === 'snoozed'" class="mb-2">
-      <span
-        class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium"
-        :class="card.task_status === 'pending' ? 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400' : 'bg-n-alpha-2 text-n-slate-9'"
-      >
-        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 animate-pulse" :class="card.task_status === 'pending' ? 'bg-yellow-500' : 'bg-n-slate-7'" />
-        {{ card.task_status === 'pending' ? t('KANBAN.CARD.STATUS_PENDING') : t('KANBAN.CARD.STATUS_SNOOZED') }}
+    <!-- Awaiting reply badge: shown only when customer has sent a message with no agent reply yet -->
+    <div v-if="conversation?.waiting_since" class="mb-2">
+      <span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium bg-yellow-500/15 text-yellow-600 dark:text-yellow-400">
+        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 animate-pulse bg-yellow-500" />
+        {{ t('KANBAN.CARD.STATUS_PENDING') }}
+      </span>
+    </div>
+
+    <!-- Snoozed badge -->
+    <div v-else-if="card.task_status === 'snoozed'" class="mb-2">
+      <span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium bg-n-alpha-2 text-n-slate-9">
+        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-n-slate-7" />
+        {{ t('KANBAN.CARD.STATUS_SNOOZED') }}
       </span>
     </div>
 
@@ -140,6 +173,18 @@ const openDetail = () => emit('open-detail', props.card);
       >
         <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" :style="{ backgroundColor: channelColor }" />
         {{ channelLabel }}
+      </span>
+    </div>
+
+    <!-- Team badges -->
+    <div v-if="cardTeams.length > 0" class="mb-2 flex flex-wrap gap-1">
+      <span
+        v-for="team in cardTeams"
+        :key="team.id"
+        class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-n-alpha-2 text-n-slate-10"
+      >
+        <Icon icon="i-lucide-users" class="size-2.5 flex-shrink-0" />
+        {{ team.name }}
       </span>
     </div>
 
