@@ -2,7 +2,6 @@
 import { h, ref, computed, onMounted } from 'vue';
 import { provideSidebarContext, useSidebarResize } from './provider';
 import { useAccount } from 'dashboard/composables/useAccount';
-import { useAdmin } from 'dashboard/composables/useAdmin';
 import { useKbd } from 'dashboard/composables/utils/useKbd';
 import { useMapGetter } from 'dashboard/composables/store';
 import { useStore } from 'vuex';
@@ -67,8 +66,6 @@ const hasAdvancedAssignment = computed(() => {
 const isKanbanEnabled = computed(() =>
   isFeatureEnabledonAccount.value(accountId.value, FEATURE_FLAGS.KANBAN)
 );
-
-const { isAdmin } = useAdmin();
 
 const toggleShortcutModalFn = show => {
   if (show) {
@@ -326,40 +323,36 @@ const menuItems = computed(() => {
         },
       ],
     },
-    ...(isAdmin.value
-      ? [
-          {
-            name: 'Kanban',
-            label: t('SIDEBAR.KANBAN'),
-            icon: 'i-lucide-columns-3',
-            activeOn: ['kanban_view', 'kanban_board', 'kanban_board_settings'],
-            children: [
+    {
+      name: 'Kanban',
+      label: t('SIDEBAR.KANBAN'),
+      icon: 'i-lucide-columns-3',
+      activeOn: ['kanban_view', 'kanban_board', 'kanban_board_settings'],
+      children: [
+        {
+          name: 'KanbanOverview',
+          label: t('SIDEBAR.KANBAN_OVERVIEW'),
+          icon: 'i-lucide-layout-dashboard',
+          to: accountScopedRoute('kanban_view'),
+          activeOn: ['kanban_view'],
+        },
+        ...(isKanbanEnabled.value
+          ? [
               {
-                name: 'KanbanOverview',
-                label: t('SIDEBAR.KANBAN_OVERVIEW'),
-                icon: 'i-lucide-layout-dashboard',
-                to: accountScopedRoute('kanban_view'),
-                activeOn: ['kanban_view'],
+                name: 'KanbanFunnels',
+                label: t('SIDEBAR.KANBAN_FUNNELS'),
+                icon: 'i-lucide-git-branch',
+                activeOn: ['kanban_board', 'kanban_board_settings'],
+                children: kanbanBoards.value.map(board => ({
+                  name: `kanban-board-${board.id}`,
+                  label: board.name,
+                  to: accountScopedRoute('kanban_board', { boardId: board.id }),
+                })),
               },
-              ...(isKanbanEnabled.value
-                ? [
-                    {
-                      name: 'KanbanFunnels',
-                      label: t('SIDEBAR.KANBAN_FUNNELS'),
-                      icon: 'i-lucide-git-branch',
-                      activeOn: ['kanban_board', 'kanban_board_settings'],
-                      children: kanbanBoards.value.map(board => ({
-                        name: `kanban-board-${board.id}`,
-                        label: board.name,
-                        to: accountScopedRoute('kanban_board', { boardId: board.id }),
-                      })),
-                    },
-                  ]
-                : []),
-            ],
-          },
-        ]
-      : []),
+            ]
+          : []),
+      ],
+    },
     {
       name: 'Captain',
       icon: 'i-woot-captain',
