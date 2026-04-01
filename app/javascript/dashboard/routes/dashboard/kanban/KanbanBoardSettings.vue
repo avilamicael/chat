@@ -611,6 +611,5 @@ const goBack = () => {
     :column="columnSettingsColumn"
     :board-id="boardId"
     @close="columnSettingsModalId = null"
-    @saved="loadBoard"
   />
 </template>
