@@ -6,6 +6,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags.js';
 import { frontendURL } from 'dashboard/helper/URLHelper.js';
+import { useAdmin } from 'dashboard/composables/useAdmin';
 import Paywall from 'dashboard/components-next/Paywall.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import CreateFunnelModal from './components/CreateFunnelModal.vue';
@@ -14,6 +15,7 @@ const store = useStore();
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
+const { isAdmin } = useAdmin();
 
 const accountId = computed(() => route.params.accountId);
 
@@ -87,6 +89,7 @@ onMounted(async () => {
           <Icon icon="i-lucide-arrow-up-down" class="size-4" />
         </button>
         <button
+          v-if="isAdmin"
           class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg bg-n-brand text-white hover:bg-n-brand/90"
           @click="showCreateModal = true"
         >
@@ -118,6 +121,7 @@ onMounted(async () => {
           {{ t('KANBAN.OVERVIEW.EMPTY_DESCRIPTION') }}
         </p>
         <button
+          v-if="isAdmin"
           class="flex items-center gap-2 px-4 py-2 text-sm rounded-lg bg-n-brand text-white hover:bg-n-brand/90"
           @click="showCreateModal = true"
         >
@@ -152,6 +156,7 @@ onMounted(async () => {
               </span>
             </div>
             <button
+              v-if="isAdmin"
               class="p-1 rounded text-n-slate-9 hover:text-n-slate-12 hover:bg-n-alpha-2 flex-shrink-0"
               @click="goToBoardSettings($event, board.id)"
             >
