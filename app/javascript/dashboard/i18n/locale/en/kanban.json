@@ -284,6 +284,7 @@
       "NO_CONVERSATIONS": "No linked conversations",
       "ADD_CONVERSATION": "Link conversation",
       "STANDALONE_BADGE": "Task",
+      "LINKED_BADGE": "Linked to conversation",
       "REMOVE_CONV": "Unlink",
       "OPEN_CONV": "Open conversation",
       "CHANGE_CONV": "Change conversation",

@@ -305,24 +305,26 @@ const contactNameFor = conv =>
     >
       <!-- Header -->
       <div
-        class="flex items-center justify-between px-6 py-4 border-b border-n-weak flex-shrink-0"
+        class="flex items-center gap-3 px-6 py-4 border-b border-n-weak flex-shrink-0"
       >
-        <div class="flex items-center gap-2 flex-1 min-w-0">
-          <span
-            v-if="isStandaloneTask"
-            class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-n-alpha-2 text-n-slate-11 flex-shrink-0"
-          >
-            <Icon icon="i-lucide-clipboard-list" class="size-3" />
-            {{ t('KANBAN.TASK.STANDALONE_BADGE') }}
-          </span>
-          <CardPriorityIcon v-if="card.priority" :priority="card.priority" />
-          <span v-if="timeOpen" class="text-xs text-n-slate-9 ml-auto flex items-center gap-1">
-            <Icon icon="i-lucide-clock" class="size-3" />
-            {{ timeOpen }}
-          </span>
-        </div>
+        <span
+          class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-n-alpha-2 text-n-slate-11 flex-shrink-0"
+        >
+          <Icon
+            :icon="isStandaloneTask ? 'i-lucide-clipboard-list' : 'i-lucide-message-square'"
+            class="size-3"
+          />
+          {{ isStandaloneTask ? t('KANBAN.TASK.STANDALONE_BADGE') : t('KANBAN.TASK.LINKED_BADGE') }}
+        </span>
+        <CardPriorityIcon v-if="card.priority" :priority="card.priority" />
+        <span class="text-xs text-n-slate-9 flex-shrink-0">#{{ card.id }}</span>
+        <span v-if="timeOpen" class="text-xs text-n-slate-9 flex items-center gap-1 flex-shrink-0">
+          <Icon icon="i-lucide-clock" class="size-3" />
+          {{ timeOpen }}
+        </span>
+        <span class="flex-1" />
         <button
-          class="ml-2 p-1.5 rounded-lg hover:bg-n-alpha-2 text-n-slate-10 flex-shrink-0"
+          class="p-1.5 rounded-lg hover:bg-n-alpha-2 text-n-slate-10 flex-shrink-0"
           @click="emit('close')"
         >
           <Icon icon="i-lucide-x" class="size-4" />
@@ -332,8 +334,8 @@ const contactNameFor = conv =>
       <!-- Body -->
       <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4">
 
-        <!-- Title (standalone tasks) -->
-        <div v-if="isStandaloneTask">
+        <!-- Title — always at top -->
+        <div>
           <input
             v-model="localTitle"
             type="text"
@@ -357,14 +359,9 @@ const contactNameFor = conv =>
               class="flex-shrink-0"
             />
             <div class="flex-1 min-w-0">
-              <input
-                v-model="localTitle"
-                type="text"
-                class="w-full text-sm font-medium text-n-slate-12 bg-transparent border-0 outline-none focus:bg-n-alpha-1 rounded px-1 -mx-1 truncate placeholder:text-n-slate-9"
-                :placeholder="contactName"
-                @blur="saveTitle"
-                @keydown.enter.prevent="saveTitle"
-              />
+              <span class="block text-sm font-medium text-n-slate-12 truncate">
+                {{ contactName }}
+              </span>
               <div class="flex items-center gap-2 mt-0.5">
                 <span
                   v-if="channelLabel"
@@ -609,17 +606,17 @@ const contactNameFor = conv =>
         class="flex items-center justify-between px-6 py-3 border-t border-n-weak bg-n-solid-1 flex-shrink-0"
       >
         <button
-          class="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-red-300 dark:border-red-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+          class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-n-ruby-7 text-n-ruby-11 hover:bg-n-ruby-3 transition-colors disabled:opacity-50"
           :disabled="isDeleting"
           @click="deleteCard"
         >
           <Icon icon="i-lucide-trash-2" class="size-3.5" />
           {{ t('KANBAN.CARD.DELETE') }}
         </button>
-        <div class="flex items-center gap-3">
-          <span v-if="isSaving" class="text-xs text-n-slate-9">Saving...</span>
-          <span class="text-xs text-n-slate-9">#{{ card.id }}</span>
-        </div>
+        <span v-if="isSaving" class="inline-flex items-center gap-1.5 text-xs text-n-slate-10">
+          <Icon icon="i-lucide-loader-circle" class="size-3 animate-spin" />
+          {{ t('KANBAN.SETTINGS.STATUS_SAVING') }}
+        </span>
       </div>
     </div>
   </div>

@@ -284,6 +284,7 @@
       "NO_CONVERSATIONS": "Nenhuma conversa vinculada",
       "ADD_CONVERSATION": "Vincular conversa",
       "STANDALONE_BADGE": "Tarefa",
+      "LINKED_BADGE": "Vinculada à conversa",
       "REMOVE_CONV": "Desvincular",
       "OPEN_CONV": "Abrir conversa",
       "CHANGE_CONV": "Trocar conversa",
