@@ -5,6 +5,7 @@ import { useStore, useMapGetter } from 'dashboard/composables/store.js';
 import DatePicker from 'vue-datepicker-next';
 import 'vue-datepicker-next/index.css';
 import { frontendURL } from 'dashboard/helper/URLHelper.js';
+import searchAPI from 'dashboard/api/search.js';
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import ComboBox from 'dashboard/components-next/combobox/ComboBox.vue';
@@ -240,6 +241,58 @@ const CHANNEL_LABELS = {
 
 const channelColor = computed(() => CHANNEL_COLORS[conversation.value?.channel] || '#94A3B8');
 const channelLabel = computed(() => CHANNEL_LABELS[conversation.value?.channel] || '');
+
+// Link / change conversation
+const isLinkingConv = ref(false);
+const convSearchQuery = ref('');
+const convSearchResults = ref([]);
+const isSearchingConv = ref(false);
+let convSearchTimer = null;
+
+const doConvSearch = async q => {
+  if (!q.trim()) {
+    convSearchResults.value = [];
+    return;
+  }
+  isSearchingConv.value = true;
+  try {
+    const { data } = await searchAPI.conversations({ q: q.trim(), page: 1 });
+    const convs =
+      data?.payload?.conversations || data?.conversations || data?.payload || [];
+    convSearchResults.value = Array.isArray(convs)
+      ? convs.filter(c => c.id !== conversation.value?.id).slice(0, 6)
+      : [];
+  } catch {
+    convSearchResults.value = [];
+  } finally {
+    isSearchingConv.value = false;
+  }
+};
+
+watch(convSearchQuery, q => {
+  clearTimeout(convSearchTimer);
+  convSearchTimer = setTimeout(() => doConvSearch(q), 300);
+});
+
+const openLinkSearch = () => {
+  isLinkingConv.value = true;
+  convSearchQuery.value = '';
+  convSearchResults.value = [];
+};
+const closeLinkSearch = () => {
+  isLinkingConv.value = false;
+  convSearchQuery.value = '';
+  convSearchResults.value = [];
+};
+const handleLinkSelect = async conv => {
+  closeLinkSearch();
+  await saveField('conversation_id', conv.id);
+};
+const handleUnlink = async () => {
+  await saveField('conversation_id', null);
+};
+const contactNameFor = conv =>
+  conv.meta?.sender?.name || conv.contact?.name || `#${conv.id}`;
 </script>
 
 <template>
@@ -294,44 +347,151 @@ const channelLabel = computed(() => CHANNEL_LABELS[conversation.value?.channel] 
         <!-- Conversation block -->
         <div
           v-if="conversation?.id"
-          class="flex items-center gap-3 p-3 rounded-xl border border-n-weak bg-n-solid-2"
+          class="flex flex-col gap-2 p-3 rounded-xl border border-n-weak bg-n-solid-2"
         >
-          <Avatar
-            :name="contactName"
-            :src="conversation.meta?.sender?.thumbnail || ''"
-            :size="36"
-            class="flex-shrink-0"
-          />
-          <div class="flex-1 min-w-0">
-            <input
-              v-model="localTitle"
-              type="text"
-              class="w-full text-sm font-medium text-n-slate-12 bg-transparent border-0 outline-none focus:bg-n-alpha-1 rounded px-1 -mx-1 truncate placeholder:text-n-slate-9"
-              :placeholder="contactName"
-              @blur="saveTitle"
-              @keydown.enter.prevent="saveTitle"
+          <div class="flex items-center gap-3">
+            <Avatar
+              :name="contactName"
+              :src="conversation.meta?.sender?.thumbnail || ''"
+              :size="36"
+              class="flex-shrink-0"
             />
-            <div class="flex items-center gap-2 mt-0.5">
-              <span
-                v-if="channelLabel"
-                class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded"
-                :style="{ backgroundColor: channelColor + '22', color: channelColor }"
-              >
+            <div class="flex-1 min-w-0">
+              <input
+                v-model="localTitle"
+                type="text"
+                class="w-full text-sm font-medium text-n-slate-12 bg-transparent border-0 outline-none focus:bg-n-alpha-1 rounded px-1 -mx-1 truncate placeholder:text-n-slate-9"
+                :placeholder="contactName"
+                @blur="saveTitle"
+                @keydown.enter.prevent="saveTitle"
+              />
+              <div class="flex items-center gap-2 mt-0.5">
                 <span
-                  class="w-1.5 h-1.5 rounded-full"
-                  :style="{ backgroundColor: channelColor }"
-                />
-                {{ channelLabel }}
-              </span>
-              <span class="text-xs text-n-slate-9">#{{ conversation.display_id }}</span>
+                  v-if="channelLabel"
+                  class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded"
+                  :style="{ backgroundColor: channelColor + '22', color: channelColor }"
+                >
+                  <span
+                    class="w-1.5 h-1.5 rounded-full"
+                    :style="{ backgroundColor: channelColor }"
+                  />
+                  {{ channelLabel }}
+                </span>
+                <span class="text-xs text-n-slate-9">#{{ conversation.display_id }}</span>
+              </div>
             </div>
+            <button
+              class="flex items-center gap-1 text-xs text-n-brand hover:underline flex-shrink-0"
+              @click="openConversation"
+            >
+              <Icon icon="i-lucide-external-link" class="size-3" />
+              {{ t('KANBAN.TASK.OPEN_CONV') }}
+            </button>
+          </div>
+          <div class="flex items-center gap-3 pl-12 border-t border-n-weak pt-2">
+            <button
+              class="inline-flex items-center gap-1 text-xs text-n-slate-10 hover:text-n-slate-12"
+              @click="openLinkSearch"
+            >
+              <Icon icon="i-lucide-arrow-left-right" class="size-3" />
+              {{ t('KANBAN.TASK.CHANGE_CONV') }}
+            </button>
+            <button
+              class="inline-flex items-center gap-1 text-xs text-n-slate-10 hover:text-n-ruby-10"
+              @click="handleUnlink"
+            >
+              <Icon icon="i-lucide-link-2-off" class="size-3" />
+              {{ t('KANBAN.TASK.UNLINK_CONV') }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Link conversation (when standalone or changing) -->
+        <div
+          v-if="!conversation?.id && !isLinkingConv"
+          class="flex items-center justify-between p-3 rounded-xl border border-dashed border-n-weak bg-n-alpha-1"
+        >
+          <div class="flex items-center gap-2">
+            <Icon icon="i-lucide-message-square" class="size-4 text-n-slate-10" />
+            <span class="text-sm text-n-slate-10">
+              {{ t('KANBAN.TASK.NO_CONV_LINKED') }}
+            </span>
           </div>
           <button
-            class="text-xs text-n-brand hover:underline flex-shrink-0"
-            @click="openConversation"
+            class="inline-flex items-center gap-1 text-xs font-medium text-n-brand hover:underline"
+            @click="openLinkSearch"
           >
-            {{ t('KANBAN.TASK.OPEN_CONV') }}
+            <Icon icon="i-lucide-link" class="size-3" />
+            {{ t('KANBAN.TASK.LINK_CONV') }}
           </button>
+        </div>
+
+        <!-- Conversation search popover -->
+        <div
+          v-if="isLinkingConv"
+          class="flex flex-col gap-2 p-3 rounded-xl border border-n-brand/40 bg-n-brand/5"
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-n-slate-11">
+              {{ t('KANBAN.TASK.LINK_SEARCH_TITLE') }}
+            </span>
+            <button
+              class="text-n-slate-10 hover:text-n-slate-12"
+              @click="closeLinkSearch"
+            >
+              <Icon icon="i-lucide-x" class="size-3.5" />
+            </button>
+          </div>
+          <div class="relative">
+            <Icon
+              icon="i-lucide-search"
+              class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-n-slate-9"
+            />
+            <input
+              v-model="convSearchQuery"
+              type="text"
+              autofocus
+              class="w-full h-9 pl-9 pr-3 text-sm rounded-lg border border-n-weak bg-n-solid-1 text-n-slate-12 focus:outline-none focus:border-n-brand"
+              :placeholder="t('KANBAN.TASK.SEARCH_CONV_PLACEHOLDER')"
+            />
+            <Icon
+              v-if="isSearchingConv"
+              icon="i-lucide-loader-circle"
+              class="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-n-slate-9 animate-spin"
+            />
+          </div>
+          <div
+            v-if="convSearchResults.length"
+            class="flex flex-col rounded-lg border border-n-weak bg-n-solid-1 overflow-hidden"
+          >
+            <button
+              v-for="conv in convSearchResults"
+              :key="conv.id"
+              class="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-n-alpha-2 transition-colors"
+              @click="handleLinkSelect(conv)"
+            >
+              <Avatar
+                :name="contactNameFor(conv)"
+                :src="conv.meta?.sender?.thumbnail || ''"
+                :size="24"
+                class="flex-shrink-0"
+              />
+              <div class="flex-1 min-w-0">
+                <span class="block text-sm text-n-slate-12 truncate">
+                  {{ contactNameFor(conv) }}
+                </span>
+                <span class="block text-xs text-n-slate-9">
+                  #{{ conv.display_id || conv.id }} · {{ conv.status }}
+                </span>
+              </div>
+            </button>
+          </div>
+          <p
+            v-else-if="convSearchQuery.trim() && !isSearchingConv"
+            class="text-xs text-n-slate-9 italic"
+          >
+            {{ t('KANBAN.TASK.NO_CONV_RESULTS') }}
+          </p>
         </div>
 
         <!-- Column + Priority -->

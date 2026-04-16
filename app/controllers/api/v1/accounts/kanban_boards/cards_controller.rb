@@ -55,6 +55,7 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
   def update
     source_column_id = @card.kanban_column_id
     @card.update!(task_update_params)
+    @card.reload
 
     if @card.kanban_column_id != source_column_id
       Rails.configuration.dispatcher.dispatch(
@@ -114,7 +115,14 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
   end
 
   def task_update_params
-    params.require(:kanban_card).permit(:title, :description, :priority, :task_status, :due_date, :reminder_at, :kanban_column_id, assignee_ids: [], team_ids: [])
+    permitted = params.require(:kanban_card).permit(
+      :title, :description, :priority, :task_status, :due_date, :reminder_at,
+      :kanban_column_id, :conversation_id, assignee_ids: [], team_ids: []
+    )
+    if permitted.key?(:conversation_id) && permitted[:conversation_id].present?
+      Current.account.conversations.find(permitted[:conversation_id])
+    end
+    permitted
   end
 
   def move_params
