@@ -340,6 +340,8 @@ Rails.application.routes.draw do
               member do
                 patch :move
                 get :activities
+                post :link_conversation
+                delete 'link_conversation/:conversation_id', to: 'cards#unlink_conversation', as: :unlink_conversation
               end
             end
           end

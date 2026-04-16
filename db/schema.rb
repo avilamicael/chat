@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_30_000001) do
+ActiveRecord::Schema[7.1].define(version: 2026_04_16_000001) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -987,7 +987,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_30_000001) do
     t.index ["assignee_id"], name: "index_kanban_cards_on_assignee_id"
     t.index ["conversation_id"], name: "index_kanban_cards_on_conversation_id"
     t.index ["created_by_id"], name: "index_kanban_cards_on_created_by_id"
-    t.index ["kanban_board_id", "conversation_id"], name: "idx_unique_kanban_card_board_conversation", unique: true, where: "(conversation_id IS NOT NULL)"
+    t.index ["kanban_board_id", "conversation_id"], name: "idx_kanban_card_board_conversation", where: "(conversation_id IS NOT NULL)"
     t.index ["kanban_board_id"], name: "index_kanban_cards_on_kanban_board_id"
     t.index ["kanban_column_id", "position"], name: "index_kanban_cards_on_kanban_column_id_and_position"
     t.index ["kanban_column_id"], name: "index_kanban_cards_on_kanban_column_id"

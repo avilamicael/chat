@@ -1,8 +1,8 @@
 class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::BaseController
   before_action -> { check_authorization(KanbanCard) }
   before_action :set_board
-  before_action :set_card, only: [:destroy, :move, :update, :activities]
-  around_action :audit_as_current_user, only: [:create, :update, :move, :destroy]
+  before_action :set_card, only: [:destroy, :move, :update, :activities, :link_conversation, :unlink_conversation]
+  around_action :audit_as_current_user, only: [:create, :update, :move, :destroy, :link_conversation, :unlink_conversation]
 
   def index
     @cards = @board.kanban_cards.active.includes(
@@ -55,7 +55,7 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
   def update
     source_column_id = @card.kanban_column_id
     @card.update!(task_update_params)
-    @card = @board.kanban_cards.includes(conversation: [:assignee, :inbox, :contact]).find(@card.id)
+    reload_card_with_associations
 
     if @card.kanban_column_id != source_column_id
       Rails.configuration.dispatcher.dispatch(
@@ -95,7 +95,45 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
                          .limit(50)
   end
 
+  def link_conversation
+    conversation = Current.account.conversations.find(params.require(:conversation_id))
+
+    if @card.conversation_id.blank?
+      @card.update!(conversation_id: conversation.id)
+    else
+      @card.kanban_card_conversations.find_or_create_by!(conversation_id: conversation.id)
+    end
+
+    reload_card_with_associations
+    render :show
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { error: e.message }, status: :unprocessable_entity
+  end
+
+  def unlink_conversation
+    conversation_id = params.require(:conversation_id).to_i
+
+    if @card.conversation_id == conversation_id
+      @card.update!(conversation_id: nil)
+    else
+      @card.kanban_card_conversations.where(conversation_id: conversation_id).destroy_all
+    end
+
+    reload_card_with_associations
+    render :show
+  end
+
   private
+
+  def reload_card_with_associations
+    @card = @board.kanban_cards
+                  .includes(
+                    conversation: [:assignee, :inbox, :contact],
+                    kanban_card_conversations: { conversation: [:inbox, :contact] }
+                  )
+                  .find(@card.id)
+  end
+
 
   def audit_as_current_user(&block)
     Audited.audit_class.as_user(current_user, &block)
@@ -106,7 +144,12 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
   end
 
   def set_card
-    @card = @board.kanban_cards.includes(conversation: [:assignee, :inbox, :contact]).find(params[:id])
+    @card = @board.kanban_cards
+                  .includes(
+                    conversation: [:assignee, :inbox, :contact],
+                    kanban_card_conversations: { conversation: [:inbox, :contact] }
+                  )
+                  .find(params[:id])
   end
 
   def task_create_params

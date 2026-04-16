@@ -26,4 +26,12 @@ class KanbanCardPolicy < ApplicationPolicy
   def activities?
     @account_user.present?
   end
+
+  def link_conversation?
+    @account_user.present?
+  end
+
+  def unlink_conversation?
+    @account_user.present?
+  end
 end

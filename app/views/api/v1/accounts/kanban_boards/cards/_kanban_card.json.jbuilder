@@ -59,3 +59,19 @@ if kanban_card.association(:conversation).loaded? && kanban_card.conversation
 else
   json.conversation nil
 end
+
+linked_convs = kanban_card.kanban_card_conversations.map(&:conversation).compact
+json.linked_conversations linked_convs do |conv|
+  json.id conv.id
+  json.display_id conv.display_id
+  json.status conv.status
+  json.inbox_id conv.inbox_id
+  json.channel conv.inbox&.channel_type
+  json.meta do
+    json.sender do
+      json.id conv.contact&.id
+      json.name conv.contact&.name
+      json.thumbnail conv.contact&.avatar_url
+    end
+  end
+end

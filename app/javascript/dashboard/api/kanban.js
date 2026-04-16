@@ -84,6 +84,18 @@ class KanbanAPI extends ApiClient {
   getCardActivities(boardId, cardId) {
     return axios.get(`${this.url}/${boardId}/cards/${cardId}/activities`);
   }
+
+  linkConversationToCard(boardId, cardId, conversationId) {
+    return axios.post(`${this.url}/${boardId}/cards/${cardId}/link_conversation`, {
+      conversation_id: conversationId,
+    });
+  }
+
+  unlinkConversationFromCard(boardId, cardId, conversationId) {
+    return axios.delete(
+      `${this.url}/${boardId}/cards/${cardId}/link_conversation/${conversationId}`
+    );
+  }
 }
 
 export default new KanbanAPI();

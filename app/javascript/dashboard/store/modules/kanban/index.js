@@ -214,6 +214,18 @@ export const actions = {
     commit('REMOVE_CARD', { boardId: Number(boardId), cardId });
   },
 
+  async linkConversationToCard({ commit }, { boardId, cardId, conversationId }) {
+    const { data: card } = await kanbanAPI.linkConversationToCard(boardId, cardId, conversationId);
+    commit('UPDATE_CARD', { boardId: Number(boardId), card });
+    return card;
+  },
+
+  async unlinkConversationFromCard({ commit }, { boardId, cardId, conversationId }) {
+    const { data: card } = await kanbanAPI.unlinkConversationFromCard(boardId, cardId, conversationId);
+    commit('UPDATE_CARD', { boardId: Number(boardId), card });
+    return card;
+  },
+
   async updateColumn({ commit }, { boardId, columnId, ...data }) {
     const { data: response } = await kanbanAPI.updateColumn(boardId, columnId, data);
     commit('UPDATE_COLUMN', { boardId: Number(boardId), column: response });

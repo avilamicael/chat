@@ -243,11 +243,22 @@ const channelColor = computed(() => CHANNEL_COLORS[conversation.value?.channel] 
 const channelLabel = computed(() => CHANNEL_LABELS[conversation.value?.channel] || '');
 
 // Link / change conversation
+// searchMode: 'replace' = swap the primary; 'add' = append (becomes primary if empty, else secondary)
 const isLinkingConv = ref(false);
+const searchMode = ref('add');
 const convSearchQuery = ref('');
 const convSearchResults = ref([]);
 const isSearchingConv = ref(false);
 let convSearchTimer = null;
+
+const linkedConversations = computed(() => props.card.linked_conversations || []);
+
+const excludedConvIds = computed(() => {
+  const ids = new Set();
+  if (conversation.value?.id) ids.add(conversation.value.id);
+  linkedConversations.value.forEach(c => ids.add(c.id));
+  return ids;
+});
 
 const doConvSearch = async q => {
   if (!q.trim()) {
@@ -260,7 +271,7 @@ const doConvSearch = async q => {
     const convs =
       data?.payload?.conversations || data?.conversations || data?.payload || [];
     convSearchResults.value = Array.isArray(convs)
-      ? convs.filter(c => c.id !== conversation.value?.id).slice(0, 6)
+      ? convs.filter(c => !excludedConvIds.value.has(c.id)).slice(0, 6)
       : [];
   } catch {
     convSearchResults.value = [];
@@ -274,7 +285,8 @@ watch(convSearchQuery, q => {
   convSearchTimer = setTimeout(() => doConvSearch(q), 300);
 });
 
-const openLinkSearch = () => {
+const openLinkSearch = (mode = 'add') => {
+  searchMode.value = mode;
   isLinkingConv.value = true;
   convSearchQuery.value = '';
   convSearchResults.value = [];
@@ -286,11 +298,35 @@ const closeLinkSearch = () => {
 };
 const handleLinkSelect = async conv => {
   closeLinkSearch();
-  await saveField('conversation_id', conv.id);
+  if (searchMode.value === 'replace') {
+    await saveField('conversation_id', conv.id);
+  } else {
+    await store.dispatch('kanban/linkConversationToCard', {
+      boardId: props.boardId,
+      cardId: props.card.id,
+      conversationId: conv.id,
+    });
+  }
 };
 const handleUnlink = async () => {
   await saveField('conversation_id', null);
 };
+const handleRemoveLinked = async convId => {
+  await store.dispatch('kanban/unlinkConversationFromCard', {
+    boardId: props.boardId,
+    cardId: props.card.id,
+    conversationId: convId,
+  });
+};
+
+const openConversationById = convId => {
+  window.open(
+    frontendURL(`accounts/${props.accountId}/conversations/${convId}`),
+    '_blank',
+    'noopener,noreferrer'
+  );
+};
+
 const contactNameFor = conv =>
   conv.meta?.sender?.name || conv.contact?.name || `#${conv.id}`;
 </script>
@@ -388,7 +424,7 @@ const contactNameFor = conv =>
           <div class="flex items-center gap-3 pl-12 border-t border-n-weak pt-2">
             <button
               class="inline-flex items-center gap-1 text-xs text-n-slate-10 hover:text-n-slate-12"
-              @click="openLinkSearch"
+              @click="openLinkSearch('replace')"
             >
               <Icon icon="i-lucide-arrow-left-right" class="size-3" />
               {{ t('KANBAN.TASK.CHANGE_CONV') }}
@@ -416,11 +452,73 @@ const contactNameFor = conv =>
           </div>
           <button
             class="inline-flex items-center gap-1 text-xs font-medium text-n-brand hover:underline"
-            @click="openLinkSearch"
+            @click="openLinkSearch('add')"
           >
             <Icon icon="i-lucide-link" class="size-3" />
             {{ t('KANBAN.TASK.LINK_CONV') }}
           </button>
+        </div>
+
+        <!-- Linked conversations (secondary) -->
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-n-slate-11">
+              {{ t('KANBAN.TASK.LINKED_CONVS_TITLE') }}
+              <span v-if="linkedConversations.length" class="text-n-slate-9 font-normal">
+                ({{ linkedConversations.length }})
+              </span>
+            </span>
+            <button
+              v-if="conversation?.id && !isLinkingConv"
+              class="inline-flex items-center gap-1 text-xs font-medium text-n-brand hover:underline"
+              @click="openLinkSearch('add')"
+            >
+              <Icon icon="i-lucide-plus" class="size-3" />
+              {{ t('KANBAN.TASK.ADD_LINKED_CONV') }}
+            </button>
+          </div>
+          <div
+            v-if="linkedConversations.length"
+            class="flex flex-col gap-1.5"
+          >
+            <div
+              v-for="conv in linkedConversations"
+              :key="conv.id"
+              class="flex items-center gap-2 px-3 py-2 rounded-lg border border-n-weak bg-n-solid-2"
+            >
+              <Avatar
+                :name="contactNameFor(conv)"
+                :src="conv.meta?.sender?.thumbnail || ''"
+                :size="24"
+                class="flex-shrink-0"
+              />
+              <div class="flex-1 min-w-0">
+                <span class="block text-sm text-n-slate-12 truncate">
+                  {{ contactNameFor(conv) }}
+                </span>
+                <span class="block text-xs text-n-slate-9">
+                  #{{ conv.display_id || conv.id }} · {{ conv.status }}
+                </span>
+              </div>
+              <button
+                class="p-1 rounded hover:bg-n-alpha-2 text-n-slate-10 hover:text-n-slate-12"
+                :title="t('KANBAN.TASK.OPEN_CONV')"
+                @click="openConversationById(conv.id)"
+              >
+                <Icon icon="i-lucide-external-link" class="size-3.5" />
+              </button>
+              <button
+                class="p-1 rounded hover:bg-n-alpha-2 text-n-slate-10 hover:text-n-ruby-10"
+                :title="t('KANBAN.TASK.UNLINK_CONV')"
+                @click="handleRemoveLinked(conv.id)"
+              >
+                <Icon icon="i-lucide-x" class="size-3.5" />
+              </button>
+            </div>
+          </div>
+          <p v-else class="text-xs text-n-slate-9 italic">
+            {{ t('KANBAN.TASK.LINKED_CONVS_EMPTY') }}
+          </p>
         </div>
 
         <!-- Conversation search popover -->
