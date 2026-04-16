@@ -478,12 +478,21 @@ Estrutura que cabe num JSON de configuração estática ou tabela no DB do backe
 // Starter é o "menor denominador comum" — só WhatsApp (Baileys), 2 agentes, 1 inbox.
 // Cada plano superior acrescenta limites e features explicitamente. Um `false` explícito
 // é importante: ele DESLIGA features que podem estar ativadas em features.yml por default.
+//
+// Canais de atendimento (whatsapp, telegram, sms, api, line) são gatedos via
+// `custom_attributes.allowed_channels` porque feature_flags já está no limite
+// de 63 bits do bigint. Canais fora desse array ficam escondidos na UI de criação
+// de inbox. Lista vazia ou omissa = todos permitidos (backwards compatible).
+//
+// **IMPORTANTE:** o endpoint PATCH substitui `custom_attributes` inteiro, não faz merge.
+// Sempre envie o objeto completo (plan_name + allowed_channels + demais chaves).
 const PLANS = {
   starter: {
     name: "Starter",
     price_brl: 4900,              // R$ 49
     stripe_price_id: "price_xxx",
     abacatepay_product_id: "prod_xxx",
+    allowed_channels: ["whatsapp", "telegram"],
     limits: {
       agents: 2,
       inboxes: 1,
@@ -493,7 +502,7 @@ const PLANS = {
       emails: 100
     },
     features: {
-      // Canais: só WhatsApp (via Baileys, não tem flag)
+      // Canais com feature flags específicas (UI baseia nisso)
       inbound_emails: false,
       channel_email: false,
       channel_facebook: false,
@@ -543,6 +552,7 @@ const PLANS = {
   pro: {
     name: "Pro",
     price_brl: 14900,
+    allowed_channels: ["whatsapp", "telegram", "sms", "api"],
     limits: {
       agents: 10,
       inboxes: 5,
@@ -600,6 +610,7 @@ const PLANS = {
   business: {
     name: "Business",
     price_brl: 39900,
+    allowed_channels: ["whatsapp", "telegram", "sms", "api", "line"],
     limits: {
       agents: 50,
       inboxes: 20,
@@ -658,12 +669,15 @@ function buildPatchPayload(planKey, customerOverrides = {}) {
   return {
     limits: { ...plan.limits, ...customerOverrides.limits },
     features: { ...plan.features, ...customerOverrides.features },
+    // custom_attributes é substituído inteiro pelo PATCH, nunca merged
+    // Inclua SEMPRE o objeto completo aqui.
     custom_attributes: {
       plan_name: planKey,
       plan_expires_at: customerOverrides.expires_at,
       billing_provider: customerOverrides.provider,
       billing_customer_id: customerOverrides.customer_id,
-      billing_subscription_id: customerOverrides.subscription_id
+      billing_subscription_id: customerOverrides.subscription_id,
+      allowed_channels: plan.allowed_channels
     }
   };
 }

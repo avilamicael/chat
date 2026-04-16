@@ -15,6 +15,9 @@ const { accountId, currentAccount } = useAccount();
 const globalConfig = useMapGetter('globalConfig/get');
 
 const enabledFeatures = ref({});
+const allowedChannels = computed(
+  () => currentAccount.value?.custom_attributes?.allowed_channels || []
+);
 
 const hasTiktokConfigured = computed(() => {
   return window.chatwootConfig?.tiktokAppId;
@@ -124,6 +127,7 @@ onMounted(() => {
       :key="channel.key"
       :channel="channel"
       :enabled-features="enabledFeatures"
+      :allowed-channels="allowedChannels"
       @channel-item-click="initChannelAuth"
     />
   </div>

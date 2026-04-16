@@ -11,6 +11,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  allowedChannels: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const emit = defineEmits(['channelItemClick']);
@@ -56,18 +60,18 @@ const isActive = computed(() => {
     return props.enabledFeatures.channel_voice;
   }
 
-  return [
-    'website',
-    'twilio',
-    'api',
-    'whatsapp',
-    'sms',
-    'telegram',
-    'line',
-    'instagram',
-    'tiktok',
-    'voice',
-  ].includes(key);
+  // Channels gated per plan via account.custom_attributes.allowed_channels.
+  // An empty/missing array means "no restriction" (backwards compatible).
+  const GATED_CHANNELS = ['whatsapp', 'telegram', 'sms', 'api', 'line'];
+  if (GATED_CHANNELS.includes(key)) {
+    const allowed = props.allowedChannels;
+    if (Array.isArray(allowed) && allowed.length > 0) {
+      return allowed.includes(key);
+    }
+    return true;
+  }
+
+  return ['website', 'twilio'].includes(key);
 });
 
 const isComingSoon = computed(() => {
