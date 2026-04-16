@@ -283,11 +283,11 @@
 
 # ------- Chatwoot Internal Config for Self Hosted ----#
 - name: INSTALLATION_PRICING_PLAN
-  value: 'community'
-  description: 'The pricing plan for the installation, retrieved from the billing API'
+  value: 'enterprise'
+  description: 'The pricing plan for the installation. White-label fork defaults to enterprise so all premium features are unlockable.'
 - name: INSTALLATION_PRICING_PLAN_QUANTITY
-  value: 0
-  description: 'The number of licenses purchased for the installation, retrieved from the billing API'
+  value: 999999
+  description: 'Number of licenses purchased. Kept intentionally high for white-label so user-count gates never trigger.'
 - name: CHATWOOT_SUPPORT_WEBSITE_TOKEN
   value:
   description: 'The Chatwoot website token, used to identify the Chatwoot inbox and display the "Contact Support" option on the billing page'
