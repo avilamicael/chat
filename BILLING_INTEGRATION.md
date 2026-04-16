@@ -520,6 +520,8 @@ const PLANS = {
       crm: true,
 
       // Bloqueadas no starter (explicitamente)
+      integrations: false,
+      agent_bots: false,
       companies: false,
       captain_integration: false,
       captain_integration_v2: false,
