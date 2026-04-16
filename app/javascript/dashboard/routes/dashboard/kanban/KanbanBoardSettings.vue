@@ -506,6 +506,15 @@ const goBack = () => {
           </button>
 
           <div v-if="isFiltersOpen" class="flex flex-col gap-6 px-6 pb-6 pt-1">
+            <div
+              v-if="!boardIsDefault"
+              class="flex items-start gap-2 p-3 rounded-lg bg-n-amber-3 border border-n-amber-5"
+            >
+              <Icon icon="i-lucide-info" class="size-4 text-n-amber-11 flex-shrink-0 mt-0.5" />
+              <p class="text-xs text-n-amber-12">
+                {{ t('KANBAN.SETTINGS.FILTERS_INACTIVE_HINT') }}
+              </p>
+            </div>
             <!-- Agents -->
             <div class="flex flex-col gap-2">
               <div class="flex flex-col gap-0.5">
