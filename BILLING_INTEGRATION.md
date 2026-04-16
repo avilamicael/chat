@@ -475,6 +475,9 @@ Aplicados via `limits: { chave: numero }` no PATCH. Schema validado em `enterpri
 Estrutura que cabe num JSON de configuração estática ou tabela no DB do backend:
 
 ```javascript
+// Starter é o "menor denominador comum" — só WhatsApp (Baileys), 2 agentes, 1 inbox.
+// Cada plano superior acrescenta limites e features explicitamente. Um `false` explícito
+// é importante: ele DESLIGA features que podem estar ativadas em features.yml por default.
 const PLANS = {
   starter: {
     name: "Starter",
@@ -490,14 +493,49 @@ const PLANS = {
       emails: 100
     },
     features: {
+      // Canais: só WhatsApp (via Baileys, não tem flag)
+      inbound_emails: false,
+      channel_email: false,
+      channel_facebook: false,
+      channel_website: false,
+      channel_instagram: false,
+      channel_tiktok: false,
+      channel_voice: false,
+      custom_reply_email: false,
+      custom_reply_domain: false,
+
+      // Produtividade básica
       kanban: true,
+      labels: true,
       macros: true,
-      help_center: false,
+      canned_responses: true,
+      agent_management: true,
+      inbox_management: true,
+      team_management: true,
+      custom_attributes: true,
+      auto_resolve_conversations: true,
+      reports: true,
+      voice_recorder: true,
+      automations: true,
+      crm: true,
+
+      // Bloqueadas no starter (explicitamente)
+      companies: false,
+      captain_integration: false,
+      captain_integration_v2: false,
+      captain_tasks: false,
       sla: false,
       custom_roles: false,
-      captain_integration: false,
       audit_logs: false,
-      disable_branding: false
+      disable_branding: false,
+      campaigns: false,
+      whatsapp_campaign: false,
+      saml: false,
+      advanced_search: false,
+      advanced_assignment: false,
+      conversation_required_attributes: false,
+      csat_review_notes: false,
+      help_center: false
     }
   },
   pro: {
@@ -512,14 +550,49 @@ const PLANS = {
       emails: 1000
     },
     features: {
+      // Canais: WhatsApp + email + website
+      inbound_emails: true,
+      channel_email: true,
+      channel_website: true,
+      channel_facebook: false,
+      channel_instagram: false,
+      channel_tiktok: false,
+      channel_voice: false,
+
+      // Tudo do starter
       kanban: true,
+      labels: true,
       macros: true,
+      canned_responses: true,
+      agent_management: true,
+      inbox_management: true,
+      team_management: true,
+      custom_attributes: true,
+      auto_resolve_conversations: true,
+      reports: true,
+      voice_recorder: true,
+      automations: true,
+      crm: true,
       help_center: true,
+      campaigns: true,
+      whatsapp_campaign: true,
+
+      // Novidades do Pro
       sla: true,
-      custom_roles: false,
       captain_integration: true,
+      captain_integration_v2: true,
+      captain_tasks: true,
+
+      // Ainda bloqueado no Pro
+      companies: false,
+      custom_roles: false,
       audit_logs: false,
-      disable_branding: false
+      disable_branding: false,
+      saml: false,
+      advanced_search: false,
+      advanced_assignment: false,
+      conversation_required_attributes: false,
+      csat_review_notes: false
     }
   },
   business: {
@@ -534,14 +607,46 @@ const PLANS = {
       emails: 10000
     },
     features: {
+      // Todos os canais
+      inbound_emails: true,
+      channel_email: true,
+      channel_website: true,
+      channel_facebook: true,
+      channel_instagram: true,
+      channel_tiktok: true,
+      channel_voice: true,
+
+      // Tudo do Pro
       kanban: true,
+      labels: true,
       macros: true,
+      canned_responses: true,
+      agent_management: true,
+      inbox_management: true,
+      team_management: true,
+      custom_attributes: true,
+      auto_resolve_conversations: true,
+      reports: true,
+      voice_recorder: true,
+      automations: true,
+      crm: true,
       help_center: true,
+      campaigns: true,
+      whatsapp_campaign: true,
       sla: true,
-      custom_roles: true,
       captain_integration: true,
+      captain_integration_v2: true,
+      captain_tasks: true,
+
+      // Exclusivo do Business
+      companies: true,
+      custom_roles: true,
       audit_logs: true,
-      disable_branding: true
+      disable_branding: true,
+      saml: true,
+      advanced_assignment: true,
+      conversation_required_attributes: true,
+      csat_review_notes: true
     }
   }
 }
