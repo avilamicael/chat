@@ -11,6 +11,7 @@ import kanbanAPI from 'dashboard/api/kanban.js';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import ComboBox from 'dashboard/components-next/combobox/ComboBox.vue';
 import KanbanColumnSettingsModal from './components/KanbanColumnSettingsModal.vue';
+import FilterChipGroup from './components/FilterChipGroup.vue';
 
 const { t } = useI18n();
 const store = useStore();
@@ -118,14 +119,22 @@ const addColumn = async () => {
   }
 };
 
-const deleteColumn = async col => {
-  if (!window.confirm(t('KANBAN.COLUMN.DELETE_CONFIRM'))) return;
+const deletingColumnId = ref(null);
+const requestDeleteColumn = col => {
+  deletingColumnId.value = col.id;
+};
+const cancelDeleteColumn = () => {
+  deletingColumnId.value = null;
+};
+const confirmDeleteColumn = async col => {
   try {
     await kanbanAPI.deleteColumn(boardId.value, col.id);
     await store.dispatch('kanban/fetchBoard', boardId.value);
     useAlert(t('KANBAN.SETTINGS.COLUMN_DELETED'));
   } catch {
     useAlert(t('KANBAN.SETTINGS.SAVE_ERROR'));
+  } finally {
+    deletingColumnId.value = null;
   }
 };
 
@@ -139,27 +148,7 @@ const intakeColumnOptions = computed(() =>
 const selectedAgentIds = ref([]);
 const selectedInboxIds = ref([]);
 
-const selectedAgents = computed(() =>
-  allAgents.value.filter(a => selectedAgentIds.value.includes(a.id))
-);
-const selectedInboxes = computed(() =>
-  allInboxes.value.filter(i => selectedInboxIds.value.includes(i.id))
-);
-const availableAgents = computed(() =>
-  allAgents.value.filter(a => !selectedAgentIds.value.includes(a.id))
-);
-const availableInboxes = computed(() =>
-  allInboxes.value.filter(i => !selectedInboxIds.value.includes(i.id))
-);
-
 const selectedTeamIds = ref([]);
-
-const selectedTeams = computed(() =>
-  allTeams.value.filter(tm => selectedTeamIds.value.includes(tm.id))
-);
-const availableTeams = computed(() =>
-  allTeams.value.filter(tm => !selectedTeamIds.value.includes(tm.id))
-);
 
 // Filters group — collapsible with summary
 const isFiltersOpen = ref(false);
@@ -175,47 +164,35 @@ const filterSummary = computed(() => {
   return parts.join(' · ');
 });
 
-const addingAgentId = ref(null);
-const addingInboxId = ref(null);
-const addingTeamId = ref(null);
-
-watch(addingAgentId, id => {
-  if (id && !selectedAgentIds.value.includes(Number(id))) {
-    selectedAgentIds.value = [...selectedAgentIds.value, Number(id)];
+const addAgent = id => {
+  if (!selectedAgentIds.value.includes(id)) {
+    selectedAgentIds.value = [...selectedAgentIds.value, id];
     useAlert(t('KANBAN.SETTINGS.AGENT_ADDED'));
   }
-  addingAgentId.value = null;
-});
-
-watch(addingInboxId, id => {
-  if (id && !selectedInboxIds.value.includes(Number(id))) {
-    selectedInboxIds.value = [...selectedInboxIds.value, Number(id)];
-    useAlert(t('KANBAN.SETTINGS.INBOX_ADDED'));
-  }
-  addingInboxId.value = null;
-});
-
-watch(addingTeamId, id => {
-  if (id && !selectedTeamIds.value.includes(Number(id))) {
-    selectedTeamIds.value = [...selectedTeamIds.value, Number(id)];
+};
+const addTeam = id => {
+  if (!selectedTeamIds.value.includes(id)) {
+    selectedTeamIds.value = [...selectedTeamIds.value, id];
     useAlert(t('KANBAN.SETTINGS.TEAM_ADDED'));
   }
-  addingTeamId.value = null;
-});
-
+};
+const addInbox = id => {
+  if (!selectedInboxIds.value.includes(id)) {
+    selectedInboxIds.value = [...selectedInboxIds.value, id];
+    useAlert(t('KANBAN.SETTINGS.INBOX_ADDED'));
+  }
+};
 const removeAgent = id => {
   selectedAgentIds.value = selectedAgentIds.value.filter(a => a !== id);
   useAlert(t('KANBAN.SETTINGS.AGENT_REMOVED'));
 };
-
-const removeInbox = id => {
-  selectedInboxIds.value = selectedInboxIds.value.filter(i => i !== id);
-  useAlert(t('KANBAN.SETTINGS.INBOX_REMOVED'));
-};
-
 const removeTeam = id => {
   selectedTeamIds.value = selectedTeamIds.value.filter(tm => tm !== id);
   useAlert(t('KANBAN.SETTINGS.TEAM_REMOVED'));
+};
+const removeInbox = id => {
+  selectedInboxIds.value = selectedInboxIds.value.filter(i => i !== id);
+  useAlert(t('KANBAN.SETTINGS.INBOX_REMOVED'));
 };
 
 // Save board (name + default + agents + inboxes)
@@ -391,8 +368,31 @@ const goBack = () => {
                   <Icon icon="i-lucide-grip-vertical" class="size-4" />
                 </button>
 
+                <!-- Delete confirm state -->
+                <template v-if="deletingColumnId === col.id">
+                  <span
+                    class="w-3 h-3 rounded-full flex-shrink-0"
+                    :style="{ backgroundColor: col.color || '#6B7280' }"
+                  />
+                  <span class="flex-1 text-sm text-n-slate-11 truncate">
+                    {{ t('KANBAN.COLUMN.DELETE_CONFIRM_INLINE', { name: col.name }) }}
+                  </span>
+                  <button
+                    class="px-2 py-1 text-xs font-medium rounded bg-n-ruby-9 text-white hover:bg-n-ruby-10"
+                    @click="confirmDeleteColumn(col)"
+                  >
+                    {{ t('KANBAN.SETTINGS.DELETE_CONFIRM_BTN_SHORT') }}
+                  </button>
+                  <button
+                    class="px-2 py-1 text-xs rounded border border-n-weak text-n-slate-11 hover:bg-n-alpha-2"
+                    @click="cancelDeleteColumn"
+                  >
+                    {{ t('KANBAN.SETTINGS.CANCEL') }}
+                  </button>
+                </template>
+
                 <!-- Editing state -->
-                <template v-if="editingColumnId === col.id">
+                <template v-else-if="editingColumnId === col.id">
                   <input
                     v-model="editColor"
                     type="color"
@@ -444,9 +444,9 @@ const goBack = () => {
                     <Icon icon="i-lucide-pencil" class="size-3.5" />
                   </button>
                   <button
-                    class="p-1 rounded hover:bg-n-alpha-2 text-n-slate-10 hover:text-red-500"
+                    class="p-1 rounded hover:bg-n-alpha-2 text-n-slate-10 hover:text-n-ruby-10"
                     :title="t('KANBAN.COLUMN.DELETE')"
-                    @click="deleteColumn(col)"
+                    @click="requestDeleteColumn(col)"
                   >
                     <Icon icon="i-lucide-trash-2" class="size-3.5" />
                   </button>
@@ -515,116 +515,38 @@ const goBack = () => {
                 {{ t('KANBAN.SETTINGS.FILTERS_INACTIVE_HINT') }}
               </p>
             </div>
-            <!-- Agents -->
-            <div class="flex flex-col gap-2">
-              <div class="flex flex-col gap-0.5">
-                <h3 class="text-sm font-medium text-n-slate-12">
-                  {{ t('KANBAN.SETTINGS.AGENTS') }}
-                </h3>
-                <p class="text-xs text-n-slate-10">
-                  {{ t('KANBAN.SETTINGS.AGENTS_HINT') }}
-                </p>
-              </div>
-              <div class="flex flex-wrap gap-2">
-                <span
-                  v-for="agent in selectedAgents"
-                  :key="agent.id"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-n-alpha-2 text-n-slate-11 border border-n-weak"
-                >
-                  {{ agent.name }}
-                  <button
-                    class="text-n-slate-9 hover:text-n-slate-12"
-                    @click="removeAgent(agent.id)"
-                  >
-                    <Icon icon="i-lucide-x" class="size-3" />
-                  </button>
-                </span>
-                <ComboBox
-                  v-if="availableAgents.length"
-                  v-model="addingAgentId"
-                  :options="availableAgents.map(a => ({ value: a.id, label: a.name }))"
-                  :placeholder="t('KANBAN.SETTINGS.ADD_AGENT')"
-                  :search-placeholder="t('KANBAN.SETTINGS.ADD_AGENT')"
-                />
-                <span v-else-if="!selectedAgents.length" class="text-xs text-n-slate-9 italic">
-                  {{ t('KANBAN.SETTINGS.ALL_AGENTS_ACCESS') }}
-                </span>
-              </div>
-            </div>
+            <FilterChipGroup
+              :title="t('KANBAN.SETTINGS.AGENTS')"
+              :hint="t('KANBAN.SETTINGS.AGENTS_HINT')"
+              :items="allAgents"
+              :selected-ids="selectedAgentIds"
+              :add-placeholder="t('KANBAN.SETTINGS.ADD_AGENT')"
+              :empty-label="t('KANBAN.SETTINGS.ALL_AGENTS_ACCESS')"
+              @add="addAgent"
+              @remove="removeAgent"
+            />
 
-            <!-- Teams -->
-            <div class="flex flex-col gap-2">
-              <div class="flex flex-col gap-0.5">
-                <h3 class="text-sm font-medium text-n-slate-12">
-                  {{ t('KANBAN.SETTINGS.TEAMS') }}
-                </h3>
-                <p class="text-xs text-n-slate-10">
-                  {{ t('KANBAN.SETTINGS.TEAMS_HINT') }}
-                </p>
-              </div>
-              <div class="flex flex-wrap gap-2">
-                <span
-                  v-for="team in selectedTeams"
-                  :key="team.id"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-n-alpha-2 text-n-slate-11 border border-n-weak"
-                >
-                  {{ team.name }}
-                  <button
-                    class="text-n-slate-9 hover:text-n-slate-12"
-                    @click="removeTeam(team.id)"
-                  >
-                    <Icon icon="i-lucide-x" class="size-3" />
-                  </button>
-                </span>
-                <ComboBox
-                  v-if="availableTeams.length"
-                  v-model="addingTeamId"
-                  :options="availableTeams.map(tm => ({ value: tm.id, label: tm.name }))"
-                  :placeholder="t('KANBAN.SETTINGS.ADD_TEAM')"
-                  :search-placeholder="t('KANBAN.SETTINGS.ADD_TEAM')"
-                />
-                <span v-else-if="!selectedTeams.length" class="text-xs text-n-slate-9 italic">
-                  {{ t('KANBAN.SETTINGS.ALL_TEAMS_ACCESS') }}
-                </span>
-              </div>
-            </div>
+            <FilterChipGroup
+              :title="t('KANBAN.SETTINGS.TEAMS')"
+              :hint="t('KANBAN.SETTINGS.TEAMS_HINT')"
+              :items="allTeams"
+              :selected-ids="selectedTeamIds"
+              :add-placeholder="t('KANBAN.SETTINGS.ADD_TEAM')"
+              :empty-label="t('KANBAN.SETTINGS.ALL_TEAMS_ACCESS')"
+              @add="addTeam"
+              @remove="removeTeam"
+            />
 
-            <!-- Inboxes -->
-            <div class="flex flex-col gap-2">
-              <div class="flex flex-col gap-0.5">
-                <h3 class="text-sm font-medium text-n-slate-12">
-                  {{ t('KANBAN.SETTINGS.INBOXES') }}
-                </h3>
-                <p class="text-xs text-n-slate-10">
-                  {{ t('KANBAN.SETTINGS.INBOXES_HINT') }}
-                </p>
-              </div>
-              <div class="flex flex-wrap gap-2">
-                <span
-                  v-for="inbox in selectedInboxes"
-                  :key="inbox.id"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-n-alpha-2 text-n-slate-11 border border-n-weak"
-                >
-                  {{ inbox.name }}
-                  <button
-                    class="text-n-slate-9 hover:text-n-slate-12"
-                    @click="removeInbox(inbox.id)"
-                  >
-                    <Icon icon="i-lucide-x" class="size-3" />
-                  </button>
-                </span>
-                <ComboBox
-                  v-if="availableInboxes.length"
-                  v-model="addingInboxId"
-                  :options="availableInboxes.map(i => ({ value: i.id, label: i.name }))"
-                  :placeholder="t('KANBAN.SETTINGS.ADD_INBOX')"
-                  :search-placeholder="t('KANBAN.SETTINGS.ADD_INBOX')"
-                />
-                <span v-else-if="!selectedInboxes.length" class="text-xs text-n-slate-9 italic">
-                  {{ t('KANBAN.SETTINGS.ALL_INBOXES_ACCESS') }}
-                </span>
-              </div>
-            </div>
+            <FilterChipGroup
+              :title="t('KANBAN.SETTINGS.INBOXES')"
+              :hint="t('KANBAN.SETTINGS.INBOXES_HINT')"
+              :items="allInboxes"
+              :selected-ids="selectedInboxIds"
+              :add-placeholder="t('KANBAN.SETTINGS.ADD_INBOX')"
+              :empty-label="t('KANBAN.SETTINGS.ALL_INBOXES_ACCESS')"
+              @add="addInbox"
+              @remove="removeInbox"
+            />
           </div>
         </section>
 
