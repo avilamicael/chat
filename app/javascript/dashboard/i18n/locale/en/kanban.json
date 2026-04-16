@@ -144,7 +144,15 @@
       "ALL_TEAMS_ACCESS": "All teams have access",
       "TEAM_ADDED": "Team added",
       "TEAM_REMOVED": "Team removed",
-      "DEFAULT_HINT": "The default funnel automatically receives new conversations from matching inboxes."
+      "DEFAULT_HINT": "The default funnel automatically receives new conversations from matching inboxes.",
+      "GENERAL_TITLE": "General",
+      "GENERAL_DESC": "Name and default behavior for this funnel.",
+      "COLUMNS_DESC": "Drag to reorder. Click the sliders icon on hover to configure automations per column.",
+      "FILTERS_TITLE": "Conversation filters",
+      "FILTERS_EMPTY": "No filters — all conversations can be added to this funnel.",
+      "FILTER_SUMMARY_AGENTS": "{count} agents",
+      "FILTER_SUMMARY_TEAMS": "{count} teams",
+      "FILTER_SUMMARY_INBOXES": "{count} inboxes"
     },
     "TEMPLATE": {
       "CHOOSE_TITLE": "Choose a template",

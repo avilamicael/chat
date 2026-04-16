@@ -144,7 +144,15 @@
       "ALL_TEAMS_ACCESS": "Todos os times têm acesso",
       "TEAM_ADDED": "Time adicionado",
       "TEAM_REMOVED": "Time removido",
-      "DEFAULT_HINT": "O funil padrão recebe automaticamente novas conversas das caixas de entrada configuradas."
+      "DEFAULT_HINT": "O funil padrão recebe automaticamente novas conversas das caixas de entrada configuradas.",
+      "GENERAL_TITLE": "Geral",
+      "GENERAL_DESC": "Nome e comportamento padrão deste funil.",
+      "COLUMNS_DESC": "Arraste para reordenar. Clique no ícone de sliders ao passar o mouse para configurar automações por etapa.",
+      "FILTERS_TITLE": "Filtros de conversas",
+      "FILTERS_EMPTY": "Sem filtros — todas as conversas podem ser adicionadas a este funil.",
+      "FILTER_SUMMARY_AGENTS": "{count} agentes",
+      "FILTER_SUMMARY_TEAMS": "{count} times",
+      "FILTER_SUMMARY_INBOXES": "{count} inboxes"
     },
     "TEMPLATE": {
       "CHOOSE_TITLE": "Escolha um modelo",

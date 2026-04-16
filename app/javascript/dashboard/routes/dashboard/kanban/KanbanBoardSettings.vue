@@ -161,6 +161,20 @@ const availableTeams = computed(() =>
   allTeams.value.filter(tm => !selectedTeamIds.value.includes(tm.id))
 );
 
+// Filters group — collapsible with summary
+const isFiltersOpen = ref(false);
+
+const filterSummary = computed(() => {
+  const parts = [];
+  const agents = selectedAgentIds.value.length;
+  const teams = selectedTeamIds.value.length;
+  const inboxes = selectedInboxIds.value.length;
+  if (agents) parts.push(t('KANBAN.SETTINGS.FILTER_SUMMARY_AGENTS', { count: agents }));
+  if (teams) parts.push(t('KANBAN.SETTINGS.FILTER_SUMMARY_TEAMS', { count: teams }));
+  if (inboxes) parts.push(t('KANBAN.SETTINGS.FILTER_SUMMARY_INBOXES', { count: inboxes }));
+  return parts.join(' · ');
+});
+
 const addingAgentId = ref(null);
 const addingInboxId = ref(null);
 const addingTeamId = ref(null);
@@ -296,13 +310,19 @@ const goBack = () => {
 
     <!-- Body -->
     <div class="flex-1 overflow-y-auto">
-      <div class="flex flex-col gap-6 px-6 py-6 max-w-2xl">
+      <div class="flex flex-col gap-8 px-6 py-8 max-w-3xl mx-auto">
 
-        <!-- Board name + default -->
-        <section class="flex flex-col gap-4 p-5 bg-n-solid-1 rounded-xl border border-n-weak">
-          <h2 class="text-sm font-semibold text-n-slate-12">
-            {{ t('KANBAN.SETTINGS.BOARD_DETAILS') }}
-          </h2>
+        <!-- ============ GROUP 1 — Geral (essencial) ============ -->
+        <section class="flex flex-col gap-5 p-6 bg-n-solid-1 rounded-2xl border border-n-weak shadow-sm">
+          <header class="flex flex-col gap-1">
+            <h2 class="text-base font-semibold text-n-slate-12">
+              {{ t('KANBAN.SETTINGS.GENERAL_TITLE') }}
+            </h2>
+            <p class="text-xs text-n-slate-10">
+              {{ t('KANBAN.SETTINGS.GENERAL_DESC') }}
+            </p>
+          </header>
+
           <div class="flex flex-col gap-1.5">
             <label class="text-xs font-medium text-n-slate-11">
               {{ t('KANBAN.SETTINGS.BOARD_NAME') }}
@@ -314,33 +334,44 @@ const goBack = () => {
               :placeholder="t('KANBAN.BOARD.UNTITLED')"
             />
           </div>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input v-model="boardIsDefault" type="checkbox" class="rounded" />
-            <span class="text-sm text-n-slate-12">
-              {{ t('KANBAN.SETTINGS.SET_DEFAULT') }}
-            </span>
-          </label>
-          <p class="text-xs text-n-slate-9 mt-0.5">
-            {{ t('KANBAN.SETTINGS.DEFAULT_HINT') }}
-          </p>
-          <div v-if="localColumns.length" class="flex flex-col gap-1.5 pt-1 border-t border-n-weak">
-            <label class="text-xs font-medium text-n-slate-11">
-              {{ t('KANBAN.SETTINGS.INTAKE_COLUMN') }}
+
+          <div class="flex flex-col gap-2 p-3 rounded-lg bg-n-alpha-1 border border-n-weak">
+            <label class="flex items-start gap-2.5 cursor-pointer">
+              <input v-model="boardIsDefault" type="checkbox" class="mt-0.5 rounded" />
+              <span class="flex flex-col gap-0.5">
+                <span class="text-sm font-medium text-n-slate-12">
+                  {{ t('KANBAN.SETTINGS.SET_DEFAULT') }}
+                </span>
+                <span class="text-xs text-n-slate-10">
+                  {{ t('KANBAN.SETTINGS.DEFAULT_HINT') }}
+                </span>
+              </span>
             </label>
-            <p class="text-xs text-n-slate-9">{{ t('KANBAN.SETTINGS.INTAKE_COLUMN_HINT') }}</p>
-            <ComboBox
-              v-model="intakeColumnId"
-              :options="intakeColumnOptions"
-              :placeholder="t('KANBAN.SETTINGS.INTAKE_COLUMN_PLACEHOLDER')"
-            />
+
+            <div v-if="boardIsDefault && localColumns.length" class="flex flex-col gap-1.5 pt-3 mt-1 border-t border-n-weak">
+              <label class="text-xs font-medium text-n-slate-11">
+                {{ t('KANBAN.SETTINGS.INTAKE_COLUMN') }}
+              </label>
+              <p class="text-xs text-n-slate-10">{{ t('KANBAN.SETTINGS.INTAKE_COLUMN_HINT') }}</p>
+              <ComboBox
+                v-model="intakeColumnId"
+                :options="intakeColumnOptions"
+                :placeholder="t('KANBAN.SETTINGS.INTAKE_COLUMN_PLACEHOLDER')"
+              />
+            </div>
           </div>
         </section>
 
-        <!-- Columns -->
-        <section class="flex flex-col gap-4 p-5 bg-n-solid-1 rounded-xl border border-n-weak">
-          <h2 class="text-sm font-semibold text-n-slate-12">
-            {{ t('KANBAN.SETTINGS.COLUMNS') }}
-          </h2>
+        <!-- ============ GROUP 2 — Etapas (essencial) ============ -->
+        <section class="flex flex-col gap-5 p-6 bg-n-solid-1 rounded-2xl border border-n-weak shadow-sm">
+          <header class="flex flex-col gap-1">
+            <h2 class="text-base font-semibold text-n-slate-12">
+              {{ t('KANBAN.SETTINGS.COLUMNS') }}
+            </h2>
+            <p class="text-xs text-n-slate-10">
+              {{ t('KANBAN.SETTINGS.COLUMNS_DESC') }}
+            </p>
+          </header>
 
           <Draggable
             v-model="localColumns"
@@ -348,12 +379,12 @@ const goBack = () => {
             handle=".drag-handle"
             :animation="150"
             ghost-class="opacity-30"
-            class="flex flex-col gap-1"
+            class="flex flex-col gap-1.5"
             @end="onColumnDragEnd"
           >
             <template #item="{ element: col }">
               <div
-                class="flex items-center gap-2 px-3 py-2 rounded-lg border border-n-weak bg-n-solid-2"
+                class="group flex items-center gap-2 px-3 py-2 rounded-lg border border-n-weak bg-n-solid-2 hover:border-n-slate-7 transition-colors"
               >
                 <!-- Drag handle -->
                 <button class="drag-handle cursor-grab text-n-slate-8 hover:text-n-slate-11 flex-shrink-0">
@@ -386,12 +417,6 @@ const goBack = () => {
                   >
                     {{ t('KANBAN.SETTINGS.CANCEL') }}
                   </button>
-                  <button
-                    class="text-xs text-n-brand hover:underline flex-shrink-0"
-                    @click="columnSettingsModalId = col.id"
-                  >
-                    {{ t('KANBAN.COLUMN.SETTINGS_TITLE') }}
-                  </button>
                 </template>
 
                 <!-- Display state -->
@@ -405,13 +430,22 @@ const goBack = () => {
                     {{ col.cards_count ?? 0 }}
                   </span>
                   <button
+                    class="p-1 rounded hover:bg-n-alpha-2 text-n-slate-10 hover:text-n-slate-12 opacity-0 group-hover:opacity-100 transition-opacity"
+                    :title="t('KANBAN.COLUMN.SETTINGS_TITLE')"
+                    @click="columnSettingsModalId = col.id"
+                  >
+                    <Icon icon="i-lucide-sliders-horizontal" class="size-3.5" />
+                  </button>
+                  <button
                     class="p-1 rounded hover:bg-n-alpha-2 text-n-slate-10 hover:text-n-slate-12"
+                    :title="t('KANBAN.COLUMN.RENAME')"
                     @click="startEdit(col)"
                   >
                     <Icon icon="i-lucide-pencil" class="size-3.5" />
                   </button>
                   <button
                     class="p-1 rounded hover:bg-n-alpha-2 text-n-slate-10 hover:text-red-500"
+                    :title="t('KANBAN.COLUMN.DELETE')"
                     @click="deleteColumn(col)"
                   >
                     <Icon icon="i-lucide-trash-2" class="size-3.5" />
@@ -422,7 +456,7 @@ const goBack = () => {
           </Draggable>
 
           <!-- Add column -->
-          <div class="flex items-center gap-2 pt-1 border-t border-n-weak">
+          <div class="flex items-center gap-2 pt-3 border-t border-n-weak">
             <input
               v-model="newColumnColor"
               type="color"
@@ -446,139 +480,162 @@ const goBack = () => {
           </div>
         </section>
 
-        <!-- Agents -->
-        <section class="flex flex-col gap-4 p-5 bg-n-solid-1 rounded-xl border border-n-weak">
-          <h2 class="text-sm font-semibold text-n-slate-12">
-            {{ t('KANBAN.SETTINGS.AGENTS') }}
-          </h2>
-          <p class="text-xs text-n-slate-10 -mt-2">
-            {{ t('KANBAN.SETTINGS.AGENTS_HINT') }}
-          </p>
-
-          <!-- Selected agent chips -->
-          <div class="flex flex-wrap gap-2">
-            <span
-              v-for="agent in selectedAgents"
-              :key="agent.id"
-              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-n-alpha-2 text-n-slate-11 border border-n-weak"
-            >
-              {{ agent.name }}
-              <button
-                class="text-n-slate-9 hover:text-n-slate-12"
-                @click="removeAgent(agent.id)"
-              >
-                <Icon icon="i-lucide-x" class="size-3" />
-              </button>
-            </span>
-
-            <!-- Add agent dropdown -->
-            <ComboBox
-              v-if="availableAgents.length"
-              v-model="addingAgentId"
-              :options="availableAgents.map(a => ({ value: a.id, label: a.name }))"
-              :placeholder="t('KANBAN.SETTINGS.ADD_AGENT')"
-              :search-placeholder="t('KANBAN.SETTINGS.ADD_AGENT')"
+        <!-- ============ GROUP 3 — Filtros (colapsável) ============ -->
+        <section class="flex flex-col bg-n-solid-1 rounded-2xl border border-n-weak shadow-sm overflow-hidden">
+          <button
+            class="flex items-center gap-3 p-6 text-left hover:bg-n-alpha-1 transition-colors"
+            @click="isFiltersOpen = !isFiltersOpen"
+          >
+            <div class="flex-1 flex flex-col gap-1">
+              <h2 class="text-base font-semibold text-n-slate-12">
+                {{ t('KANBAN.SETTINGS.FILTERS_TITLE') }}
+              </h2>
+              <p class="text-xs text-n-slate-10">
+                <template v-if="filterSummary">
+                  {{ filterSummary }}
+                </template>
+                <template v-else>
+                  {{ t('KANBAN.SETTINGS.FILTERS_EMPTY') }}
+                </template>
+              </p>
+            </div>
+            <Icon
+              :icon="isFiltersOpen ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+              class="size-4 text-n-slate-10 flex-shrink-0"
             />
-            <span v-else-if="!selectedAgents.length" class="text-xs text-n-slate-9 italic">
-              {{ t('KANBAN.SETTINGS.ALL_AGENTS_ACCESS') }}
-            </span>
+          </button>
+
+          <div v-if="isFiltersOpen" class="flex flex-col gap-6 px-6 pb-6 pt-1">
+            <!-- Agents -->
+            <div class="flex flex-col gap-2">
+              <div class="flex flex-col gap-0.5">
+                <h3 class="text-sm font-medium text-n-slate-12">
+                  {{ t('KANBAN.SETTINGS.AGENTS') }}
+                </h3>
+                <p class="text-xs text-n-slate-10">
+                  {{ t('KANBAN.SETTINGS.AGENTS_HINT') }}
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="agent in selectedAgents"
+                  :key="agent.id"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-n-alpha-2 text-n-slate-11 border border-n-weak"
+                >
+                  {{ agent.name }}
+                  <button
+                    class="text-n-slate-9 hover:text-n-slate-12"
+                    @click="removeAgent(agent.id)"
+                  >
+                    <Icon icon="i-lucide-x" class="size-3" />
+                  </button>
+                </span>
+                <ComboBox
+                  v-if="availableAgents.length"
+                  v-model="addingAgentId"
+                  :options="availableAgents.map(a => ({ value: a.id, label: a.name }))"
+                  :placeholder="t('KANBAN.SETTINGS.ADD_AGENT')"
+                  :search-placeholder="t('KANBAN.SETTINGS.ADD_AGENT')"
+                />
+                <span v-else-if="!selectedAgents.length" class="text-xs text-n-slate-9 italic">
+                  {{ t('KANBAN.SETTINGS.ALL_AGENTS_ACCESS') }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Teams -->
+            <div class="flex flex-col gap-2">
+              <div class="flex flex-col gap-0.5">
+                <h3 class="text-sm font-medium text-n-slate-12">
+                  {{ t('KANBAN.SETTINGS.TEAMS') }}
+                </h3>
+                <p class="text-xs text-n-slate-10">
+                  {{ t('KANBAN.SETTINGS.TEAMS_HINT') }}
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="team in selectedTeams"
+                  :key="team.id"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-n-alpha-2 text-n-slate-11 border border-n-weak"
+                >
+                  {{ team.name }}
+                  <button
+                    class="text-n-slate-9 hover:text-n-slate-12"
+                    @click="removeTeam(team.id)"
+                  >
+                    <Icon icon="i-lucide-x" class="size-3" />
+                  </button>
+                </span>
+                <ComboBox
+                  v-if="availableTeams.length"
+                  v-model="addingTeamId"
+                  :options="availableTeams.map(tm => ({ value: tm.id, label: tm.name }))"
+                  :placeholder="t('KANBAN.SETTINGS.ADD_TEAM')"
+                  :search-placeholder="t('KANBAN.SETTINGS.ADD_TEAM')"
+                />
+                <span v-else-if="!selectedTeams.length" class="text-xs text-n-slate-9 italic">
+                  {{ t('KANBAN.SETTINGS.ALL_TEAMS_ACCESS') }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Inboxes -->
+            <div class="flex flex-col gap-2">
+              <div class="flex flex-col gap-0.5">
+                <h3 class="text-sm font-medium text-n-slate-12">
+                  {{ t('KANBAN.SETTINGS.INBOXES') }}
+                </h3>
+                <p class="text-xs text-n-slate-10">
+                  {{ t('KANBAN.SETTINGS.INBOXES_HINT') }}
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="inbox in selectedInboxes"
+                  :key="inbox.id"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-n-alpha-2 text-n-slate-11 border border-n-weak"
+                >
+                  {{ inbox.name }}
+                  <button
+                    class="text-n-slate-9 hover:text-n-slate-12"
+                    @click="removeInbox(inbox.id)"
+                  >
+                    <Icon icon="i-lucide-x" class="size-3" />
+                  </button>
+                </span>
+                <ComboBox
+                  v-if="availableInboxes.length"
+                  v-model="addingInboxId"
+                  :options="availableInboxes.map(i => ({ value: i.id, label: i.name }))"
+                  :placeholder="t('KANBAN.SETTINGS.ADD_INBOX')"
+                  :search-placeholder="t('KANBAN.SETTINGS.ADD_INBOX')"
+                />
+                <span v-else-if="!selectedInboxes.length" class="text-xs text-n-slate-9 italic">
+                  {{ t('KANBAN.SETTINGS.ALL_INBOXES_ACCESS') }}
+                </span>
+              </div>
+            </div>
           </div>
         </section>
 
-        <!-- Teams -->
-        <section class="flex flex-col gap-4 p-5 bg-n-solid-1 rounded-xl border border-n-weak">
-          <h2 class="text-sm font-semibold text-n-slate-12">
-            {{ t('KANBAN.SETTINGS.TEAMS') }}
-          </h2>
-          <p class="text-xs text-n-slate-10 -mt-2">
-            {{ t('KANBAN.SETTINGS.TEAMS_HINT') }}
-          </p>
+        <!-- ============ GROUP 4 — Zona de perigo ============ -->
+        <section class="flex flex-col gap-4 p-6 bg-n-solid-1 rounded-2xl border border-n-weak shadow-sm">
+          <header class="flex flex-col gap-1">
+            <h2 class="text-base font-semibold text-n-ruby-11">
+              {{ t('KANBAN.SETTINGS.DELETE_TITLE') }}
+            </h2>
+            <p class="text-xs text-n-slate-10">
+              {{ t('KANBAN.SETTINGS.DELETE_WARNING') }}
+            </p>
+          </header>
 
-          <!-- Selected team chips -->
-          <div class="flex flex-wrap gap-2">
-            <span
-              v-for="team in selectedTeams"
-              :key="team.id"
-              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-n-alpha-2 text-n-slate-11 border border-n-weak"
-            >
-              {{ team.name }}
-              <button
-                class="text-n-slate-9 hover:text-n-slate-12"
-                @click="removeTeam(team.id)"
-              >
-                <Icon icon="i-lucide-x" class="size-3" />
-              </button>
-            </span>
-
-            <!-- Add team dropdown -->
-            <ComboBox
-              v-if="availableTeams.length"
-              v-model="addingTeamId"
-              :options="availableTeams.map(tm => ({ value: tm.id, label: tm.name }))"
-              :placeholder="t('KANBAN.SETTINGS.ADD_TEAM')"
-              :search-placeholder="t('KANBAN.SETTINGS.ADD_TEAM')"
-            />
-            <span v-else-if="!selectedTeams.length" class="text-xs text-n-slate-9 italic">
-              {{ t('KANBAN.SETTINGS.ALL_TEAMS_ACCESS') }}
-            </span>
-          </div>
-        </section>
-
-        <!-- Inboxes -->
-        <section class="flex flex-col gap-4 p-5 bg-n-solid-1 rounded-xl border border-n-weak">
-          <h2 class="text-sm font-semibold text-n-slate-12">
-            {{ t('KANBAN.SETTINGS.INBOXES') }}
-          </h2>
-          <p class="text-xs text-n-slate-10 -mt-2">
-            {{ t('KANBAN.SETTINGS.INBOXES_HINT') }}
-          </p>
-
-          <!-- Selected inbox chips -->
-          <div class="flex flex-wrap gap-2">
-            <span
-              v-for="inbox in selectedInboxes"
-              :key="inbox.id"
-              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-n-alpha-2 text-n-slate-11 border border-n-weak"
-            >
-              {{ inbox.name }}
-              <button
-                class="text-n-slate-9 hover:text-n-slate-12"
-                @click="removeInbox(inbox.id)"
-              >
-                <Icon icon="i-lucide-x" class="size-3" />
-              </button>
-            </span>
-
-            <!-- Add inbox dropdown -->
-            <ComboBox
-              v-if="availableInboxes.length"
-              v-model="addingInboxId"
-              :options="availableInboxes.map(i => ({ value: i.id, label: i.name }))"
-              :placeholder="t('KANBAN.SETTINGS.ADD_INBOX')"
-              :search-placeholder="t('KANBAN.SETTINGS.ADD_INBOX')"
-            />
-            <span v-else-if="!selectedInboxes.length" class="text-xs text-n-slate-9 italic">
-              {{ t('KANBAN.SETTINGS.ALL_INBOXES_ACCESS') }}
-            </span>
-          </div>
-        </section>
-
-        <!-- Danger zone: delete funnel -->
-        <section class="flex flex-col gap-4 p-5 bg-n-solid-1 rounded-xl border border-red-200 dark:border-red-900/40">
-          <h2 class="text-sm font-semibold text-red-600 dark:text-red-400">
-            {{ t('KANBAN.SETTINGS.DELETE_TITLE') }}
-          </h2>
-          <p class="text-xs text-n-slate-10">
-            {{ t('KANBAN.SETTINGS.DELETE_WARNING') }}
-          </p>
-
-          <!-- Inline confirm -->
           <div v-if="showDeleteConfirm" class="flex items-center gap-3">
             <span class="text-xs text-n-slate-10">
               {{ t('KANBAN.SETTINGS.DELETE_CONFIRM_PROMPT') }}
             </span>
             <button
-              class="px-3 py-1.5 text-sm font-medium rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+              class="px-3 py-1.5 text-sm font-medium rounded-lg bg-n-ruby-9 text-white hover:bg-n-ruby-10 disabled:opacity-60"
               :disabled="isDeleting"
               @click="confirmDelete"
             >
@@ -594,7 +651,7 @@ const goBack = () => {
 
           <button
             v-else
-            class="flex items-center gap-2 self-start px-4 py-2 text-sm font-medium rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            class="flex items-center gap-2 self-start px-4 py-2 text-sm font-medium rounded-lg border border-n-ruby-7 text-n-ruby-11 hover:bg-n-ruby-3 transition-colors"
             @click="showDeleteConfirm = true"
           >
             <Icon icon="i-lucide-trash-2" class="size-4" />
