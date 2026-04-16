@@ -55,7 +55,7 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
   def update
     source_column_id = @card.kanban_column_id
     @card.update!(task_update_params)
-    @card.reload
+    @card = @board.kanban_cards.includes(conversation: [:assignee, :inbox, :contact]).find(@card.id)
 
     if @card.kanban_column_id != source_column_id
       Rails.configuration.dispatcher.dispatch(

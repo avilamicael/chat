@@ -68,7 +68,6 @@ class KanbanCard < ApplicationRecord
   scope :archived, -> { where.not(archived_at: nil) }
 
   validates :position, presence: true
-  validates :conversation_id, uniqueness: { scope: :kanban_board_id }, allow_nil: true
   validate :title_or_conversation_required
 
   before_validation :set_denormalized_fields
