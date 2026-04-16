@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, watch } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'dashboard/composables/store.js';
 import { useMapGetter } from 'dashboard/composables/store';
@@ -33,7 +33,10 @@ const allTeams = useMapGetter('teams/getTeams');
 // Board form
 const boardName = ref('');
 const boardIsDefault = ref(false);
-const isSavingBoard = ref(false);
+const saveStatus = ref('idle'); // 'idle' | 'saving' | 'saved'
+const hasLoaded = ref(false);
+let savedTimer = null;
+let debounceTimer = null;
 
 // Column list (local copy for drag&drop)
 const localColumns = ref([]);
@@ -167,38 +170,32 @@ const filterSummary = computed(() => {
 const addAgent = id => {
   if (!selectedAgentIds.value.includes(id)) {
     selectedAgentIds.value = [...selectedAgentIds.value, id];
-    useAlert(t('KANBAN.SETTINGS.AGENT_ADDED'));
   }
 };
 const addTeam = id => {
   if (!selectedTeamIds.value.includes(id)) {
     selectedTeamIds.value = [...selectedTeamIds.value, id];
-    useAlert(t('KANBAN.SETTINGS.TEAM_ADDED'));
   }
 };
 const addInbox = id => {
   if (!selectedInboxIds.value.includes(id)) {
     selectedInboxIds.value = [...selectedInboxIds.value, id];
-    useAlert(t('KANBAN.SETTINGS.INBOX_ADDED'));
   }
 };
 const removeAgent = id => {
   selectedAgentIds.value = selectedAgentIds.value.filter(a => a !== id);
-  useAlert(t('KANBAN.SETTINGS.AGENT_REMOVED'));
 };
 const removeTeam = id => {
   selectedTeamIds.value = selectedTeamIds.value.filter(tm => tm !== id);
-  useAlert(t('KANBAN.SETTINGS.TEAM_REMOVED'));
 };
 const removeInbox = id => {
   selectedInboxIds.value = selectedInboxIds.value.filter(i => i !== id);
-  useAlert(t('KANBAN.SETTINGS.INBOX_REMOVED'));
 };
 
-// Save board (name + default + agents + inboxes)
+// Auto-save board (name + default + filters)
 const saveBoard = async () => {
   if (!boardName.value.trim()) return;
-  isSavingBoard.value = true;
+  saveStatus.value = 'saving';
   try {
     await store.dispatch('kanban/updateBoard', {
       boardId: boardId.value,
@@ -211,13 +208,33 @@ const saveBoard = async () => {
         intake_column_id: intakeColumnId.value || null,
       },
     });
-    useAlert(t('KANBAN.SETTINGS.SAVED_SUCCESS'));
+    saveStatus.value = 'saved';
+    clearTimeout(savedTimer);
+    savedTimer = setTimeout(() => {
+      if (saveStatus.value === 'saved') saveStatus.value = 'idle';
+    }, 2000);
   } catch {
+    saveStatus.value = 'idle';
     useAlert(t('KANBAN.SETTINGS.SAVE_ERROR'));
-  } finally {
-    isSavingBoard.value = false;
   }
 };
+
+const scheduleSave = (debounceMs = 0) => {
+  if (!hasLoaded.value) return;
+  clearTimeout(debounceTimer);
+  if (debounceMs > 0) {
+    debounceTimer = setTimeout(saveBoard, debounceMs);
+  } else {
+    saveBoard();
+  }
+};
+
+watch(boardName, () => scheduleSave(800));
+watch(
+  [boardIsDefault, intakeColumnId, selectedAgentIds, selectedTeamIds, selectedInboxIds],
+  () => scheduleSave(0),
+  { deep: true }
+);
 
 // Delete funnel
 const showDeleteConfirm = ref(false);
@@ -254,6 +271,13 @@ onMounted(async () => {
     store.dispatch('inboxes/get'),
     store.dispatch('teams/get'),
   ]);
+  // enable watchers only after initial state is in place
+  hasLoaded.value = true;
+});
+
+onBeforeUnmount(() => {
+  clearTimeout(debounceTimer);
+  clearTimeout(savedTimer);
 });
 
 const goBack = () => {
@@ -276,13 +300,16 @@ const goBack = () => {
       <h1 class="flex-1 text-base font-semibold text-n-slate-12">
         {{ board?.name || t('KANBAN.BOARD.SETTINGS') }}
       </h1>
-      <button
-        class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-n-brand text-white hover:bg-n-brand/90 transition-colors disabled:opacity-60"
-        :disabled="isSavingBoard"
-        @click="saveBoard"
-      >
-        {{ t('KANBAN.SETTINGS.SAVE') }}
-      </button>
+      <div class="flex items-center gap-2 text-xs text-n-slate-10 min-w-20 justify-end">
+        <template v-if="saveStatus === 'saving'">
+          <Icon icon="i-lucide-loader-circle" class="size-3.5 animate-spin" />
+          <span>{{ t('KANBAN.SETTINGS.STATUS_SAVING') }}</span>
+        </template>
+        <template v-else-if="saveStatus === 'saved'">
+          <Icon icon="i-lucide-check" class="size-3.5 text-n-teal-11" />
+          <span>{{ t('KANBAN.SETTINGS.STATUS_SAVED') }}</span>
+        </template>
+      </div>
     </div>
 
     <!-- Body -->

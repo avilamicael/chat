@@ -130,6 +130,8 @@
       "DELETE_BTN": "Excluir funil",
       "SAVED_SUCCESS": "Configurações salvas com sucesso",
       "SAVE_ERROR": "Falha ao salvar configurações. Por favor, tente novamente.",
+      "STATUS_SAVING": "Salvando…",
+      "STATUS_SAVED": "Salvo",
       "COLUMN_ADDED": "Etapa adicionada",
       "COLUMN_DELETED": "Etapa excluída",
       "AGENT_ADDED": "Agente adicionado",

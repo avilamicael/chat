@@ -130,6 +130,8 @@
       "DELETE_BTN": "Delete funnel",
       "SAVED_SUCCESS": "Settings saved successfully",
       "SAVE_ERROR": "Failed to save settings. Please try again.",
+      "STATUS_SAVING": "Saving…",
+      "STATUS_SAVED": "Saved",
       "COLUMN_ADDED": "Column added",
       "COLUMN_DELETED": "Column deleted",
       "AGENT_ADDED": "Agent added",
