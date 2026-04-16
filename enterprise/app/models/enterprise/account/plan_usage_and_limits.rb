@@ -8,6 +8,7 @@ module Enterprise::Account::PlanUsageAndLimits # rubocop:disable Metrics/ModuleL
     {
       agents: agent_limits.to_i,
       inboxes: get_limits(:inboxes).to_i,
+      kanban_boards: get_limits(:kanban_boards).to_i,
       captain: {
         documents: get_captain_limits(:documents),
         responses: get_captain_limits(:responses)
@@ -141,7 +142,8 @@ module Enterprise::Account::PlanUsageAndLimits # rubocop:disable Metrics/ModuleL
         'agents' => { 'type': 'number' },
         'captain_responses' => { 'type': 'number' },
         'captain_documents' => { 'type': 'number' },
-        'emails' => { 'type': 'number' }
+        'emails' => { 'type': 'number' },
+        'kanban_boards' => { 'type': 'number' }
       },
       'required' => [],
       'additionalProperties' => false

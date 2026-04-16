@@ -1,6 +1,7 @@
 class Api::V1::Accounts::KanbanBoardsController < Api::V1::Accounts::BaseController
   before_action :check_authorization
   before_action :set_board, only: [:update, :destroy]
+  before_action :validate_board_limit, only: [:create]
 
   def index
     @boards = Current.account.kanban_boards.includes(kanban_columns: :kanban_cards)
@@ -64,5 +65,11 @@ class Api::V1::Accounts::KanbanBoardsController < Api::V1::Accounts::BaseControl
       :name, :description, :is_default,
       filters: [:intake_column_id, { agent_ids: [], inbox_ids: [], team_ids: [] }]
     )
+  end
+
+  def validate_board_limit
+    return if Current.account.kanban_boards.count < Current.account.usage_limits[:kanban_boards]
+
+    render_payment_required('Kanban board limit reached for your plan')
   end
 end
