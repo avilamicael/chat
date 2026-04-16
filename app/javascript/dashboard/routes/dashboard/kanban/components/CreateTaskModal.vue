@@ -8,6 +8,7 @@ import Input from 'dashboard/components-next/input/Input.vue';
 import ComboBox from 'dashboard/components-next/combobox/ComboBox.vue';
 import TagInput from 'dashboard/components-next/taginput/TagInput.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
+import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
 import searchAPI from 'dashboard/api/search.js';
 
 const props = defineProps({
@@ -66,7 +67,7 @@ const handleAssigneeRemove = index => {
 };
 
 // Conversation search
-const showConvSearch = ref(false);
+const showConvSearch = ref(true);
 const convSearchQuery = ref('');
 const convSearchResults = ref([]);
 const isSearching = ref(false);
@@ -286,15 +287,17 @@ const createTask = async () => {
             {{ t('KANBAN.TASK.LINK_CONVERSATION') }}
           </button>
 
-          <div v-if="showConvSearch" class="relative">
+          <div v-if="showConvSearch" class="flex flex-col gap-2">
             <!-- Selected conversation chip -->
             <div
               v-if="linkedConversation"
-              class="flex items-center gap-2 px-3 py-2 mb-2 rounded-xl border border-n-brand/30 bg-n-brand/5"
+              class="flex items-center gap-2 px-3 py-2 rounded-xl border border-n-brand/30 bg-n-brand/5"
             >
-              <Icon
-                icon="i-lucide-check-circle"
-                class="size-4 text-n-brand flex-shrink-0"
+              <Avatar
+                :name="contactName(linkedConversation)"
+                :src="linkedConversation.meta?.sender?.thumbnail || ''"
+                :size="24"
+                class="flex-shrink-0"
               />
               <span class="flex-1 text-sm text-n-slate-12 truncate">
                 {{ contactName(linkedConversation) }}
@@ -329,17 +332,23 @@ const createTask = async () => {
             </div>
 
             <div
-              v-if="convSearchResults.length"
-              class="absolute z-10 mt-1 w-full rounded-xl border border-n-weak bg-n-solid-1 shadow-lg overflow-hidden"
+              v-if="convSearchResults.length && !linkedConversation"
+              class="flex flex-col rounded-xl border border-n-weak bg-n-solid-1 overflow-hidden"
             >
               <button
                 v-for="conv in convSearchResults"
                 :key="conv.id"
-                class="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-n-alpha-2 transition-colors"
+                class="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-n-alpha-2 transition-colors"
                 @click="selectConversation(conv)"
               >
+                <Avatar
+                  :name="contactName(conv)"
+                  :src="conv.meta?.sender?.thumbnail || ''"
+                  :size="24"
+                  class="flex-shrink-0"
+                />
                 <div class="flex flex-col flex-1 min-w-0">
-                  <span class="text-sm font-medium text-n-slate-12 truncate">
+                  <span class="text-sm text-n-slate-12 truncate">
                     {{ contactName(conv) }}
                   </span>
                   <span class="text-xs text-n-slate-9">
@@ -348,11 +357,17 @@ const createTask = async () => {
                 </div>
               </button>
             </div>
+            <p
+              v-else-if="convSearchQuery.trim() && !isSearching && !linkedConversation"
+              class="text-xs text-n-slate-9 italic"
+            >
+              {{ t('KANBAN.TASK.NO_CONV_RESULTS') }}
+            </p>
           </div>
         </div>
 
         <!-- Error -->
-        <p v-if="errorMessage" class="text-xs text-red-500">{{ errorMessage }}</p>
+        <p v-if="errorMessage" class="text-xs text-n-ruby-9">{{ errorMessage }}</p>
       </div>
 
       <!-- Footer -->
