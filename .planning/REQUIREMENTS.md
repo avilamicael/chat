@@ -59,23 +59,28 @@ Exclusões explícitas — documentadas para prevenir re-adicionamento.
 
 ## Traceability
 
-Atualizado durante criação do roadmap.
+Mapeamento gerado pelo `/gsd-roadmapper` em 2026-05-11.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| HARD-01 | TBD | Pending |
-| HARD-02 | TBD | Pending |
-| HARD-03 | TBD | Pending |
-| HARD-04 | TBD | Pending |
-| HARD-05 | TBD | Pending |
-| HARD-06 | TBD | Pending |
-| HARD-07 | TBD | Pending |
+| HARD-01 | Phase 1 — Reliability Foundation | Pending |
+| HARD-02 | Phase 2 — HMAC Signature | Pending |
+| HARD-03 | Phase 1 — Reliability Foundation | Pending |
+| HARD-04 | Phase 3 — Delivery Observability | Pending |
+| HARD-05 | Phase 3 — Delivery Observability | Pending |
+| HARD-06 | Phase 1 — Reliability Foundation | Pending |
+| HARD-07 | Phase 3 — Delivery Observability | Pending |
 
 **Coverage:**
 - v1 requirements: 7 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 7 ⚠️ (será resolvido em /gsd-roadmapper)
+- Mapped to phases: 7 (100%)
+- Unmapped: 0 ✓
+
+**Per-phase requirement count:**
+- Phase 1 (Reliability Foundation): 3 requirements (HARD-01, HARD-03, HARD-06)
+- Phase 2 (HMAC Signature): 1 requirement (HARD-02)
+- Phase 3 (Delivery Observability): 3 requirements (HARD-04, HARD-05, HARD-07)
 
 ---
 *Requirements defined: 2026-05-11*
-*Last updated: 2026-05-11 after initial definition*
+*Last updated: 2026-05-11 — traceability filled by /gsd-roadmapper*
