@@ -135,7 +135,7 @@ onMounted(async () => {
         <!-- Conversation link -->
         <a
           v-if="card.conversation"
-          :href="frontendURL(`accounts/${accountId}/conversations/${card.conversation.id}`)"
+          :href="frontendURL(`accounts/${accountId}/conversations/${card.conversation.display_id}`)"
           target="_blank"
           class="inline-flex items-center gap-1.5 text-sm text-n-brand hover:underline w-fit"
         >

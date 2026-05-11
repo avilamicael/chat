@@ -230,7 +230,7 @@ onMounted(async () => {
           </span>
           <a
             v-if="card.conversation"
-            :href="frontendURL(`accounts/${accountId}/conversations/${card.conversation.id}`)"
+            :href="frontendURL(`accounts/${accountId}/conversations/${card.conversation.display_id}`)"
             target="_blank"
             class="mt-1 inline-flex items-center gap-1 text-xs text-n-brand hover:underline"
             @click.stop
