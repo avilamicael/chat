@@ -214,7 +214,7 @@ const deleteCard = async () => {
 const openConversation = () => {
   if (!conversation.value?.id) return;
   window.open(
-    frontendURL(`accounts/${props.accountId}/conversations/${conversation.value.id}`),
+    frontendURL(`accounts/${props.accountId}/conversations/${conversation.value.display_id}`),
     '_blank',
     'noopener,noreferrer'
   );
@@ -503,7 +503,7 @@ const contactNameFor = conv =>
               <button
                 class="p-1 rounded hover:bg-n-alpha-2 text-n-slate-10 hover:text-n-slate-12"
                 :title="t('KANBAN.TASK.OPEN_CONV')"
-                @click="openConversationById(conv.id)"
+                @click="openConversationById(conv.display_id)"
               >
                 <Icon icon="i-lucide-external-link" class="size-3.5" />
               </button>
