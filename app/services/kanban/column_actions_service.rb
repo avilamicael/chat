@@ -36,12 +36,12 @@ module Kanban
     end
 
     def auto_assign_agent
-      return if @card.assignee_id.present?
+      return if @card.assignee_ids.present?
 
       agent = find_available_agent
       return unless agent
 
-      @card.update!(assignee_id: agent.id)
+      @card.update!(assignee_ids: [agent.id])
     end
 
     def auto_assign_conversation
@@ -68,15 +68,16 @@ module Kanban
       agent = @account.users.find_by(id: agent_id.to_i)
       return unless agent
 
-      @card.update!(assignee_id: agent.id)
+      @card.update!(assignee_ids: [agent.id])
     end
 
     def assign_team(team_id)
-      return if team_id.blank? || @card.conversation_id.blank?
+      return if team_id.blank?
 
       team = @account.teams.find_by(id: team_id.to_i)
       return unless team
 
+      @card.update!(team_ids: [team.id])
       @card.conversation&.update!(team_id: team.id)
     end
 
