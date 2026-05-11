@@ -5,6 +5,7 @@ import { useMapGetter } from 'dashboard/composables/store';
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import CardPriorityIcon from 'dashboard/components-next/Conversation/ConversationCard/CardPriorityIcon.vue';
+import { getInboxIconByType } from 'dashboard/helper/inbox.js';
 
 const props = defineProps({
   card: { type: Object, required: true },
@@ -71,6 +72,12 @@ const channelLabel = computed(
   () => CHANNEL_LABELS[channelType.value] ||
     channelType.value?.split('::')[1]?.toLowerCase() || ''
 );
+const channelIcon = computed(() => {
+  const type = channelType.value;
+  if (!type) return null;
+  const aliased = type === 'Channel::Baileys' ? 'Channel::Whatsapp' : type;
+  return getInboxIconByType(aliased, null, 'fill');
+});
 
 const timeOpen = computed(() => {
   const createdAt = props.card.created_at || conversation.value?.created_at;
@@ -165,14 +172,14 @@ const openDetail = () => emit('open-detail', props.card);
       </span>
     </div>
 
-    <!-- Channel badge (only for conversation cards) -->
-    <div v-if="channelLabel && !isStandaloneTask" class="mb-2">
+    <!-- Channel icon (only for conversation cards) -->
+    <div v-if="channelIcon && !isStandaloneTask" class="mb-2">
       <span
-        class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded"
+        class="inline-flex items-center justify-center w-5 h-5 rounded-full"
         :style="{ backgroundColor: channelColor + '22', color: channelColor }"
+        :title="channelLabel"
       >
-        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" :style="{ backgroundColor: channelColor }" />
-        {{ channelLabel }}
+        <Icon :icon="channelIcon" class="size-3.5" />
       </span>
     </div>
 
