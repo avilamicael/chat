@@ -20,8 +20,8 @@
 **Requirements:** HARD-01, HARD-03, HARD-06
 **Success Criteria** (what must be TRUE):
   1. Quando o receptor retorna 5xx ou timeout, o webhook é re-tentado automaticamente com backoff exponencial via Sidekiq nativo, e a entrega chega ao receptor se ele voltar dentro de ~30 minutos (janela do Sidekiq retry default).
-  2. Carga alta ou lentidão de um receptor de webhook não bloqueia jobs de outras automações: `Kanban::WebhookJob` roda em fila Sidekiq `:webhooks` dedicada, observável como tal em `bundle exec sidekiq` / Sidekiq Web UI.
-  3. Cada evento carrega um header `X-Webhook-Id: <uuid>` que se mantém idêntico em todos os retries do mesmo evento (e diferente para o próximo evento do mesmo card), permitindo que o receptor faça dedup com segurança.
+  2. `Kanban::WebhookJob` roda em fila Sidekiq `:medium` (mesma do canonical `WebhookJob` — reusa infra existente em `config/sidekiq.yml`, evita divergência da convenção de prioridade do Chatwoot upstream). Isolamento real virá via fila :webhooks dedicada se métricas pós-lançamento mostrarem necessidade — registrado como v2.
+  3. Cada evento carrega um header `X-Chatwoot-Delivery: <uuid>` que se mantém idêntico em todos os retries do mesmo evento (e diferente para o próximo evento do mesmo card), permitindo que o receptor faça dedup com segurança. *Nota: header reutiliza convenção existente em `lib/webhooks/trigger.rb:47` — SDK consistente com webhooks de canais.*
   4. Cliente que testa hoje (sem assinatura, sem retry) continua recebendo webhooks — mudança não quebra integrações existentes; UUID e novo header são aditivos.
 **Plans:** TBD
 **UI hint**: no
@@ -29,7 +29,7 @@
 ### Phase 2: HMAC Signature
 **Slug:** `hmac-signature`
 **Goal:** Cliente receptor pode validar com 5 linhas de código padrão (estilo Stripe/GitHub) que o payload recebido foi de fato originado pelo Chatwoot, e pode rotacionar o segredo quando suspeitar de comprometimento — sem suporte humano.
-**Depends on:** Phase 1 (a assinatura cobre o payload + header `X-Webhook-Id` introduzidos na Phase 1; sem isso o dedup-id seria forjável)
+**Depends on:** Phase 1 (a assinatura cobre o payload + header `X-Chatwoot-Delivery` introduzidos na Phase 1; sem isso o dedup-id seria forjável)
 **Requirements:** HARD-02
 **Success Criteria** (what must be TRUE):
   1. Todo webhook de Kanban sai com header `X-Chatwoot-Signature: sha256=<hmac>` calculado sobre o body com o secret do board, e receptor consegue validar usando `OpenSSL::HMAC` (Ruby) ou `crypto.createHmac` (Node) em ~5 linhas.

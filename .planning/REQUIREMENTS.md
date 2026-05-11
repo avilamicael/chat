@@ -14,8 +14,8 @@ Requirements para release v1.0 (Webhook Hardening). Each maps to a roadmap phase
 Garantir que webhooks são entregues mesmo quando o receptor está instável, e que falhas em um receptor não afetam outras automações do sistema.
 
 - [ ] **HARD-01**: `Kanban::WebhookJob` faz retry automático com backoff exponencial quando o receptor retorna 5xx ou timeout (reusa `CustomExceptions::Webhook::RetriableError` + Sidekiq retry nativo)
-- [ ] **HARD-03**: `Kanban::WebhookJob` roda em fila Sidekiq dedicada `:webhooks` (não mais `:default`), com configuração de concorrência isolada
-- [ ] **HARD-06**: Cada evento de webhook tem um identificador único (`X-Webhook-Id: <uuid>`) propagado nos retries, permitindo que o receptor faça deduplicação
+- [ ] **HARD-03**: `Kanban::WebhookJob` roda em fila Sidekiq `:medium` (não mais `:default`), alinhado com o canonical `WebhookJob` do sistema. Sidekiq drena `:medium` antes de `:default`, então webhook tem prioridade sobre jobs de app standard, sem precisar criar fila nova. *Decisão revisada em 01-CONTEXT.md (decisão: reusar convenção de priority queue existente; fila :webhooks dedicada fica para v2 se métricas exigirem).*
+- [ ] **HARD-06**: Cada evento de webhook tem um identificador único (`X-Chatwoot-Delivery: <uuid>`) propagado nos retries, permitindo que o receptor faça deduplicação. *Header name alinhado com convenção já existente em `lib/webhooks/trigger.rb:47` para consistência com webhooks de canais.*
 
 ### Security
 
