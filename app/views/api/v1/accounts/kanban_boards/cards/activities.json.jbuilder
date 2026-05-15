@@ -14,3 +14,8 @@ json.activities @activities do |audit|
     json.user nil
   end
 end
+
+json.meta do
+  json.next_before_id @activities.last&.id
+  json.has_more @activities.size >= @activities_limit
+end
