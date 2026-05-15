@@ -32,6 +32,7 @@ class KanbanColumn < ApplicationRecord
   has_many :kanban_cards, -> { order(:position) }, dependent: :destroy, inverse_of: :kanban_column
 
   enum column_type: { normal: 'normal', won: 'won', lost: 'lost' }, _prefix: :column
+  enum last_execution_status: { ok: 'ok', error: 'error', pending: 'pending' }, _prefix: :execution
 
   CONVERSATION_STATUSES = %w[open pending resolved snoozed].freeze
 

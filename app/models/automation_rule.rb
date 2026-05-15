@@ -27,6 +27,8 @@ class AutomationRule < ApplicationRecord
   has_many :scheduled_messages, as: :author, dependent: :nullify
   has_many_attached :files
 
+  enum last_execution_status: { ok: 'ok', error: 'error', pending: 'pending' }, _prefix: :execution
+
   validate :json_conditions_format
   validate :json_actions_format
   validate :query_operator_presence
