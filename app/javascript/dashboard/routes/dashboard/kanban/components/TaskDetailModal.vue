@@ -11,6 +11,7 @@ import Icon from 'dashboard/components-next/icon/Icon.vue';
 import ComboBox from 'dashboard/components-next/combobox/ComboBox.vue';
 import TagInput from 'dashboard/components-next/taginput/TagInput.vue';
 import CardPriorityIcon from 'dashboard/components-next/Conversation/ConversationCard/CardPriorityIcon.vue';
+import CardActivityTimeline from 'dashboard/components-next/Kanban/CardActivityTimeline.vue';
 import OutcomeReasonModal from './OutcomeReasonModal.vue';
 
 const props = defineProps({
@@ -697,6 +698,9 @@ const contactNameFor = conv =>
             @blur="saveDescription"
           />
         </div>
+
+        <!-- Activity Timeline -->
+        <CardActivityTimeline :card-id="card.id" :board-id="boardId" />
       </div>
 
       <!-- Footer -->
