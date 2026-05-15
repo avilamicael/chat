@@ -89,13 +89,15 @@ class KanbanListener < BaseListener
     board = event.data[:board]
     return unless card && board
 
+    trigger_event_id = event.data[:trigger_event_id]
+
     if event.data[:column_changed] && event.data[:source_column_id]
       source_column = board.kanban_columns.find_by(id: event.data[:source_column_id])
-      Kanban::ColumnActionsService.new(card, source_column, :exit_actions).perform if source_column
+      Kanban::ColumnActionsService.new(card, source_column, :exit_actions, trigger_event_id: trigger_event_id).perform if source_column
     end
 
     if event.data[:column_changed] && card.kanban_column
-      Kanban::ColumnActionsService.new(card, card.kanban_column, :enter_actions).perform
+      Kanban::ColumnActionsService.new(card, card.kanban_column, :enter_actions, trigger_event_id: trigger_event_id).perform
     end
 
     card = KanbanCard.includes(conversation: [:contact, :inbox, :assignee], assignee: []).find(card.id)
