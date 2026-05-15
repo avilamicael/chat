@@ -156,10 +156,15 @@ export const actions = {
     commit('REMOVE_BOARD', boardId);
   },
 
-  async fetchCards({ commit }, boardId) {
+  async fetchCards({ commit }, payload) {
+    // Aceita boardId direto (legacy) OU { boardId, ...filterParams }
+    const isObject = payload && typeof payload === 'object';
+    const boardId = isObject ? payload.boardId : payload;
+    const params = isObject ? { ...payload } : {};
+    delete params.boardId;
     commit('SET_UI_FLAG', { fetchingCards: true });
     try {
-      const { data } = await kanbanAPI.getCards(boardId);
+      const { data } = await kanbanAPI.getCards(boardId, params);
       commit('SET_CARDS', { boardId: Number(boardId), cards: data.payload });
     } finally {
       commit('SET_UI_FLAG', { fetchingCards: false });

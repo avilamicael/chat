@@ -32,10 +32,27 @@ const allCards = computed(() =>
 );
 const isLoading = computed(() => store.getters['kanban/uiFlags'].fetchingCards);
 
-// Filters
-const statusFilter = ref(null);
-const agentFilter = ref(null);
-const inboxFilter = ref(null);
+// Filters server-side (D-08: querystring efemera, sobrevive reload)
+const toArray = value => {
+  if (value === undefined || value === null || value === '') return [];
+  return Array.isArray(value) ? value.slice() : [value];
+};
+const toScalar = value => {
+  if (value === undefined || value === '') return null;
+  if (Array.isArray(value)) return value[0] ?? null;
+  return value;
+};
+
+const assigneeIds = ref(toArray(route.query.assignee_ids));
+const teamIds = ref(toArray(route.query.team_ids));
+const inboxIds = ref(toArray(route.query.inbox_ids));
+const labelList = ref(toArray(route.query.label_list));
+const priority = ref(toArray(route.query.priority));
+const taskStatus = ref(toArray(route.query.task_status));
+const q = ref(toScalar(route.query.q) || '');
+const createdAtGte = ref(toScalar(route.query.created_at_gte));
+const createdAtLte = ref(toScalar(route.query.created_at_lte));
+
 const showCreateTask = ref(false);
 const preselectedColumnId = ref(null);
 const selectedCardId = ref(null);
@@ -48,7 +65,8 @@ let scrollDragStartLeft = 0;
 
 function onDragMove(e) {
   if (!isScrollDragging || !columnsRef.value) return;
-  columnsRef.value.scrollLeft = scrollDragStartLeft - (e.clientX - scrollDragStartX);
+  columnsRef.value.scrollLeft =
+    scrollDragStartLeft - (e.clientX - scrollDragStartX);
 }
 
 function onDragEnd() {
@@ -73,7 +91,11 @@ function onColumnsWheel(e) {
   let el = e.target;
   while (el && el !== columnsRef.value) {
     const { overflowY } = window.getComputedStyle(el);
-    if ((overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight) return;
+    if (
+      (overflowY === 'auto' || overflowY === 'scroll') &&
+      el.scrollHeight > el.clientHeight
+    )
+      return;
     el = el.parentElement;
   }
   e.preventDefault();
@@ -101,28 +123,101 @@ const inboxOptions = computed(() => [
   ...inboxes.value.map(i => ({ value: i.id, label: i.name })),
 ]);
 
-const filteredCards = computed(() => {
-  return allCards.value.filter(card => {
-    const conv = card.conversation;
-    if (!conv) return true;
-    if (statusFilter.value && conv.status !== statusFilter.value) return false;
-    if (agentFilter.value && conv.meta?.assignee?.id !== Number(agentFilter.value))
-      return false;
-    if (inboxFilter.value && conv.inbox_id !== Number(inboxFilter.value))
-      return false;
-    return true;
-  });
+// Backend ja filtra server-side; expoe allCards diretamente.
+const filteredCards = computed(() => allCards.value);
+
+// Selecionar un valor a partir do array; usado pelos ComboBox de agente/inbox.
+const firstOrNull = arr => (arr.length > 0 ? arr[0] : null);
+
+const agentFilter = computed({
+  get: () => firstOrNull(assigneeIds.value),
+  set: val => {
+    assigneeIds.value = val == null || val === '' ? [] : [val];
+  },
 });
 
+const inboxFilter = computed({
+  get: () => firstOrNull(inboxIds.value),
+  set: val => {
+    inboxIds.value = val == null || val === '' ? [] : [val];
+  },
+});
+
+const isTaskStatusActive = status => taskStatus.value.includes(status);
+
 const toggleStatus = status => {
-  statusFilter.value = statusFilter.value === status ? null : status;
+  if (isTaskStatusActive(status)) {
+    taskStatus.value = taskStatus.value.filter(s => s !== status);
+  } else {
+    taskStatus.value = [...taskStatus.value, status];
+  }
 };
+
+const filterParams = computed(() => ({
+  assignee_ids: assigneeIds.value,
+  team_ids: teamIds.value,
+  inbox_ids: inboxIds.value,
+  label_list: labelList.value,
+  priority: priority.value,
+  task_status: taskStatus.value,
+  q: q.value || '',
+  created_at_gte: createdAtGte.value || null,
+  created_at_lte: createdAtLte.value || null,
+}));
+
+// Serializa filterParams para querystring (somente chaves nao-vazias).
+const filterQueryObject = computed(() => {
+  const out = {};
+  const p = filterParams.value;
+  if (p.assignee_ids.length) out.assignee_ids = p.assignee_ids.map(String);
+  if (p.team_ids.length) out.team_ids = p.team_ids.map(String);
+  if (p.inbox_ids.length) out.inbox_ids = p.inbox_ids.map(String);
+  if (p.label_list.length) out.label_list = p.label_list.map(String);
+  if (p.priority.length) out.priority = p.priority.map(String);
+  if (p.task_status.length) out.task_status = p.task_status.map(String);
+  if (p.q) out.q = p.q;
+  if (p.created_at_gte) out.created_at_gte = p.created_at_gte;
+  if (p.created_at_lte) out.created_at_lte = p.created_at_lte;
+  return out;
+});
+
+const fetchWithFilters = async () => {
+  if (!boardId.value) return;
+  await store.dispatch('kanban/fetchCards', {
+    boardId: boardId.value,
+    ...filterParams.value,
+  });
+};
+
+let pendingFetchHandle = null;
+const scheduleFetch = (debounceMs = 0) => {
+  if (pendingFetchHandle) clearTimeout(pendingFetchHandle);
+  if (debounceMs === 0) {
+    fetchWithFilters();
+    return;
+  }
+  pendingFetchHandle = setTimeout(() => {
+    pendingFetchHandle = null;
+    fetchWithFilters();
+  }, debounceMs);
+};
+
+// Watch filtros: sincroniza querystring + dispara fetch debounced (300ms para q,
+// imediato para os demais).
+watch(
+  filterParams,
+  () => {
+    router.replace({ query: filterQueryObject.value }).catch(() => {});
+    scheduleFetch(q.value ? 300 : 0);
+  },
+  { deep: true }
+);
 
 const loadBoard = async () => {
   if (!boardId.value) return;
   await Promise.all([
     store.dispatch('kanban/fetchBoard', boardId.value),
-    store.dispatch('kanban/fetchCards', boardId.value),
+    fetchWithFilters(),
   ]);
 };
 
@@ -134,7 +229,11 @@ onMounted(() => {
 watch(boardId, loadBoard);
 
 const goToSettings = () => {
-  router.push(frontendURL(`accounts/${accountId.value}/kanban/boards/${boardId.value}/settings`));
+  router.push(
+    frontendURL(
+      `accounts/${accountId.value}/kanban/boards/${boardId.value}/settings`
+    )
+  );
 };
 
 const goToOverview = () => {
@@ -208,13 +307,19 @@ const cancelOutcomeMove = () => {
       <span class="text-sm font-semibold text-n-slate-12">
         {{ board?.name || t('KANBAN.BOARD.LOADING') }}
       </span>
-      <span class="text-xs bg-n-alpha-2 text-n-slate-10 px-1.5 py-0.5 rounded-full">
+      <span
+        class="text-xs bg-n-alpha-2 text-n-slate-10 px-1.5 py-0.5 rounded-full"
+      >
         {{ filteredCards.length }}
       </span>
 
       <button
         class="p-1.5 rounded transition-colors"
-        :class="statusFilter === 'open' ? 'bg-n-brand/10 text-n-brand' : 'text-n-slate-9 hover:text-n-slate-12 hover:bg-n-alpha-2'"
+        :class="
+          isTaskStatusActive('open')
+            ? 'bg-n-brand/10 text-n-brand'
+            : 'text-n-slate-9 hover:text-n-slate-12 hover:bg-n-alpha-2'
+        "
         :title="t('KANBAN.BOARD.FILTER_OPEN')"
         @click="toggleStatus('open')"
       >
@@ -222,7 +327,11 @@ const cancelOutcomeMove = () => {
       </button>
       <button
         class="p-1.5 rounded transition-colors"
-        :class="statusFilter === 'pending' ? 'bg-n-brand/10 text-n-brand' : 'text-n-slate-9 hover:text-n-slate-12 hover:bg-n-alpha-2'"
+        :class="
+          isTaskStatusActive('pending')
+            ? 'bg-n-brand/10 text-n-brand'
+            : 'text-n-slate-9 hover:text-n-slate-12 hover:bg-n-alpha-2'
+        "
         :title="t('KANBAN.BOARD.FILTER_PENDING')"
         @click="toggleStatus('pending')"
       >
@@ -230,6 +339,21 @@ const cancelOutcomeMove = () => {
       </button>
 
       <div class="flex-1" />
+
+      <!-- Search (q) -->
+      <div class="relative w-48">
+        <Icon
+          icon="i-lucide-search"
+          class="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-n-slate-9 pointer-events-none"
+        />
+        <input
+          v-model="q"
+          type="search"
+          :placeholder="t('KANBAN.FILTERS.SEARCH_PLACEHOLDER')"
+          :aria-label="t('KANBAN.FILTERS.SEARCH_LABEL')"
+          class="w-full h-9 pl-7 pr-2 text-sm rounded-lg bg-n-alpha-1 border border-n-weak text-n-slate-12 placeholder:text-n-slate-9 focus:outline-none focus:ring-1 focus:ring-n-brand"
+        />
+      </div>
 
       <!-- Right: ComboBox filters + icons + add task -->
       <div class="w-40">
@@ -275,7 +399,9 @@ const cancelOutcomeMove = () => {
 
     <!-- Loading -->
     <div v-if="isLoading" class="flex-1 flex items-center justify-center">
-      <span class="text-sm text-n-slate-10">{{ t('KANBAN.BOARD.LOADING') }}</span>
+      <span class="text-sm text-n-slate-10">{{
+        t('KANBAN.BOARD.LOADING')
+      }}</span>
     </div>
 
     <!-- Empty state -->
@@ -285,15 +411,19 @@ const cancelOutcomeMove = () => {
     >
       <Icon icon="i-lucide-layout-kanban" class="size-10 text-n-slate-8" />
       <p class="text-sm text-n-slate-10">{{ t('KANBAN.BOARD.NO_COLUMNS') }}</p>
-      <button v-if="isAdmin" class="text-sm text-n-brand hover:underline" @click="goToSettings">
+      <button
+        v-if="isAdmin"
+        class="text-sm text-n-brand hover:underline"
+        @click="goToSettings"
+      >
         {{ t('KANBAN.BOARD.ADD_COLUMNS') }}
       </button>
     </div>
 
     <!-- Kanban columns -->
     <div
-      ref="columnsRef"
       v-else
+      ref="columnsRef"
       class="flex-1 min-h-0 min-w-0 flex gap-3 p-4 overflow-x-auto select-none cursor-grab active:cursor-grabbing"
       @mousedown="onColumnsMousedown"
       @wheel="onColumnsWheel"
@@ -337,7 +467,10 @@ const cancelOutcomeMove = () => {
   <OutcomeReasonModal
     v-if="pendingOutcomeMove"
     :column-type="pendingOutcomeMove.columnType"
-    :card-title="pendingOutcomeMove.card.title || `#${pendingOutcomeMove.card.conversation?.display_id}`"
+    :card-title="
+      pendingOutcomeMove.card.title ||
+      `#${pendingOutcomeMove.card.conversation?.display_id}`
+    "
     @confirm="confirmOutcomeMove"
     @cancel="cancelOutcomeMove"
   />
