@@ -1,4 +1,6 @@
 class Kanban::CardMoveService
+  attr_reader :wip_active_count
+
   def initialize(card, params, user = nil)
     @card = card
     @target_column_id = params[:column_id].to_i
@@ -7,6 +9,8 @@ class Kanban::CardMoveService
     @user = user
     @source_column = card.kanban_column
     @trigger_event_id = SecureRandom.uuid
+    @wip_exceeded = false
+    @wip_active_count = nil
   end
 
   def perform
@@ -31,13 +35,46 @@ class Kanban::CardMoveService
         sync_conversation_status if @target_column.conversation_status.present?
       end
 
+      # Denormaliza última movimentação (D-14) — bypass audit consistente com pattern Phase 0
+      # (last_execution_*). Frontend (Plan C) consome last_moved_at_ms para computar aging.
+      @card.update_columns(last_moved_at: Time.current) if column_changed # rubocop:disable Rails/SkipsModelValidations
+
+      # WIP soft (D-01/D-02): conta após UPDATE dentro da transaction.
+      # Advisory_lock acima já garante serialização sem race.
+      check_wip!(column_changed)
+
       dispatch_card_moved(column_changed)
     end
 
     @card
   end
 
+  def wip_exceeded?
+    @wip_exceeded == true
+  end
+
   private
+
+  def check_wip!(column_changed)
+    return unless column_changed
+    return if @target_column.wip_limit.blank? # D-05 NULL = sem limite
+
+    active_count = @target_column.kanban_cards.active.count
+    return if active_count <= @target_column.wip_limit
+
+    @wip_exceeded = true
+    @wip_active_count = active_count
+
+    Rails.configuration.dispatcher.dispatch(
+      Events::Types::KANBAN_WIP_EXCEEDED,
+      Time.zone.now,
+      board: @card.kanban_board,
+      column: @target_column,
+      active_count: active_count,
+      wip_limit: @target_column.wip_limit,
+      triggered_by: @user
+    )
+  end
 
   def sync_conversation_status
     conversation = @card.conversation
