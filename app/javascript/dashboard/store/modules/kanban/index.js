@@ -159,7 +159,7 @@ export const actions = {
     return card;
   },
 
-  async moveCard({ commit, state: _state }, { boardId, cardId, columnId, position, outcomeReason }) {
+  async moveCard({ commit, state: _state, dispatch }, { boardId, cardId, columnId, position, outcomeReason }) {
     const original = (_state.cards[boardId] || []).find(c => c.id === cardId);
     commit('MOVE_CARD', { boardId, cardId, columnId, position });
     try {
@@ -172,6 +172,18 @@ export const actions = {
           columnId: original.kanban_column_id,
           position: original.position,
         });
+      }
+      // DEBT-04: server has a newer version of the card
+      if (error?.response?.status === 409) {
+        const serverCard = error.response.data?.card;
+        if (serverCard) {
+          commit('UPDATE_CARD', { boardId, card: serverCard });
+        } else {
+          await dispatch('fetchCards', boardId);
+        }
+        const stale = new Error('KANBAN_CARD_STALE');
+        stale.code = 'KANBAN_CARD_STALE';
+        throw stale;
       }
       throw error;
     }
