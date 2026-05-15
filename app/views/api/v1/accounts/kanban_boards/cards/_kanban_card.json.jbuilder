@@ -29,6 +29,7 @@ end
 json.created_at kanban_card.created_at
 json.updated_at kanban_card.updated_at
 json.archived_at kanban_card.archived_at
+json.last_moved_at_ms (kanban_card.last_moved_at || kanban_card.created_at).to_i * 1000
 json.outcome kanban_card.outcome
 json.outcome_reason kanban_card.outcome_reason
 

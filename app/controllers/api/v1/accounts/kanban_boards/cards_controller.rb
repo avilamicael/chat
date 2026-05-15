@@ -85,7 +85,10 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
   end
 
   def move
-    @card = Kanban::CardMoveService.new(@card, move_params, current_user).perform
+    service = Kanban::CardMoveService.new(@card, move_params, current_user)
+    @card = service.perform
+    @wip_exceeded = service.wip_exceeded?
+    @wip_active_count = service.wip_active_count
   end
 
   def activities
