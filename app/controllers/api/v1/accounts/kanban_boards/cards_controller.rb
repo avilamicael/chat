@@ -6,12 +6,7 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
   rescue_from ActiveRecord::StaleObjectError, with: :render_stale_card
 
   def index
-    @cards = @board.kanban_cards.active.includes(
-      :kanban_card_conversations,
-      :assignee,
-      conversation: [:assignee, :inbox, :contact]
-    )
-    @cards = @cards.where(kanban_column_id: params[:column_id]) if params[:column_id].present?
+    @cards = KanbanCardFinder.new(@board, filter_params).perform
   end
 
   def archived
@@ -147,9 +142,8 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
     }, status: :conflict
   end
 
-
-  def audit_as_current_user(&block)
-    Audited.audit_class.as_user(current_user, &block)
+  def audit_as_current_user(&)
+    Audited.audit_class.as_user(current_user, &)
   end
 
   def set_board
@@ -165,6 +159,17 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
                   .find(params[:id])
   end
 
+  def filter_params
+    # Todos opcionais (filtros podem chegar vazios) — sem `require`.
+    # Whitelist explicito mitiga T-01-08 (mass-assignment).
+    params.permit(
+      :q, :page, :per_page,
+      :assignee_id, :created_at_gte, :created_at_lte, :column_id,
+      assignee_ids: [], team_ids: [], inbox_ids: [],
+      label_list: [], priority: [], task_status: []
+    )
+  end
+
   def task_create_params
     params.require(:kanban_card).permit(:title, :description, :priority, :task_status, :due_date, :reminder_at, assignee_ids: [], team_ids: [])
           .to_h.symbolize_keys
@@ -175,9 +180,7 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
       :title, :description, :priority, :task_status, :due_date, :reminder_at,
       :kanban_column_id, :conversation_id, assignee_ids: [], team_ids: []
     )
-    if permitted.key?(:conversation_id) && permitted[:conversation_id].present?
-      Current.account.conversations.find(permitted[:conversation_id])
-    end
+    Current.account.conversations.find(permitted[:conversation_id]) if permitted.key?(:conversation_id) && permitted[:conversation_id].present?
     permitted
   end
 
