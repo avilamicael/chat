@@ -51,10 +51,20 @@ module Kanban
       end
 
       execution.update!(status: :ok, executed_at: Time.current)
+      @column.update_columns(
+        last_execution_status: 'ok',
+        last_execution_error: nil,
+        last_executed_at: Time.current
+      )
     rescue ActiveRecord::RecordNotUnique
       Rails.logger.info "[Kanban::ColumnActionsService] dedupe: action #{action_id} trigger #{@trigger_event_id}"
     rescue StandardError => e
       execution&.update(status: :error, last_error: e.message[0, 500])
+      @column.update_columns(
+        last_execution_status: 'error',
+        last_execution_error: e.message[0, 500],
+        last_executed_at: Time.current
+      )
       raise
     end
 
