@@ -87,11 +87,18 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
   end
 
   def activities
-    @activities = Audited.audit_class
-                         .where(auditable_type: 'KanbanCard', auditable_id: @card.id)
-                         .includes(:user)
-                         .order(created_at: :desc)
-                         .limit(50)
+    before_id = params[:before].present? ? params[:before].to_i : nil
+    limit = [(params[:limit] || 20).to_i, 100].min
+    limit = 20 if limit < 1
+
+    scope = Audited.audit_class
+                   .where(auditable_type: 'KanbanCard', auditable_id: @card.id)
+                   .includes(:user)
+                   .order(id: :desc)
+    scope = scope.where('id < ?', before_id) if before_id
+
+    @activities = scope.limit(limit)
+    @activities_limit = limit
   end
 
   def link_conversation
