@@ -122,6 +122,20 @@ class KanbanListener < BaseListener
     })
   end
 
+  def kanban_wip_exceeded(event)
+    board = event.data[:board]
+    column = event.data[:column]
+    return unless board && column
+
+    broadcast(board.account, [account_token(board.account)], 'kanban.wip_exceeded', {
+      board_id: board.id,
+      column_id: column.id,
+      column_name: column.name,
+      active_count: event.data[:active_count],
+      wip_limit: event.data[:wip_limit]
+    })
+  end
+
   def kanban_board_updated(event)
     board = event.data[:board]
     return unless board
