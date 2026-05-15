@@ -5,6 +5,8 @@ const state = {
   columns: {}, // { boardId: [] }
   cards: {}, // { boardId: [] }
   archivedCards: {}, // { boardId: [] }
+  // { boardId: { columnId: { exceeded, activeCount, wipLimit } } }
+  columnWipStatus: {},
   uiFlags: {
     fetchingBoards: false,
     fetchingCards: false,
@@ -21,7 +23,8 @@ export const getters = {
     (_state.cards[boardId] || [])
       .filter(c => c.kanban_column_id === columnId)
       .sort((a, b) => a.position - b.position),
-  archivedCardsByBoard: _state => boardId => _state.archivedCards[boardId] || [],
+  archivedCardsByBoard: _state => boardId =>
+    _state.archivedCards[boardId] || [],
   uiFlags: _state => _state.uiFlags,
 };
 
@@ -66,9 +69,7 @@ export const mutations = {
     _state.cards = {
       ..._state.cards,
       [boardId]: cards.map(c =>
-        c.id === cardId
-          ? { ...c, kanban_column_id: columnId, position }
-          : c
+        c.id === cardId ? { ...c, kanban_column_id: columnId, position } : c
       ),
     };
   },
@@ -95,6 +96,24 @@ export const mutations = {
       updated.splice(idx, 1, column);
       _state.columns = { ..._state.columns, [boardId]: updated };
     }
+  },
+  SET_COLUMN_WIP_STATUS(
+    _state,
+    { boardId, columnId, exceeded, activeCount, wipLimit }
+  ) {
+    const bId = Number(boardId);
+    const cId = Number(columnId);
+    const prevBoard = _state.columnWipStatus[bId] || {};
+    const prevEntry = prevBoard[cId] || {};
+    const nextEntry = {
+      exceeded: exceeded ?? prevEntry.exceeded ?? false,
+      activeCount: activeCount ?? prevEntry.activeCount ?? null,
+      wipLimit: wipLimit ?? prevEntry.wipLimit ?? null,
+    };
+    _state.columnWipStatus = {
+      ..._state.columnWipStatus,
+      [bId]: { ...prevBoard, [cId]: nextEntry },
+    };
   },
 };
 
@@ -159,11 +178,34 @@ export const actions = {
     return card;
   },
 
-  async moveCard({ commit, state: _state, dispatch }, { boardId, cardId, columnId, position, outcomeReason }) {
+  async moveCard(
+    { commit, state: _state, dispatch },
+    { boardId, cardId, columnId, position, outcomeReason }
+  ) {
     const original = (_state.cards[boardId] || []).find(c => c.id === cardId);
     commit('MOVE_CARD', { boardId, cardId, columnId, position });
     try {
-      await kanbanAPI.moveCard(boardId, cardId, { column_id: columnId, position, outcome_reason: outcomeReason });
+      const { data } = await kanbanAPI.moveCard(boardId, cardId, {
+        column_id: columnId,
+        position,
+        outcome_reason: outcomeReason,
+      });
+      // D-03: WIP exceeded e soft warning — NAO reverter o card.
+      // O backend persistiu o movimento; so atualizamos o status para a UI.
+      if (data?.wip_exceeded) {
+        commit('SET_COLUMN_WIP_STATUS', {
+          boardId,
+          columnId,
+          exceeded: true,
+          activeCount: data.wip_active_count,
+        });
+      } else {
+        commit('SET_COLUMN_WIP_STATUS', {
+          boardId,
+          columnId,
+          exceeded: false,
+        });
+      }
     } catch (error) {
       if (original) {
         commit('MOVE_CARD', {
@@ -199,6 +241,26 @@ export const actions = {
     });
   },
 
+  // D-04: broadcast `kanban.wip_exceeded` consumido por todas as abas autenticadas
+  // na mesma account. Payload vem do KanbanListener#kanban_wip_exceeded (Plan A-04).
+  handleWipExceeded(
+    { commit },
+    {
+      board_id: boardId,
+      column_id: columnId,
+      active_count: activeCount,
+      wip_limit: wipLimit,
+    }
+  ) {
+    commit('SET_COLUMN_WIP_STATUS', {
+      boardId,
+      columnId,
+      exceeded: true,
+      activeCount,
+      wipLimit,
+    });
+  },
+
   handleCardAdded({ commit, state: _state }, { card, board_id: boardId }) {
     if (!_state.cards[boardId]) return;
     const exists = (_state.cards[boardId] || []).find(c => c.id === card.id);
@@ -226,26 +288,47 @@ export const actions = {
     commit('REMOVE_CARD', { boardId: Number(boardId), cardId });
   },
 
-  async linkConversationToCard({ commit }, { boardId, cardId, conversationId }) {
-    const { data: card } = await kanbanAPI.linkConversationToCard(boardId, cardId, conversationId);
+  async linkConversationToCard(
+    { commit },
+    { boardId, cardId, conversationId }
+  ) {
+    const { data: card } = await kanbanAPI.linkConversationToCard(
+      boardId,
+      cardId,
+      conversationId
+    );
     commit('UPDATE_CARD', { boardId: Number(boardId), card });
     return card;
   },
 
-  async unlinkConversationFromCard({ commit }, { boardId, cardId, conversationId }) {
-    const { data: card } = await kanbanAPI.unlinkConversationFromCard(boardId, cardId, conversationId);
+  async unlinkConversationFromCard(
+    { commit },
+    { boardId, cardId, conversationId }
+  ) {
+    const { data: card } = await kanbanAPI.unlinkConversationFromCard(
+      boardId,
+      cardId,
+      conversationId
+    );
     commit('UPDATE_CARD', { boardId: Number(boardId), card });
     return card;
   },
 
   async updateColumn({ commit }, { boardId, columnId, ...data }) {
-    const { data: response } = await kanbanAPI.updateColumn(boardId, columnId, data);
+    const { data: response } = await kanbanAPI.updateColumn(
+      boardId,
+      columnId,
+      data
+    );
     commit('UPDATE_COLUMN', { boardId: Number(boardId), column: response });
   },
 
   async fetchArchivedCards({ commit }, { boardId, params = {} }) {
     const { data } = await kanbanAPI.getArchivedCards(boardId, params);
-    commit('SET_ARCHIVED_CARDS', { boardId: Number(boardId), cards: data.payload });
+    commit('SET_ARCHIVED_CARDS', {
+      boardId: Number(boardId),
+      cards: data.payload,
+    });
   },
 };
 
