@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'dashboard/composables/store.js';
 import { useMapGetter } from 'dashboard/composables/store';
 import { useAdmin } from 'dashboard/composables/useAdmin';
+import { useAlert } from 'dashboard/composables';
 import { useI18n } from 'vue-i18n';
 import { frontendURL } from 'dashboard/helper/URLHelper.js';
 import KanbanColumn from './components/KanbanColumn.vue';
@@ -168,8 +169,11 @@ const confirmOutcomeMove = async reason => {
       position: move.targetPosition,
       outcomeReason: reason || null,
     });
-  } catch {
-    // error already reverted by store
+  } catch (e) {
+    if (e?.code === 'KANBAN_CARD_STALE') {
+      useAlert(t('KANBAN.CONFLICT_RELOAD'));
+    }
+    // other errors: silent — store already reverted optimistic move
   }
 };
 
