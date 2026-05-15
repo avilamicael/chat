@@ -49,6 +49,8 @@
 #  fk_rails_...  (team_id => teams.id)
 #
 class KanbanCard < ApplicationRecord
+  include PgSearch::Model
+
   audited only: %i[kanban_column_id assignee_id assignee_ids priority task_status outcome title]
 
   belongs_to :kanban_column
@@ -66,6 +68,21 @@ class KanbanCard < ApplicationRecord
 
   scope :active, -> { where(archived_at: nil) }
   scope :archived, -> { where.not(archived_at: nil) }
+
+  pg_search_scope(
+    :text_search,
+    against: {
+      title: 'A',
+      description: 'B'
+    },
+    using: {
+      tsearch: {
+        prefix: true,
+        normalization: 2
+      }
+    },
+    ranked_by: ':tsearch'
+  )
 
   validates :position, presence: true
   validate :title_or_conversation_required
