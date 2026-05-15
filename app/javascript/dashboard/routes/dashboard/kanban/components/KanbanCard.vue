@@ -10,6 +10,7 @@ import { getInboxIconByType } from 'dashboard/helper/inbox.js';
 const props = defineProps({
   card: { type: Object, required: true },
   accountId: { type: [String, Number], required: true },
+  column: { type: Object, default: null },
 });
 
 const emit = defineEmits(['open-detail']);
@@ -27,22 +28,19 @@ const sender = computed(() => conversation.value?.meta?.sender);
 const assignees = computed(() => {
   const ids = props.card.assignee_ids || [];
   if (ids.length === 0) return [];
-  return ids
-    .map(id => agents.value.find(a => a.id === id))
-    .filter(Boolean);
+  return ids.map(id => agents.value.find(a => a.id === id)).filter(Boolean);
 });
 
 const cardTeams = computed(() => {
   const ids = props.card.team_ids || [];
   if (ids.length === 0) return [];
-  return ids
-    .map(id => teams.value.find(tm => tm.id === id))
-    .filter(Boolean);
+  return ids.map(id => teams.value.find(tm => tm.id === id)).filter(Boolean);
 });
 
 const displayName = computed(() => {
   if (props.card.title) return props.card.title;
-  if (!isStandaloneTask.value) return sender.value?.name || t('KANBAN.CARD.NO_NAME');
+  if (!isStandaloneTask.value)
+    return sender.value?.name || t('KANBAN.CARD.NO_NAME');
   return t('KANBAN.CARD.NO_NAME');
 });
 
@@ -67,10 +65,14 @@ const CHANNEL_LABELS = {
 };
 
 const channelType = computed(() => conversation.value?.channel);
-const channelColor = computed(() => CHANNEL_COLORS[channelType.value] || '#94A3B8');
+const channelColor = computed(
+  () => CHANNEL_COLORS[channelType.value] || '#94A3B8'
+);
 const channelLabel = computed(
-  () => CHANNEL_LABELS[channelType.value] ||
-    channelType.value?.split('::')[1]?.toLowerCase() || ''
+  () =>
+    CHANNEL_LABELS[channelType.value] ||
+    channelType.value?.split('::')[1]?.toLowerCase() ||
+    ''
 );
 const channelIcon = computed(() => {
   const type = channelType.value;
@@ -103,13 +105,30 @@ const dueDateFormatted = computed(() => {
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
   if (d.toDateString() === today.toDateString()) return t('KANBAN.CARD.TODAY');
-  if (d.toDateString() === tomorrow.toDateString()) return t('KANBAN.CARD.TOMORROW');
+  if (d.toDateString() === tomorrow.toDateString())
+    return t('KANBAN.CARD.TOMORROW');
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 });
 
 const isDueSoon = computed(() => {
   if (!props.card.due_date) return false;
   return parseLocalDate(props.card.due_date).getTime() - Date.now() < 86400000;
+});
+
+const agingLevel = computed(() => {
+  const lastMs = props.card.last_moved_at_ms;
+  const col = props.column;
+  if (!lastMs || !col?.aging_warn_days || !col?.aging_danger_days) return null;
+  const days = (Date.now() - Number(lastMs)) / 86400000;
+  if (days >= col.aging_danger_days) return 'danger';
+  if (days >= col.aging_warn_days) return 'warn';
+  return null;
+});
+
+const agingBorderClass = computed(() => {
+  if (agingLevel.value === 'danger') return 'border-l-4 border-l-red-500';
+  if (agingLevel.value === 'warn') return 'border-l-4 border-l-amber-500';
+  return '';
 });
 
 const openDetail = () => emit('open-detail', props.card);
@@ -119,12 +138,15 @@ const openDetail = () => emit('open-detail', props.card);
   <div
     data-kanban-card
     class="bg-n-solid-2 rounded-lg p-3 cursor-pointer hover:bg-n-solid-3 transition-colors border border-n-weak"
+    :class="[agingBorderClass]"
     @click="openDetail"
   >
     <!-- Top row: avatar/icon + name + assignee avatar -->
     <div class="flex items-start gap-2 mb-2">
       <template v-if="isStandaloneTask">
-        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-n-alpha-2 flex items-center justify-center">
+        <div
+          class="flex-shrink-0 w-8 h-8 rounded-full bg-n-alpha-2 flex items-center justify-center"
+        >
           <Icon icon="i-lucide-clipboard-list" class="size-4 text-n-slate-10" />
         </div>
       </template>
@@ -135,7 +157,9 @@ const openDetail = () => emit('open-detail', props.card);
         :size="32"
         class="flex-shrink-0"
       />
-      <span class="flex-1 text-sm font-medium text-n-slate-12 truncate leading-snug mt-0.5">
+      <span
+        class="flex-1 text-sm font-medium text-n-slate-12 truncate leading-snug mt-0.5"
+      >
         {{ displayName }}
       </span>
       <div v-if="assignees.length > 0" class="flex items-center flex-shrink-0">
@@ -152,21 +176,27 @@ const openDetail = () => emit('open-detail', props.card);
         <span
           v-if="assignees.length > 2"
           class="ml-0.5 text-xs text-n-slate-10 font-medium"
-        >+{{ assignees.length - 2 }}</span>
+          >+{{ assignees.length - 2 }}</span>
       </div>
     </div>
 
     <!-- Awaiting reply badge: shown only when customer has sent a message with no agent reply yet -->
     <div v-if="conversation?.waiting_since" class="mb-2">
-      <span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium bg-yellow-500/15 text-yellow-600 dark:text-yellow-400">
-        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 animate-pulse bg-yellow-500" />
+      <span
+        class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium bg-yellow-500/15 text-yellow-600 dark:text-yellow-400"
+      >
+        <span
+          class="w-1.5 h-1.5 rounded-full flex-shrink-0 animate-pulse bg-yellow-500"
+        />
         {{ t('KANBAN.CARD.STATUS_PENDING') }}
       </span>
     </div>
 
     <!-- Snoozed badge -->
     <div v-else-if="card.task_status === 'snoozed'" class="mb-2">
-      <span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium bg-n-alpha-2 text-n-slate-9">
+      <span
+        class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium bg-n-alpha-2 text-n-slate-9"
+      >
         <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-n-slate-7" />
         {{ t('KANBAN.CARD.STATUS_SNOOZED') }}
       </span>
@@ -201,7 +231,10 @@ const openDetail = () => emit('open-detail', props.card);
     </div>
 
     <!-- Separator + metadata row -->
-    <div v-if="timeOpen || dueDateFormatted" class="border-t border-n-weak mt-2 pt-2 flex items-center justify-between gap-1">
+    <div
+      v-if="timeOpen || dueDateFormatted"
+      class="border-t border-n-weak mt-2 pt-2 flex items-center justify-between gap-1"
+    >
       <div
         v-if="dueDateFormatted"
         class="flex items-center gap-1 text-xs"
@@ -210,7 +243,10 @@ const openDetail = () => emit('open-detail', props.card);
         <Icon icon="i-lucide-calendar" class="size-3" />
         <span>{{ dueDateFormatted }}</span>
       </div>
-      <div v-if="timeOpen" class="flex items-center gap-1 text-xs text-n-slate-10 ml-auto">
+      <div
+        v-if="timeOpen"
+        class="flex items-center gap-1 text-xs text-n-slate-10 ml-auto"
+      >
         <Icon icon="i-lucide-clock" class="size-3" />
         <span>{{ timeOpen }}</span>
       </div>

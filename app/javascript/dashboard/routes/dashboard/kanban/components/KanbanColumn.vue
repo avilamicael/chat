@@ -13,7 +13,11 @@ const props = defineProps({
   filteredCards: { type: Array, default: null },
 });
 
-const emit = defineEmits(['add-card', 'open-card-detail', 'outcome-move-pending']);
+const emit = defineEmits([
+  'add-card',
+  'open-card-detail',
+  'outcome-move-pending',
+]);
 
 const { t } = useI18n();
 const store = useStore();
@@ -37,14 +41,20 @@ const localCardIds = ref(sourceCards.value.map(c => c.id));
 // Watch for cards entering or leaving this column (membership change only).
 // Uses a sorted ID string as a stable key so data-only updates don't trigger this.
 watch(
-  () => sourceCards.value.map(c => c.id).sort().join(','),
+  () =>
+    sourceCards.value
+      .map(c => c.id)
+      .sort()
+      .join(','),
   () => {
     const sourceIdSet = new Set(sourceCards.value.map(c => c.id));
     // Remove IDs that left the column
     const kept = localCardIds.value.filter(id => sourceIdSet.has(id));
     // Append any newly arrived cards (in their initial sorted order)
     const keptSet = new Set(kept);
-    const added = sourceCards.value.filter(c => !keptSet.has(c.id)).map(c => c.id);
+    const added = sourceCards.value
+      .filter(c => !keptSet.has(c.id))
+      .map(c => c.id);
     localCardIds.value = [...kept, ...added];
   }
 );
@@ -56,7 +66,8 @@ const cardDataMap = computed(() =>
 
 // localCards: getter returns fresh data in drag order; setter lets vuedraggable update order.
 const localCards = computed({
-  get: () => localCardIds.value.map(id => cardDataMap.value[id]).filter(Boolean),
+  get: () =>
+    localCardIds.value.map(id => cardDataMap.value[id]).filter(Boolean),
   set: newCards => {
     localCardIds.value = newCards.map(c => c.id);
   },
@@ -100,7 +111,6 @@ const onDragChange = async event => {
     localCardIds.value = sourceCards.value.map(c => c.id);
   }
 };
-
 </script>
 
 <template>
@@ -115,7 +125,9 @@ const onDragChange = async event => {
     >
       <div class="flex items-center gap-2">
         <span class="text-sm font-semibold text-white">{{ column.name }}</span>
-        <span class="text-xs text-white bg-white/20 px-1.5 py-0.5 rounded font-medium">
+        <span
+          class="text-xs text-white bg-white/20 px-1.5 py-0.5 rounded font-medium"
+        >
           {{ localCards.length }}
         </span>
         <span
@@ -150,7 +162,9 @@ const onDragChange = async event => {
         class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 pointer-events-none"
       >
         <Icon icon="i-lucide-inbox" class="size-5 text-n-slate-7" />
-        <span class="text-xs text-n-slate-8">{{ t('KANBAN.COLUMN.EMPTY') }}</span>
+        <span class="text-xs text-n-slate-8">{{
+          t('KANBAN.COLUMN.EMPTY')
+        }}</span>
       </div>
       <Draggable
         v-model="localCards"
@@ -164,6 +178,7 @@ const onDragChange = async event => {
         <template #item="{ element }">
           <KanbanCard
             :card="element"
+            :column="column"
             :account-id="accountId"
             @open-detail="emit('open-card-detail', $event)"
           />
