@@ -31,6 +31,9 @@ class KanbanColumn < ApplicationRecord
   belongs_to :account
   has_many :kanban_cards, -> { order(:position) }, dependent: :destroy, inverse_of: :kanban_column
 
+  # DEBT-03 / D9: secret per-column for HMAC webhook signing. Will be encrypted in Phase 5 (EXT-01).
+  has_secure_token :webhook_secret
+
   enum column_type: { normal: 'normal', won: 'won', lost: 'lost' }, _prefix: :column
   enum last_execution_status: { ok: 'ok', error: 'error', pending: 'pending' }, _prefix: :execution
 
