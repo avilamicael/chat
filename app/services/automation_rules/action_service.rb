@@ -7,14 +7,33 @@ class AutomationRules::ActionService < ActionService
   end
 
   def perform
+    any_error = nil
+    any_error_message = nil
+
     @rule.actions.each do |action|
       @conversation.reload
       action = action.with_indifferent_access
       begin
         send(action[:action_name], action[:action_params])
       rescue StandardError => e
+        any_error = e
+        any_error_message = e.message[0, 500]
         ChatwootExceptionTracker.new(e, account: @account).capture_exception
       end
+    end
+
+    if any_error
+      @rule.update_columns(
+        last_execution_status: 'error',
+        last_execution_error: any_error_message,
+        last_executed_at: Time.current
+      )
+    else
+      @rule.update_columns(
+        last_execution_status: 'ok',
+        last_execution_error: nil,
+        last_executed_at: Time.current
+      )
     end
   ensure
     Current.reset
