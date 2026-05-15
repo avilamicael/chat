@@ -3,6 +3,7 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
   before_action :set_board
   before_action :set_card, only: [:destroy, :move, :update, :activities, :link_conversation, :unlink_conversation]
   around_action :audit_as_current_user, only: [:create, :update, :move, :destroy, :link_conversation, :unlink_conversation]
+  rescue_from ActiveRecord::StaleObjectError, with: :render_stale_card
 
   def index
     @cards = @board.kanban_cards.active.includes(
@@ -132,6 +133,15 @@ class Api::V1::Accounts::KanbanBoards::CardsController < Api::V1::Accounts::Base
                     kanban_card_conversations: { conversation: [:inbox, :contact] }
                   )
                   .find(@card.id)
+  end
+
+  def render_stale_card
+    reload_card_with_associations if @card
+    render json: {
+      error: I18n.t('kanban.errors.card_was_modified'),
+      code: 'KANBAN_CARD_STALE',
+      card: @card.as_json
+    }, status: :conflict
   end
 
 
