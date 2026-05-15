@@ -6,38 +6,38 @@ class Kanban::CardMoveService
     @outcome_reason = params[:outcome_reason]
     @user = user
     @source_column = card.kanban_column
+    @trigger_event_id = SecureRandom.uuid
   end
 
   def perform
-    @target_column = @card.kanban_board.kanban_columns.find(@target_column_id)
-    column_changed = @source_column.id != @target_column.id
+    ActiveRecord::Base.transaction do
+      # DEBT-05: advisory lock per card.id — serializa movimentação concorrente.
+      # Namespace global — atualmente único user de advisory locks no Chatwoot.
+      # Se outro service vier a usar advisory locks, refatorar para variant pg_advisory_xact_lock(int4, int4).
+      ActiveRecord::Base.connection.execute(
+        "SELECT pg_advisory_xact_lock(#{@card.id.to_i})"
+      )
 
-    @card.without_auditing do
-      @card.update!(kanban_column_id: @target_column.id, position: @new_position)
+      @target_column = @card.kanban_board.kanban_columns.find(@target_column_id)
+      column_changed = @source_column.id != @target_column.id
+
+      @card.without_auditing do
+        @card.update!(kanban_column_id: @target_column.id, position: @new_position)
+      end
+
+      if column_changed
+        record_move_audit
+        @card.archive!(@target_column.column_type, @outcome_reason) if @target_column.column_won? || @target_column.column_lost?
+        sync_conversation_status if @target_column.conversation_status.present?
+      end
+
+      dispatch_card_moved(column_changed)
     end
-
-    if column_changed
-      record_move_audit
-      @card.archive!(@target_column.column_type, @outcome_reason) if @target_column.column_won? || @target_column.column_lost?
-      sync_conversation_status if @target_column.conversation_status.present?
-      run_column_actions(@source_column.exit_actions)
-      run_column_actions(@target_column.enter_actions)
-    end
-
-    dispatch_card_moved(column_changed)
 
     @card
   end
 
   private
-
-  def run_column_actions(actions)
-    return if actions.blank?
-
-    Kanban::ColumnActionService.new(@card.conversation, actions, @card.account).perform
-  rescue StandardError => e
-    ChatwootExceptionTracker.new(e, account: @card.account).capture_exception
-  end
 
   def sync_conversation_status
     conversation = @card.conversation
@@ -72,7 +72,8 @@ class Kanban::CardMoveService
       source_column_id: @source_column.id,
       target_column_id: @target_column.id,
       column_changed: column_changed,
-      performed_by: @user
+      performed_by: @user,
+      trigger_event_id: @trigger_event_id
     )
   end
 end
