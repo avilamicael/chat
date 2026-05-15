@@ -29,6 +29,7 @@
       "FILTER_OPEN": "Open conversations",
       "FILTER_PENDING": "Pending conversations"
     },
+    "CONFLICT_RELOAD": "Another agent moved this card. The board has been refreshed.",
     "COLUMN": {
       "ADD": "Add Column",
       "RENAME": "Rename",
