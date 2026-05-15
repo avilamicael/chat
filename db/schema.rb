@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_05_15_174956) do
+ActiveRecord::Schema[7.1].define(version: 2026_05_15_175100) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -682,6 +682,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_15_174956) do
     t.string "outcome"
     t.text "outcome_reason"
     t.integer "lock_version", default: 0, null: false
+    t.datetime "last_moved_at"
     t.index ["account_id"], name: "index_kanban_cards_on_account_id"
     t.index ["archived_at"], name: "index_kanban_cards_on_archived_at"
     t.index ["assignee_id"], name: "index_kanban_cards_on_assignee_id"
@@ -691,6 +692,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_15_174956) do
     t.index ["kanban_board_id"], name: "index_kanban_cards_on_kanban_board_id"
     t.index ["kanban_column_id", "position"], name: "index_kanban_cards_on_kanban_column_id_and_position"
     t.index ["kanban_column_id"], name: "index_kanban_cards_on_kanban_column_id"
+    t.index ["last_moved_at"], name: "index_kanban_cards_on_last_moved_at"
     t.index ["team_id"], name: "index_kanban_cards_on_team_id"
   end
 
