@@ -557,3 +557,6 @@ en:
         fourth: "fourth"
         fifth: "fifth"
         last: "last"
+  kanban:
+    errors:
+      card_was_modified: "Card was modified by another user. Please refresh and try again."
