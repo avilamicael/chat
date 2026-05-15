@@ -1,11 +1,12 @@
 module Kanban
   class ColumnActionsService
-    def initialize(card, column, actions_type)
+    def initialize(card, column, actions_type, trigger_event_id: nil)
       @card = card
       @column = column
       @actions_type = actions_type
       @actions = (column.public_send(actions_type) || []).select { |a| a.is_a?(Hash) }
       @account = column.account
+      @trigger_event_id = trigger_event_id || SecureRandom.uuid
     end
 
     def perform
@@ -19,6 +20,13 @@ module Kanban
     private
 
     def execute_action(action)
+      action_id = action_signature(action)
+      execution = KanbanCardActionExecution.create!(
+        card_id: @card.id, column_id: @column.id,
+        action_id: action_id, trigger_event_id: @trigger_event_id,
+        direction: @actions_type.to_s, status: :pending
+      )
+
       case action['action_name']
       when 'auto_assign_agent'
         auto_assign_agent
@@ -27,12 +35,32 @@ module Kanban
       when 'auto_resolve'
         auto_resolve
       when 'send_webhook'
-        Kanban::WebhookJob.perform_later(action['url'], webhook_payload) if action['url'].present?
+        return if action['url'].blank?
+
+        WebhookJob.perform_later(
+          action['url'],
+          webhook_payload,
+          :account_webhook,
+          secret: @column.webhook_secret,
+          delivery_id: @trigger_event_id
+        )
       when 'assign_agent'
         assign_agent(action['agent_id'])
       when 'assign_team'
         assign_team(action['team_id'])
       end
+
+      execution.update!(status: :ok, executed_at: Time.current)
+    rescue ActiveRecord::RecordNotUnique
+      Rails.logger.info "[Kanban::ColumnActionsService] dedupe: action #{action_id} trigger #{@trigger_event_id}"
+    rescue StandardError => e
+      execution&.update(status: :error, last_error: e.message[0, 500])
+      raise
+    end
+
+    def action_signature(action)
+      payload = { name: action['action_name'], params: action.except('action_name') }
+      Digest::SHA256.hexdigest(payload.to_json)[0, 32]
     end
 
     def auto_assign_agent
