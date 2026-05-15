@@ -30,7 +30,9 @@ class KanbanAPI extends ApiClient {
   }
 
   createColumn(boardId, data) {
-    return axios.post(`${this.url}/${boardId}/columns`, { kanban_column: data });
+    return axios.post(`${this.url}/${boardId}/columns`, {
+      kanban_column: data,
+    });
   }
 
   updateColumn(boardId, columnId, data) {
@@ -81,14 +83,22 @@ class KanbanAPI extends ApiClient {
     });
   }
 
-  getCardActivities(boardId, cardId) {
-    return axios.get(`${this.url}/${boardId}/cards/${cardId}/activities`);
+  getCardActivities(boardId, cardId, { before, limit } = {}) {
+    const params = {};
+    if (before) params.before = before;
+    if (limit) params.limit = limit;
+    return axios.get(`${this.url}/${boardId}/cards/${cardId}/activities`, {
+      params,
+    });
   }
 
   linkConversationToCard(boardId, cardId, conversationId) {
-    return axios.post(`${this.url}/${boardId}/cards/${cardId}/link_conversation`, {
-      conversation_id: conversationId,
-    });
+    return axios.post(
+      `${this.url}/${boardId}/cards/${cardId}/link_conversation`,
+      {
+        conversation_id: conversationId,
+      }
+    );
   }
 
   unlinkConversationFromCard(boardId, cardId, conversationId) {

@@ -86,6 +86,24 @@
     },
     "WIP_EXCEEDED_BADGE": "{count} / {limit} (exceeded)",
     "WIP_BADGE": "{count} / {limit}",
+    "ACTIVITY": {
+      "TITLE": "Activity",
+      "SYSTEM": "System",
+      "PERFORMED": "made {count} change | made {count} changes",
+      "LOAD_MORE": "Load older",
+      "LOADING": "Loading...",
+      "RETENTION_NOTICE": "Showing the last 6 months. For older history check the reports page.",
+      "FIELD": {
+        "kanban_column_id": "moved column to {to}",
+        "kanban_column_name": "moved from {from} to {to}",
+        "assignee_id": "changed primary assignee",
+        "assignee_ids": "changed assignees",
+        "priority": "changed priority from {from} to {to}",
+        "task_status": "changed status from {from} to {to}",
+        "outcome": "set outcome to {to}",
+        "title": "changed title"
+      }
+    },
     "FILTERS": {
       "ASSIGNEE_LABEL": "Assignees",
       "ASSIGNEE_PLACEHOLDER": "All agents",
