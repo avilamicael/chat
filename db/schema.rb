@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_05_15_125331) do
+ActiveRecord::Schema[7.1].define(version: 2026_05_15_174956) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -710,6 +710,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_15_125331) do
     t.text "last_execution_error"
     t.datetime "last_executed_at"
     t.string "webhook_secret", null: false
+    t.integer "wip_limit"
+    t.integer "aging_warn_days"
+    t.integer "aging_danger_days"
     t.index ["account_id"], name: "index_kanban_columns_on_account_id"
     t.index ["column_type"], name: "index_kanban_columns_on_column_type"
     t.index ["kanban_board_id", "position"], name: "index_kanban_columns_on_kanban_board_id_and_position"
