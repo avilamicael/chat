@@ -80,6 +80,35 @@ const computeFractionalPosition = (list, newIndex) => {
   return (prev + next) / 2;
 };
 
+const wipStatus = computed(
+  () =>
+    store.state.kanban?.columnWipStatus?.[Number(props.boardId)]?.[
+      props.column.id
+    ] || null
+);
+
+const wipActiveCount = computed(() => {
+  if (wipStatus.value?.activeCount != null) return wipStatus.value.activeCount;
+  return localCards.value.length;
+});
+
+const wipIsExceeded = computed(() => {
+  if (!props.column.wip_limit) return false;
+  if (wipStatus.value?.exceeded === true) return true;
+  return wipActiveCount.value > props.column.wip_limit;
+});
+
+const wipBadgeText = computed(() => {
+  if (!props.column.wip_limit) return '';
+  const params = {
+    count: wipActiveCount.value,
+    limit: props.column.wip_limit,
+  };
+  return wipIsExceeded.value
+    ? t('KANBAN.WIP_EXCEEDED_BADGE', params)
+    : t('KANBAN.WIP_BADGE', params);
+});
+
 const onDragChange = async event => {
   if (!event.added && !event.moved) return;
   const moved = event.added || event.moved;
@@ -129,6 +158,17 @@ const onDragChange = async event => {
           class="text-xs text-white bg-white/20 px-1.5 py-0.5 rounded font-medium"
         >
           {{ localCards.length }}
+        </span>
+        <span
+          v-if="column.wip_limit"
+          class="text-xs px-1.5 py-0.5 rounded font-medium"
+          :class="
+            wipIsExceeded
+              ? 'bg-red-500/30 text-red-100'
+              : 'bg-white/20 text-white'
+          "
+        >
+          {{ wipBadgeText }}
         </span>
         <span
           v-if="column.column_type === 'won'"
