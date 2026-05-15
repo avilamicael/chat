@@ -8,4 +8,7 @@ json.column_type kanban_column.column_type
 json.conversation_status kanban_column.conversation_status
 json.kanban_board_id kanban_column.kanban_board_id
 json.account_id kanban_column.account_id
+json.wip_limit kanban_column.wip_limit
+json.aging_warn_days kanban_column.aging_warn_days
+json.aging_danger_days kanban_column.aging_danger_days
 json.cards_count kanban_column.kanban_cards.length
