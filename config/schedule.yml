@@ -88,3 +88,11 @@ billing_trial_expiry_job:
   cron: '0 1 * * *'
   class: 'Billing::TrialExpiryJob'
   queue: low
+
+# executed daily at 0300 UTC (low traffic)
+# archives audit partitions older than 6 months to external storage,
+# then creates next month's partition if missing
+archive_audit_partitions_job:
+  cron: '0 3 * * *'
+  class: 'Cron::ArchiveAuditPartitionsJob'
+  queue: scheduled_jobs
