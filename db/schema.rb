@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_05_15_175100) do
+ActiveRecord::Schema[7.1].define(version: 2026_05_17_223656) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -152,7 +152,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_15_175100) do
     t.index ["message_id"], name: "index_attachments_on_message_id"
   end
 
-  create_table "audits", force: :cascade do |t|
+  create_table "audits", primary_key: ["id", "created_at"], force: :cascade do |t|
+    t.bigserial "id", null: false
     t.bigint "auditable_id"
     t.string "auditable_type"
     t.bigint "associated_id"
@@ -166,12 +167,265 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_15_175100) do
     t.string "comment"
     t.string "remote_address"
     t.string "request_uuid"
-    t.datetime "created_at", precision: nil
-    t.index ["associated_type", "associated_id"], name: "associated_index"
-    t.index ["auditable_type", "auditable_id", "version"], name: "auditable_index"
+    t.datetime "created_at", precision: nil, null: false
+    t.index ["associated_type", "associated_id"], name: "index_audits_on_associated"
+    t.index ["auditable_type", "auditable_id", "version"], name: "index_audits_on_auditable"
     t.index ["created_at"], name: "index_audits_on_created_at"
     t.index ["request_uuid"], name: "index_audits_on_request_uuid"
-    t.index ["user_id", "user_type"], name: "user_index"
+    t.index ["user_id", "user_type"], name: "index_audits_on_user"
+  end
+
+  create_table "audits_2025_11", primary_key: ["id", "created_at"], force: :cascade do |t|
+    t.bigint "id", default: -> { "nextval('audits_id_seq'::regclass)" }, null: false
+    t.bigint "auditable_id"
+    t.string "auditable_type"
+    t.bigint "associated_id"
+    t.string "associated_type"
+    t.bigint "user_id"
+    t.string "user_type"
+    t.string "username"
+    t.string "action"
+    t.jsonb "audited_changes"
+    t.integer "version", default: 0
+    t.string "comment"
+    t.string "remote_address"
+    t.string "request_uuid"
+    t.datetime "created_at", precision: nil, null: false
+    t.index ["associated_type", "associated_id"], name: "audits_2025_11_associated_type_associated_id_idx"
+    t.index ["auditable_type", "auditable_id", "version"], name: "audits_2025_11_auditable_type_auditable_id_version_idx"
+    t.index ["created_at"], name: "audits_2025_11_created_at_idx"
+    t.index ["request_uuid"], name: "audits_2025_11_request_uuid_idx"
+    t.index ["user_id", "user_type"], name: "audits_2025_11_user_id_user_type_idx"
+  end
+
+  create_table "audits_2025_12", primary_key: ["id", "created_at"], force: :cascade do |t|
+    t.bigint "id", default: -> { "nextval('audits_id_seq'::regclass)" }, null: false
+    t.bigint "auditable_id"
+    t.string "auditable_type"
+    t.bigint "associated_id"
+    t.string "associated_type"
+    t.bigint "user_id"
+    t.string "user_type"
+    t.string "username"
+    t.string "action"
+    t.jsonb "audited_changes"
+    t.integer "version", default: 0
+    t.string "comment"
+    t.string "remote_address"
+    t.string "request_uuid"
+    t.datetime "created_at", precision: nil, null: false
+    t.index ["associated_type", "associated_id"], name: "audits_2025_12_associated_type_associated_id_idx"
+    t.index ["auditable_type", "auditable_id", "version"], name: "audits_2025_12_auditable_type_auditable_id_version_idx"
+    t.index ["created_at"], name: "audits_2025_12_created_at_idx"
+    t.index ["request_uuid"], name: "audits_2025_12_request_uuid_idx"
+    t.index ["user_id", "user_type"], name: "audits_2025_12_user_id_user_type_idx"
+  end
+
+  create_table "audits_2026_01", primary_key: ["id", "created_at"], force: :cascade do |t|
+    t.bigint "id", default: -> { "nextval('audits_id_seq'::regclass)" }, null: false
+    t.bigint "auditable_id"
+    t.string "auditable_type"
+    t.bigint "associated_id"
+    t.string "associated_type"
+    t.bigint "user_id"
+    t.string "user_type"
+    t.string "username"
+    t.string "action"
+    t.jsonb "audited_changes"
+    t.integer "version", default: 0
+    t.string "comment"
+    t.string "remote_address"
+    t.string "request_uuid"
+    t.datetime "created_at", precision: nil, null: false
+    t.index ["associated_type", "associated_id"], name: "audits_2026_01_associated_type_associated_id_idx"
+    t.index ["auditable_type", "auditable_id", "version"], name: "audits_2026_01_auditable_type_auditable_id_version_idx"
+    t.index ["created_at"], name: "audits_2026_01_created_at_idx"
+    t.index ["request_uuid"], name: "audits_2026_01_request_uuid_idx"
+    t.index ["user_id", "user_type"], name: "audits_2026_01_user_id_user_type_idx"
+  end
+
+  create_table "audits_2026_02", primary_key: ["id", "created_at"], force: :cascade do |t|
+    t.bigint "id", default: -> { "nextval('audits_id_seq'::regclass)" }, null: false
+    t.bigint "auditable_id"
+    t.string "auditable_type"
+    t.bigint "associated_id"
+    t.string "associated_type"
+    t.bigint "user_id"
+    t.string "user_type"
+    t.string "username"
+    t.string "action"
+    t.jsonb "audited_changes"
+    t.integer "version", default: 0
+    t.string "comment"
+    t.string "remote_address"
+    t.string "request_uuid"
+    t.datetime "created_at", precision: nil, null: false
+    t.index ["associated_type", "associated_id"], name: "audits_2026_02_associated_type_associated_id_idx"
+    t.index ["auditable_type", "auditable_id", "version"], name: "audits_2026_02_auditable_type_auditable_id_version_idx"
+    t.index ["created_at"], name: "audits_2026_02_created_at_idx"
+    t.index ["request_uuid"], name: "audits_2026_02_request_uuid_idx"
+    t.index ["user_id", "user_type"], name: "audits_2026_02_user_id_user_type_idx"
+  end
+
+  create_table "audits_2026_03", primary_key: ["id", "created_at"], force: :cascade do |t|
+    t.bigint "id", default: -> { "nextval('audits_id_seq'::regclass)" }, null: false
+    t.bigint "auditable_id"
+    t.string "auditable_type"
+    t.bigint "associated_id"
+    t.string "associated_type"
+    t.bigint "user_id"
+    t.string "user_type"
+    t.string "username"
+    t.string "action"
+    t.jsonb "audited_changes"
+    t.integer "version", default: 0
+    t.string "comment"
+    t.string "remote_address"
+    t.string "request_uuid"
+    t.datetime "created_at", precision: nil, null: false
+    t.index ["associated_type", "associated_id"], name: "audits_2026_03_associated_type_associated_id_idx"
+    t.index ["auditable_type", "auditable_id", "version"], name: "audits_2026_03_auditable_type_auditable_id_version_idx"
+    t.index ["created_at"], name: "audits_2026_03_created_at_idx"
+    t.index ["request_uuid"], name: "audits_2026_03_request_uuid_idx"
+    t.index ["user_id", "user_type"], name: "audits_2026_03_user_id_user_type_idx"
+  end
+
+  create_table "audits_2026_04", primary_key: ["id", "created_at"], force: :cascade do |t|
+    t.bigint "id", default: -> { "nextval('audits_id_seq'::regclass)" }, null: false
+    t.bigint "auditable_id"
+    t.string "auditable_type"
+    t.bigint "associated_id"
+    t.string "associated_type"
+    t.bigint "user_id"
+    t.string "user_type"
+    t.string "username"
+    t.string "action"
+    t.jsonb "audited_changes"
+    t.integer "version", default: 0
+    t.string "comment"
+    t.string "remote_address"
+    t.string "request_uuid"
+    t.datetime "created_at", precision: nil, null: false
+    t.index ["associated_type", "associated_id"], name: "audits_2026_04_associated_type_associated_id_idx"
+    t.index ["auditable_type", "auditable_id", "version"], name: "audits_2026_04_auditable_type_auditable_id_version_idx"
+    t.index ["created_at"], name: "audits_2026_04_created_at_idx"
+    t.index ["request_uuid"], name: "audits_2026_04_request_uuid_idx"
+    t.index ["user_id", "user_type"], name: "audits_2026_04_user_id_user_type_idx"
+  end
+
+  create_table "audits_2026_05", primary_key: ["id", "created_at"], force: :cascade do |t|
+    t.bigint "id", default: -> { "nextval('audits_id_seq'::regclass)" }, null: false
+    t.bigint "auditable_id"
+    t.string "auditable_type"
+    t.bigint "associated_id"
+    t.string "associated_type"
+    t.bigint "user_id"
+    t.string "user_type"
+    t.string "username"
+    t.string "action"
+    t.jsonb "audited_changes"
+    t.integer "version", default: 0
+    t.string "comment"
+    t.string "remote_address"
+    t.string "request_uuid"
+    t.datetime "created_at", precision: nil, null: false
+    t.index ["associated_type", "associated_id"], name: "audits_2026_05_associated_type_associated_id_idx"
+    t.index ["auditable_type", "auditable_id", "version"], name: "audits_2026_05_auditable_type_auditable_id_version_idx"
+    t.index ["created_at"], name: "audits_2026_05_created_at_idx"
+    t.index ["request_uuid"], name: "audits_2026_05_request_uuid_idx"
+    t.index ["user_id", "user_type"], name: "audits_2026_05_user_id_user_type_idx"
+  end
+
+  create_table "audits_2026_06", primary_key: ["id", "created_at"], force: :cascade do |t|
+    t.bigint "id", default: -> { "nextval('audits_id_seq'::regclass)" }, null: false
+    t.bigint "auditable_id"
+    t.string "auditable_type"
+    t.bigint "associated_id"
+    t.string "associated_type"
+    t.bigint "user_id"
+    t.string "user_type"
+    t.string "username"
+    t.string "action"
+    t.jsonb "audited_changes"
+    t.integer "version", default: 0
+    t.string "comment"
+    t.string "remote_address"
+    t.string "request_uuid"
+    t.datetime "created_at", precision: nil, null: false
+    t.index ["associated_type", "associated_id"], name: "audits_2026_06_associated_type_associated_id_idx"
+    t.index ["auditable_type", "auditable_id", "version"], name: "audits_2026_06_auditable_type_auditable_id_version_idx"
+    t.index ["created_at"], name: "audits_2026_06_created_at_idx"
+    t.index ["request_uuid"], name: "audits_2026_06_request_uuid_idx"
+    t.index ["user_id", "user_type"], name: "audits_2026_06_user_id_user_type_idx"
+  end
+
+  create_table "audits_2026_07", primary_key: ["id", "created_at"], force: :cascade do |t|
+    t.bigint "id", default: -> { "nextval('audits_id_seq'::regclass)" }, null: false
+    t.bigint "auditable_id"
+    t.string "auditable_type"
+    t.bigint "associated_id"
+    t.string "associated_type"
+    t.bigint "user_id"
+    t.string "user_type"
+    t.string "username"
+    t.string "action"
+    t.jsonb "audited_changes"
+    t.integer "version", default: 0
+    t.string "comment"
+    t.string "remote_address"
+    t.string "request_uuid"
+    t.datetime "created_at", precision: nil, null: false
+    t.index ["associated_type", "associated_id"], name: "audits_2026_07_associated_type_associated_id_idx"
+    t.index ["auditable_type", "auditable_id", "version"], name: "audits_2026_07_auditable_type_auditable_id_version_idx"
+    t.index ["created_at"], name: "audits_2026_07_created_at_idx"
+    t.index ["request_uuid"], name: "audits_2026_07_request_uuid_idx"
+    t.index ["user_id", "user_type"], name: "audits_2026_07_user_id_user_type_idx"
+  end
+
+  create_table "audits_2026_08", primary_key: ["id", "created_at"], force: :cascade do |t|
+    t.bigint "id", default: -> { "nextval('audits_id_seq'::regclass)" }, null: false
+    t.bigint "auditable_id"
+    t.string "auditable_type"
+    t.bigint "associated_id"
+    t.string "associated_type"
+    t.bigint "user_id"
+    t.string "user_type"
+    t.string "username"
+    t.string "action"
+    t.jsonb "audited_changes"
+    t.integer "version", default: 0
+    t.string "comment"
+    t.string "remote_address"
+    t.string "request_uuid"
+    t.datetime "created_at", precision: nil, null: false
+    t.index ["associated_type", "associated_id"], name: "audits_2026_08_associated_type_associated_id_idx"
+    t.index ["auditable_type", "auditable_id", "version"], name: "audits_2026_08_auditable_type_auditable_id_version_idx"
+    t.index ["created_at"], name: "audits_2026_08_created_at_idx"
+    t.index ["request_uuid"], name: "audits_2026_08_request_uuid_idx"
+    t.index ["user_id", "user_type"], name: "audits_2026_08_user_id_user_type_idx"
+  end
+
+  create_table "audits_default", primary_key: ["id", "created_at"], force: :cascade do |t|
+    t.bigint "id", default: -> { "nextval('audits_id_seq'::regclass)" }, null: false
+    t.bigint "auditable_id"
+    t.string "auditable_type"
+    t.bigint "associated_id"
+    t.string "associated_type"
+    t.bigint "user_id"
+    t.string "user_type"
+    t.string "username"
+    t.string "action"
+    t.jsonb "audited_changes"
+    t.integer "version", default: 0
+    t.string "comment"
+    t.string "remote_address"
+    t.string "request_uuid"
+    t.datetime "created_at", precision: nil, null: false
+    t.index ["associated_type", "associated_id"], name: "audits_default_associated_type_associated_id_idx"
+    t.index ["auditable_type", "auditable_id", "version"], name: "audits_default_auditable_type_auditable_id_version_idx"
+    t.index ["created_at"], name: "audits_default_created_at_idx"
+    t.index ["request_uuid"], name: "audits_default_request_uuid_idx"
+    t.index ["user_id", "user_type"], name: "audits_default_user_id_user_type_idx"
   end
 
   create_table "automation_rules", force: :cascade do |t|
