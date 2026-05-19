@@ -3,6 +3,7 @@
 # Table name: automation_rules
 #
 #  id                    :bigint           not null, primary key
+#  abort_on_fail         :boolean          default(FALSE), not null
 #  actions               :jsonb            not null
 #  active                :boolean          default(TRUE), not null
 #  conditions            :jsonb            not null
@@ -28,6 +29,7 @@ class AutomationRule < ApplicationRecord
 
   belongs_to :account
   has_many :scheduled_messages, as: :author, dependent: :nullify
+  has_many :automation_rule_runs, dependent: :destroy
   has_many_attached :files
 
   enum last_execution_status: { ok: 'ok', error: 'error', pending: 'pending' }, _prefix: :execution
