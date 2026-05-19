@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_05_19_215008) do
+ActiveRecord::Schema[7.1].define(version: 2026_05_19_223719) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -513,6 +513,26 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_19_215008) do
     t.index ["user_id", "user_type"], name: "audits_default_user_id_user_type_idx"
   end
 
+  create_table "automation_rule_runs", force: :cascade do |t|
+    t.bigint "automation_rule_id", null: false
+    t.bigint "account_id", null: false
+    t.string "event_name", null: false
+    t.string "trigger_event_id", limit: 36
+    t.datetime "triggered_at", null: false
+    t.datetime "finished_at"
+    t.integer "status", default: 5, null: false
+    t.integer "total_actions", default: 0
+    t.integer "succeeded_actions", default: 0
+    t.jsonb "actions_log", default: [], null: false
+    t.text "error_summary"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "created_at"], name: "idx_runs_by_account_failures", order: { created_at: :desc }, where: "(status <> 0)"
+    t.index ["account_id"], name: "index_automation_rule_runs_on_account_id"
+    t.index ["automation_rule_id", "created_at"], name: "idx_runs_by_rule_desc", order: { created_at: :desc }
+    t.index ["automation_rule_id"], name: "index_automation_rule_runs_on_automation_rule_id"
+  end
+
   create_table "automation_rules", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.string "name", null: false
@@ -526,6 +546,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_19_215008) do
     t.string "last_execution_status"
     t.text "last_execution_error"
     t.datetime "last_executed_at"
+    t.boolean "abort_on_fail", default: false, null: false
     t.index ["account_id"], name: "index_automation_rules_on_account_id"
   end
 
@@ -1750,6 +1771,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_19_215008) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "automation_rule_runs", "accounts"
+  add_foreign_key "automation_rule_runs", "automation_rules", on_delete: :cascade
   add_foreign_key "group_members", "contacts"
   add_foreign_key "group_members", "contacts", column: "group_contact_id"
   add_foreign_key "inboxes", "portals"
