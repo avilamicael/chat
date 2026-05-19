@@ -115,6 +115,23 @@ export const mutations = {
       [bId]: { ...prevBoard, [cId]: nextEntry },
     };
   },
+  // Phase 3 KAN-09: atualiza card_count + avg_dwell_seconds na coluna específica
+  // dentro de _state.columns[boardId] (shape consistente com SET_COLUMNS).
+  SET_COLUMN_METRICS(_state, { boardId, columnId, count, avgDwellSeconds }) {
+    const bId = Number(boardId);
+    const cId = Number(columnId);
+    const cols = _state.columns[bId] || [];
+    const idx = cols.findIndex(c => c.id === cId);
+    if (idx === -1) return;
+    const updated = [...cols];
+    updated.splice(idx, 1, {
+      ...cols[idx],
+      card_count: count,
+      cards_count: count,
+      avg_dwell_seconds: avgDwellSeconds,
+    });
+    _state.columns = { ..._state.columns, [bId]: updated };
+  },
 };
 
 export const actions = {
@@ -263,6 +280,25 @@ export const actions = {
       exceeded: true,
       activeCount,
       wipLimit,
+    });
+  },
+
+  // Phase 3 KAN-09: broadcast `kanban.column_metrics_updated` — re-renderiza apenas
+  // a coluna afetada (não o board inteiro). Payload de KanbanListener#kanban_column_metrics_updated.
+  handleColumnMetricsUpdated(
+    { commit },
+    {
+      board_id: boardId,
+      column_id: columnId,
+      count,
+      avg_dwell_seconds: avgDwellSeconds,
+    }
+  ) {
+    commit('SET_COLUMN_METRICS', {
+      boardId,
+      columnId,
+      count,
+      avgDwellSeconds,
     });
   },
 

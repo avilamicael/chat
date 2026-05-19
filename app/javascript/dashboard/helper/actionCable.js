@@ -50,6 +50,7 @@ class ActionCableConnector extends BaseActionCableConnector {
       'kanban.card_removed': this.onKanbanCardRemoved,
       'kanban.card_updated': this.onKanbanCardUpdated,
       'kanban.wip_exceeded': this.onKanbanWipExceeded,
+      'kanban.column_metrics_updated': this.onKanbanColumnMetricsUpdated,
     };
   }
 
@@ -276,6 +277,10 @@ class ActionCableConnector extends BaseActionCableConnector {
 
   onKanbanWipExceeded = data => {
     this.app.$store.dispatch('kanban/handleWipExceeded', data);
+  };
+
+  onKanbanColumnMetricsUpdated = data => {
+    this.app.$store.dispatch('kanban/handleColumnMetricsUpdated', data);
   };
 }
 
