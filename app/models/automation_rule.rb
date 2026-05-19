@@ -36,10 +36,12 @@ class AutomationRule < ApplicationRecord
   validate :json_actions_format
   validate :query_operator_presence
   validate :query_operator_value
+  validate :regex_conditions_format
   validate :scheduled_message_params
   validates :account_id, presence: true
 
   after_update_commit :reauthorized!, if: -> { saved_change_to_conditions? }
+  after_commit :invalidate_rules_cache, on: %i[create update destroy]
 
   scope :active, -> { where(active: true) }
 
@@ -138,7 +140,47 @@ class AutomationRule < ApplicationRecord
 
     errors.add(:actions, I18n.t('errors.automation.scheduled_message.content_attachment_or_template_required'))
   end
+
+  # AUT-06 (D-C2): rejeita regex inválido no save da rule com mensagem traduzida.
+  # NOTE: Ruby 3.4 expõe Regexp.timeout — passamos limite curto para mitigar ReDoS catastrófico no parse.
+  def regex_conditions_format
+    return if conditions.blank?
+
+    conditions.each_with_index do |cond, idx|
+      next unless cond['filter_operator'] == 'matches_regex'
+
+      Array(cond['values']).compact.each do |value|
+        next if value.blank?
+
+        begin
+          Regexp.new(value.to_s, Regexp::IGNORECASE)
+        rescue RegexpError => e
+          errors.add(:conditions, I18n.t('errors.automation.invalid_regex', index: idx + 1, error: e.message))
+        end
+      end
+    end
+  end
+
+  # AUT-12 (D-D4): invalidação ativa do cache automation_rules:<account>:<event_name> em create/update/destroy.
+  # Plan A já invalida no abort_loop_and_disable! (active=false via update_columns que NÃO dispara after_commit).
+  # Este callback cobre o fluxo normal (admin save/destroy de rule pelo dashboard).
+  def invalidate_rules_cache
+    return if account_id.blank?
+
+    if respond_to?(:saved_change_to_event_name?) && saved_change_to_event_name?
+      old_event = saved_changes['event_name']&.first
+      Rails.cache.delete("automation_rules:#{account_id}:#{old_event}") if old_event.present?
+    end
+    Rails.cache.delete("automation_rules:#{account_id}:#{event_name}") if event_name.present?
+  end
 end
 
 AutomationRule.include_mod_with('Audit::AutomationRule')
+# Phase 2 — OSS overlay aplicado ANTES do Enterprise overlay (D-E1).
+# Cadeia final de method dispatch após todos os prepends: Enterprise -> Kanban -> base AutomationRule.
+# Como ambos invocam `super + %w[...]`, a ordem de prepend só afeta o sufixo do array final:
+# conditions_attributes => [...base..., target_column_id, source_column_id, kanban_board_id, task_status, sla_policy_id].
+# `prepend_mod_with` itera ChatwootApp.extensions e procura Enterprise::AutomationRule/Custom::AutomationRule;
+# `KanbanAutomationRule` é OSS-puro (vive em app/models/concerns/), então usamos `prepend` direto.
+AutomationRule.prepend(KanbanAutomationRule)
 AutomationRule.prepend_mod_with('AutomationRule')
