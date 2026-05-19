@@ -2,45 +2,61 @@ class ActionService
   include EmailHelper
 
   def initialize(conversation)
-    @conversation = conversation.reload
-    @account = @conversation.account
+    @conversation = conversation&.reload
+    @account = @conversation&.account
   end
 
   def mute_conversation(_params)
+    return if @conversation.nil?
+
     @conversation.mute!
   end
 
   def snooze_conversation(_params)
+    return if @conversation.nil?
+
     @conversation.snoozed!
   end
 
   def resolve_conversation(_params)
+    return if @conversation.nil?
+
     @conversation.resolved!
   end
 
   def open_conversation(_params)
+    return if @conversation.nil?
+
     @conversation.open!
   end
 
   def pending_conversation(_params)
+    return if @conversation.nil?
+
     @conversation.pending!
   end
 
   def change_status(status)
+    return if @conversation.nil?
+
     @conversation.update!(status: status[0])
   end
 
   def change_priority(priority)
+    return if @conversation.nil?
+
     @conversation.update!(priority: (priority[0] == 'nil' ? nil : priority[0]))
   end
 
   def add_label(labels)
     return if labels.empty?
+    return if @conversation.nil?
 
     @conversation.reload.add_labels(labels)
   end
 
   def assign_agent(agent_ids = [])
+    return if @conversation.nil?
     return @conversation.update!(assignee_id: nil) if agent_ids[0] == 'nil'
 
     return unless agent_belongs_to_inbox?(agent_ids)
@@ -54,12 +70,15 @@ class ActionService
 
   def remove_label(labels)
     return if labels.empty?
+    return if @conversation.nil?
 
     labels = @conversation.label_list - labels
     @conversation.update!(label_list: labels)
   end
 
   def assign_team(team_ids = [])
+    return if @conversation.nil?
+
     # FIXME: The explicit checks for zero or nil (string) is bad. Move
     # this to a separate unassign action.
     should_unassign = team_ids.blank? || %w[nil 0].include?(team_ids[0].to_s)
@@ -73,10 +92,13 @@ class ActionService
   end
 
   def remove_assigned_team(_params)
+    return if @conversation.nil?
+
     @conversation.update!(team_id: nil)
   end
 
   def send_email_transcript(emails)
+    return if @conversation.nil?
     return unless @account.email_transcript_enabled?
 
     emails = emails[0].gsub(/\s+/, '').split(',')
@@ -91,6 +113,7 @@ class ActionService
   end
 
   def create_scheduled_message(action_params)
+    return if @conversation.nil?
     return if conversation_a_tweet?
 
     params = action_params.first&.with_indifferent_access || {}
@@ -128,6 +151,7 @@ class ActionService
   end
 
   def conversation_a_tweet?
+    return false if @conversation.nil?
     return false if @conversation.additional_attributes.blank?
 
     @conversation.additional_attributes['type'] == 'tweet'
