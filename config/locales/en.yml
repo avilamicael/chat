@@ -70,6 +70,7 @@ en:
       scheduled_message:
         delay_out_of_range: Delay must be between 1 minute and 999 days
         content_attachment_or_template_required: Scheduled message must have content, attachment, or template
+      invalid_regex: "Invalid regex in condition %{index}: %{error}"
     scheduled_messages:
       cannot_delete_processed: Cannot delete a scheduled message that has already been sent or failed
     saml:
@@ -229,6 +230,9 @@ en:
       sla_missed_first_response: 'SLA target first response missed for conversation (#%{display_id})'
       sla_missed_next_response: 'SLA target next response missed for conversation (#%{display_id})'
       sla_missed_resolution: 'SLA target resolution missed for conversation (#%{display_id})'
+      automation_rule_loop_aborted: "Automation rule '%{rule_name}' was disabled — cascade loop detected (>5 levels)."
+    notification_body:
+      automation_rule_loop_aborted: 'Rule chain: %{chain}. Click to review and re-enable manually.'
     attachment: 'Attachment'
     no_content: 'No content'
   conversations:
