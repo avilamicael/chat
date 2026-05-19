@@ -31,7 +31,7 @@ class AutomationRuleListener < BaseListener
     rules.each do |rule|
       conditions_match = ::AutomationRules::ConditionsFilterService.new(rule, message.conversation,
                                                                         { message: message, changed_attributes: changed_attributes }).perform
-      ::AutomationRules::ActionService.new(rule, account, message.conversation).perform if conditions_match.present?
+      execute_with_run_tracking(rule, account, message.conversation, event_name: 'message_created') if conditions_match.present?
     end
   end
 
@@ -64,7 +64,7 @@ class AutomationRuleListener < BaseListener
 
     rules.each do |rule|
       conditions_match = ::AutomationRules::ConditionsFilterService.new(rule, conversation, { changed_attributes: changed_attributes }).perform
-      AutomationRules::ActionService.new(rule, account, conversation).perform if conditions_match.present?
+      execute_with_run_tracking(rule, account, conversation, event_name: event_name) if conditions_match.present?
     end
   end
 
@@ -98,7 +98,9 @@ class AutomationRuleListener < BaseListener
     conditions_match = ::Kanban::ConditionsFilterService.new(rule, card, conversation: card.conversation, options: options).perform
     return if conditions_match.blank?
 
-    ::AutomationRules::ActionService.new(rule, account, card.conversation, card: card).perform
+    execute_with_run_tracking(rule, account, card.conversation, card: card,
+                                                                event_name: rule.event_name,
+                                                                trigger_event_id: options[:trigger_event_id])
   end
 
   def abort_loop_and_disable!(event_name, account)
@@ -156,5 +158,27 @@ class AutomationRuleListener < BaseListener
   def ignore_message_created_event?(event)
     message = event.data[:message]
     performed_by_automation?(event) || message.activity? || message.auto_reply_email?
+  end
+
+  # AUT-08 (D-E8): wrap ActionService dentro de uma AutomationRuleRun row.
+  # Cria run com status :started, executa actions, e finaliza com status agregado.
+  # Em StandardError fora do loop (ex: invalidação de constraint), marca run :error e re-eleva.
+  def execute_with_run_tracking(rule, account, conversation, event_name:, card: nil, trigger_event_id: nil) # rubocop:disable Metrics/ParameterLists
+    run = AutomationRuleRun.create!(
+      automation_rule: rule,
+      account: account,
+      event_name: event_name,
+      trigger_event_id: trigger_event_id,
+      triggered_at: Time.current,
+      status: :started,
+      total_actions: rule.actions.length,
+      actions_log: []
+    )
+    ::AutomationRules::ActionService.new(rule, account, conversation, card: card, run: run).perform
+    run.finalize!
+    run
+  rescue StandardError => e
+    run&.update!(status: :error, error_summary: e.message[0, 500], finished_at: Time.current)
+    raise
   end
 end

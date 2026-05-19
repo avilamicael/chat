@@ -26,7 +26,7 @@ describe AutomationRuleListener do
       it 'calls AutomationRules::ActionService if conditions match' do
         allow(condition_match).to receive(:present?).and_return(true)
         listener.conversation_created(event)
-        expect(AutomationRules::ActionService).to have_received(:new).with(automation_rule, account, conversation)
+        expect(AutomationRules::ActionService).to have_received(:new).with(automation_rule, account, conversation, card: nil, run: kind_of(AutomationRuleRun))
       end
 
       it 'does not call AutomationRules::ActionService if conditions do not match' do
@@ -69,7 +69,7 @@ describe AutomationRuleListener do
       it 'calls AutomationRules::ActionService if conditions match' do
         allow(condition_match).to receive(:present?).and_return(true)
         listener.conversation_updated(event)
-        expect(AutomationRules::ActionService).to have_received(:new).with(automation_rule, account, conversation)
+        expect(AutomationRules::ActionService).to have_received(:new).with(automation_rule, account, conversation, card: nil, run: kind_of(AutomationRuleRun))
       end
 
       it 'does not call AutomationRules::ActionService if conditions do not match' do
@@ -105,7 +105,7 @@ describe AutomationRuleListener do
       it 'calls AutomationRules::ActionService if conditions match' do
         allow(condition_match).to receive(:present?).and_return(true)
         listener.conversation_opened(event)
-        expect(AutomationRules::ActionService).to have_received(:new).with(automation_rule, account, conversation)
+        expect(AutomationRules::ActionService).to have_received(:new).with(automation_rule, account, conversation, card: nil, run: kind_of(AutomationRuleRun))
       end
 
       it 'does not call AutomationRules::ActionService if conditions do not match' do
@@ -141,7 +141,7 @@ describe AutomationRuleListener do
       it 'calls AutomationRules::ActionService if conditions match' do
         allow(condition_match).to receive(:present?).and_return(true)
         listener.conversation_resolved(event)
-        expect(AutomationRules::ActionService).to have_received(:new).with(automation_rule, account, conversation)
+        expect(AutomationRules::ActionService).to have_received(:new).with(automation_rule, account, conversation, card: nil, run: kind_of(AutomationRuleRun))
       end
 
       it 'does not call AutomationRules::ActionService if conditions do not match' do
@@ -178,7 +178,7 @@ describe AutomationRuleListener do
       it 'calls AutomationRules::ActionService if conditions match' do
         allow(condition_match).to receive(:present?).and_return(true)
         listener.message_created(event)
-        expect(AutomationRules::ActionService).to have_received(:new).with(automation_rule, account, conversation)
+        expect(AutomationRules::ActionService).to have_received(:new).with(automation_rule, account, conversation, card: nil, run: kind_of(AutomationRuleRun))
       end
 
       it 'does not call AutomationRules::ActionService if conditions do not match' do
