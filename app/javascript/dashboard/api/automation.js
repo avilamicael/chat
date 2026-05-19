@@ -9,6 +9,16 @@ class AutomationsAPI extends ApiClient {
   clone(automationId) {
     return axios.post(`${this.url}/${automationId}/clone`);
   }
+
+  dryRun(automationId, eventPayload) {
+    return axios.post(`${this.url}/${automationId}/dry_run`, {
+      event_payload: eventPayload,
+    });
+  }
+
+  listRuns(automationId, query = {}) {
+    return axios.get(`${this.url}/${automationId}/runs`, { params: query });
+  }
 }
 
 export default new AutomationsAPI();
