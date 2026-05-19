@@ -3,6 +3,7 @@ import {
   OPERATOR_TYPES_2,
   OPERATOR_TYPES_3,
   OPERATOR_TYPES_6,
+  OPERATOR_TYPES_REGEX,
 } from './operators';
 
 export const AUTOMATIONS = {
@@ -18,7 +19,13 @@ export const AUTOMATIONS = {
         key: 'content',
         name: 'MESSAGE_CONTAINS',
         inputType: 'comma_separated_plain_text',
-        filterOperators: OPERATOR_TYPES_2,
+        filterOperators: OPERATOR_TYPES_REGEX,
+      },
+      {
+        key: 'channel_type',
+        name: 'INBOX_CHANNEL_TYPE',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_1,
       },
       {
         key: 'email',
@@ -628,6 +635,210 @@ export const AUTOMATIONS = {
       },
     ],
   },
+  kanban_card_moved: {
+    conditions: [
+      {
+        key: 'target_column_id',
+        name: 'KANBAN_TARGET_COLUMN',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+      {
+        key: 'source_column_id',
+        name: 'KANBAN_SOURCE_COLUMN',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+      {
+        key: 'kanban_board_id',
+        name: 'KANBAN_BOARD',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+      {
+        key: 'priority',
+        name: 'KANBAN_PRIORITY',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+      {
+        key: 'task_status',
+        name: 'KANBAN_TASK_STATUS',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+      {
+        key: 'assignee_id',
+        name: 'KANBAN_ASSIGNEE',
+        inputType: 'search_select',
+        filterOperators: OPERATOR_TYPES_3,
+      },
+      {
+        key: 'team_id',
+        name: 'TEAM_NAME',
+        inputType: 'search_select',
+        filterOperators: OPERATOR_TYPES_3,
+      },
+      {
+        key: 'labels',
+        name: 'LABELS',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_3,
+      },
+      {
+        key: 'channel_type',
+        name: 'INBOX_CHANNEL_TYPE',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+    ],
+    actions: [
+      {
+        key: 'assign_agent',
+        name: 'ASSIGN_AGENT',
+      },
+      {
+        key: 'assign_team',
+        name: 'ASSIGN_TEAM',
+      },
+      {
+        key: 'add_label',
+        name: 'ADD_LABEL',
+      },
+      {
+        key: 'send_email_to_team',
+        name: 'SEND_EMAIL_TO_TEAM',
+      },
+      {
+        key: 'send_message',
+        name: 'SEND_MESSAGE',
+      },
+      {
+        key: 'send_webhook_event',
+        name: 'SEND_WEBHOOK_EVENT',
+      },
+      {
+        key: 'change_priority',
+        name: 'CHANGE_PRIORITY',
+      },
+      {
+        key: 'mute_conversation',
+        name: 'MUTE_CONVERSATION',
+      },
+      {
+        key: 'snooze_conversation',
+        name: 'SNOOZE_CONVERSATION',
+      },
+      {
+        key: 'resolve_conversation',
+        name: 'RESOLVE_CONVERSATION',
+      },
+    ],
+  },
+  kanban_card_added: {
+    conditions: [
+      {
+        key: 'target_column_id',
+        name: 'KANBAN_TARGET_COLUMN',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+      {
+        key: 'kanban_board_id',
+        name: 'KANBAN_BOARD',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+      {
+        key: 'priority',
+        name: 'KANBAN_PRIORITY',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+      {
+        key: 'task_status',
+        name: 'KANBAN_TASK_STATUS',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+      {
+        key: 'assignee_id',
+        name: 'KANBAN_ASSIGNEE',
+        inputType: 'search_select',
+        filterOperators: OPERATOR_TYPES_3,
+      },
+      {
+        key: 'labels',
+        name: 'LABELS',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_3,
+      },
+      {
+        key: 'channel_type',
+        name: 'INBOX_CHANNEL_TYPE',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+    ],
+    actions: [
+      {
+        key: 'assign_agent',
+        name: 'ASSIGN_AGENT',
+      },
+      {
+        key: 'assign_team',
+        name: 'ASSIGN_TEAM',
+      },
+      {
+        key: 'add_label',
+        name: 'ADD_LABEL',
+      },
+      {
+        key: 'send_message',
+        name: 'SEND_MESSAGE',
+      },
+      {
+        key: 'send_webhook_event',
+        name: 'SEND_WEBHOOK_EVENT',
+      },
+      {
+        key: 'change_priority',
+        name: 'CHANGE_PRIORITY',
+      },
+    ],
+  },
+  kanban_card_removed: {
+    conditions: [
+      {
+        key: 'kanban_board_id',
+        name: 'KANBAN_BOARD',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+      {
+        key: 'priority',
+        name: 'KANBAN_PRIORITY',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+      {
+        key: 'task_status',
+        name: 'KANBAN_TASK_STATUS',
+        inputType: 'multi_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+    ],
+    actions: [
+      {
+        key: 'send_webhook_event',
+        name: 'SEND_WEBHOOK_EVENT',
+      },
+      {
+        key: 'send_email_to_team',
+        name: 'SEND_EMAIL_TO_TEAM',
+      },
+    ],
+  },
 };
 
 export const AUTOMATION_RULE_EVENTS = [
@@ -650,6 +861,18 @@ export const AUTOMATION_RULE_EVENTS = [
   {
     key: 'conversation_opened',
     value: 'CONVERSATION_OPENED',
+  },
+  {
+    key: 'kanban_card_moved',
+    value: 'KANBAN_CARD_MOVED',
+  },
+  {
+    key: 'kanban_card_added',
+    value: 'KANBAN_CARD_ADDED',
+  },
+  {
+    key: 'kanban_card_removed',
+    value: 'KANBAN_CARD_REMOVED',
   },
 ];
 

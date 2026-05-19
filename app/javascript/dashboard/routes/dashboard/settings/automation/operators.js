@@ -111,3 +111,34 @@ export const OPERATOR_TYPES_6 = [
     label: 'Starts With',
   },
 ];
+
+export const OPERATOR_TYPES_REGEX = [
+  {
+    value: 'equal_to',
+    label: 'Equal to',
+  },
+  {
+    value: 'not_equal_to',
+    label: 'Not equal to',
+  },
+  {
+    value: 'contains',
+    label: 'Contains',
+  },
+  {
+    value: 'does_not_contain',
+    label: 'Does not contain',
+  },
+  {
+    value: 'starts_with',
+    label: 'Starts with',
+  },
+  {
+    value: 'ends_with',
+    label: 'Ends with',
+  },
+  {
+    value: 'matches_regex',
+    label: 'Matches regex',
+  },
+];
