@@ -60,6 +60,11 @@ class KanbanColumn < ApplicationRecord
   before_validation :set_account_from_board
   after_save :ensure_single_intake_column, if: :has_auto_create_task?
 
+  # Phase 3 (KAN-07): KanbanColumn pode ser secondary_actor de notification_type='kanban_card_unassignable'.
+  def push_event_data
+    { id: id, name: name }
+  end
+
   private
 
   def has_auto_create_task?

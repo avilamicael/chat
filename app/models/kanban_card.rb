@@ -101,6 +101,12 @@ class KanbanCard < ApplicationRecord
     update!(archived_at: Time.current, outcome: outcome_value, outcome_reason: reason)
   end
 
+  # Phase 3 (KAN-07): KanbanCard pode ser primary_actor de notification_type='kanban_card_unassignable'.
+  # Notification#push_event_data chama push_event_data no actor — exposiamos id + title minimos.
+  def push_event_data
+    { id: id, title: title }
+  end
+
   def assignees
     User.where(id: assignee_ids || [])
   end
