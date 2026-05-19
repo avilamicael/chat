@@ -7,6 +7,10 @@ import ConditionRow from 'dashboard/components-next/filter/ConditionRow.vue';
 import AutomationActionInput from 'dashboard/components/widgets/AutomationActionInput.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
+import RuleEditorTabs from 'dashboard/components-next/Automation/RuleEditorTabs.vue';
+import ExecutionsList from 'dashboard/components-next/Automation/ExecutionsList.vue';
+import DryRunPanel from 'dashboard/components-next/Automation/DryRunPanel.vue';
+import SettingsToggleSection from 'dashboard/components-next/Settings/SettingsToggleSection.vue';
 import {
   generateAutomationPayload,
   getAttributes,
@@ -249,172 +253,208 @@ defineExpose({ open, close });
     :show-confirm-button="false"
     overflow-y-auto
   >
-    <div v-if="automation" class="flex flex-col w-full">
-      <woot-input
-        v-model="automation.name"
-        :label="$t('AUTOMATION.ADD.FORM.NAME.LABEL')"
-        type="text"
-        :class="{ error: errors.name }"
-        :error="errors.name ? $t('AUTOMATION.ADD.FORM.NAME.ERROR') : ''"
-        :placeholder="$t('AUTOMATION.ADD.FORM.NAME.PLACEHOLDER')"
-      />
-      <woot-input
-        v-model="automation.description"
-        :label="$t('AUTOMATION.ADD.FORM.DESC.LABEL')"
-        type="text"
-        :class="{ error: errors.description }"
-        :error="errors.description ? $t('AUTOMATION.ADD.FORM.DESC.ERROR') : ''"
-        :placeholder="$t('AUTOMATION.ADD.FORM.DESC.PLACEHOLDER')"
-      />
-      <div class="mb-6">
-        <label :class="{ error: errors.event_name }">
-          {{ $t('AUTOMATION.ADD.FORM.EVENT.LABEL') }}
-          <select
-            v-model="automation.event_name"
-            class="m-0"
-            @change="onEventChange()"
-          >
-            <option
-              v-for="event in automationRuleEvents"
-              :key="event.key"
-              :value="event.key"
+    <RuleEditorTabs v-if="automation" :runs-count="0">
+      <template #edit>
+        <div class="flex flex-col w-full">
+          <woot-input
+            v-model="automation.name"
+            :label="$t('AUTOMATION.ADD.FORM.NAME.LABEL')"
+            type="text"
+            :class="{ error: errors.name }"
+            :error="errors.name ? $t('AUTOMATION.ADD.FORM.NAME.ERROR') : ''"
+            :placeholder="$t('AUTOMATION.ADD.FORM.NAME.PLACEHOLDER')"
+          />
+          <woot-input
+            v-model="automation.description"
+            :label="$t('AUTOMATION.ADD.FORM.DESC.LABEL')"
+            type="text"
+            :class="{ error: errors.description }"
+            :error="
+              errors.description ? $t('AUTOMATION.ADD.FORM.DESC.ERROR') : ''
+            "
+            :placeholder="$t('AUTOMATION.ADD.FORM.DESC.PLACEHOLDER')"
+          />
+          <div class="mb-6">
+            <label :class="{ error: errors.event_name }">
+              {{ $t('AUTOMATION.ADD.FORM.EVENT.LABEL') }}
+              <select
+                v-model="automation.event_name"
+                class="m-0"
+                @change="onEventChange()"
+              >
+                <option
+                  v-for="event in automationRuleEvents"
+                  :key="event.key"
+                  :value="event.key"
+                >
+                  {{ event.value }}
+                </option>
+              </select>
+              <span v-if="errors.event_name" class="message">
+                {{ $t('AUTOMATION.ADD.FORM.EVENT.ERROR') }}
+              </span>
+            </label>
+            <p
+              v-if="!isEditMode && hasAutomationMutated"
+              class="text-xs text-right text-n-teal-10 pt-1"
             >
-              {{ event.value }}
-            </option>
-          </select>
-          <span v-if="errors.event_name" class="message">
-            {{ $t('AUTOMATION.ADD.FORM.EVENT.ERROR') }}
-          </span>
-        </label>
-        <p
-          v-if="!isEditMode && hasAutomationMutated"
-          class="text-xs text-right text-n-teal-10 pt-1"
-        >
-          {{ $t('AUTOMATION.FORM.RESET_MESSAGE') }}
-        </p>
-      </div>
-      <!-- Conditions Start -->
-      <section class="mb-5">
-        <label>
-          {{ $t('AUTOMATION.ADD.FORM.CONDITIONS.LABEL') }}
-        </label>
-        <ul
-          class="grid gap-4 list-none p-3 mb-4 outline outline-1 rounded-xl -outline-offset-1"
-          :class="
-            hasConditionErrors
-              ? 'outline-n-ruby-5 bg-n-ruby-2/50'
-              : 'outline-n-weak dark:outline-n-strong'
-          "
-        >
-          <template v-for="(condition, i) in automation.conditions" :key="i">
-            <ConditionRow
-              v-if="i === 0"
-              ref="conditionsRef"
-              v-model:attribute-key="automation.conditions[i].attribute_key"
-              v-model:filter-operator="automation.conditions[i].filter_operator"
-              v-model:values="automation.conditions[i].values"
-              :filter-types="filterTypes"
-              :show-query-operator="false"
-              @remove="removeFilter(i)"
-            />
-            <ConditionRow
-              v-else
-              ref="conditionsRef"
-              v-model:attribute-key="automation.conditions[i].attribute_key"
-              v-model:filter-operator="automation.conditions[i].filter_operator"
-              v-model:query-operator="
-                automation.conditions[i - 1].query_operator
+              {{ $t('AUTOMATION.FORM.RESET_MESSAGE') }}
+            </p>
+          </div>
+          <!-- Conditions Start -->
+          <section class="mb-5">
+            <label>
+              {{ $t('AUTOMATION.ADD.FORM.CONDITIONS.LABEL') }}
+            </label>
+            <ul
+              class="grid gap-4 list-none p-3 mb-4 outline outline-1 rounded-xl -outline-offset-1"
+              :class="
+                hasConditionErrors
+                  ? 'outline-n-ruby-5 bg-n-ruby-2/50'
+                  : 'outline-n-weak dark:outline-n-strong'
               "
-              v-model:values="automation.conditions[i].values"
-              :filter-types="filterTypes"
-              show-query-operator
-              @remove="removeFilter(i)"
-            />
-            <span
-              v-if="condition.filter_operator === 'matches_regex'"
-              class="text-xs text-n-slate-11 pl-2"
             >
-              {{ $t('AUTOMATION.HINTS.REGEX_EXAMPLE') }}
-            </span>
-          </template>
-          <div>
-            <NextButton
-              icon="i-lucide-plus"
-              blue
-              faded
-              sm
-              :label="$t('AUTOMATION.ADD.CONDITION_BUTTON_LABEL')"
-              @click="appendNewCondition"
-            />
-          </div>
-        </ul>
-      </section>
-      <!-- Conditions End -->
-      <!-- Actions Start -->
-      <section>
-        <label>
-          {{ $t('AUTOMATION.ADD.FORM.ACTIONS.LABEL') }}
-        </label>
-        <ul
-          class="grid list-none p-3 mb-4 outline outline-1 rounded-xl -outline-offset-1 border-solid"
-          :class="
-            hasActionErrors
-              ? 'outline-n-ruby-5 bg-n-ruby-2/50'
-              : 'outline-n-weak dark:outline-n-strong'
-          "
-        >
-          <AutomationActionInput
-            v-for="(action, i) in automation.actions"
-            :key="i"
-            v-model="automation.actions[i]"
-            :action-types="automationActionTypes"
-            dropdown-max-height="max-h-[7.5rem]"
-            :dropdown-values="getActionDropdownValues(action.action_name)"
-            :show-action-input="
-              showActionInput(automationActionTypes, action.action_name)
-            "
-            :conditions="automation.conditions"
-            :error-message="
-              errors[`action_${i}`]
-                ? $t(`AUTOMATION.ERRORS.${errors[`action_${i}`]}`)
-                : ''
-            "
-            :initial-file-name="
-              isEditMode ? getFileName(action, automation.files) : ''
-            "
-            @reset-action="resetAction(i)"
-            @remove-action="removeAction(i)"
-          />
-          <div class="pt-2">
-            <NextButton
-              icon="i-lucide-plus"
-              blue
-              faded
-              sm
-              :label="$t('AUTOMATION.ADD.ACTION_BUTTON_LABEL')"
-              @click="appendNewAction"
-            />
-          </div>
-        </ul>
-      </section>
-      <!-- Actions End -->
-      <div class="w-full mt-8">
-        <div class="flex flex-row justify-end w-full gap-2 px-0 py-4">
-          <NextButton
-            faded
-            slate
-            type="reset"
-            :label="$t(cancelKey)"
-            @click.prevent="close"
-          />
-          <NextButton
-            solid
-            blue
-            type="submit"
-            :label="$t(submitKey)"
-            @click="emitSaveAutomation"
+              <template
+                v-for="(condition, i) in automation.conditions"
+                :key="i"
+              >
+                <ConditionRow
+                  v-if="i === 0"
+                  ref="conditionsRef"
+                  v-model:attribute-key="automation.conditions[i].attribute_key"
+                  v-model:filter-operator="
+                    automation.conditions[i].filter_operator
+                  "
+                  v-model:values="automation.conditions[i].values"
+                  :filter-types="filterTypes"
+                  :show-query-operator="false"
+                  @remove="removeFilter(i)"
+                />
+                <ConditionRow
+                  v-else
+                  ref="conditionsRef"
+                  v-model:attribute-key="automation.conditions[i].attribute_key"
+                  v-model:filter-operator="
+                    automation.conditions[i].filter_operator
+                  "
+                  v-model:query-operator="
+                    automation.conditions[i - 1].query_operator
+                  "
+                  v-model:values="automation.conditions[i].values"
+                  :filter-types="filterTypes"
+                  show-query-operator
+                  @remove="removeFilter(i)"
+                />
+                <span
+                  v-if="condition.filter_operator === 'matches_regex'"
+                  class="text-xs text-n-slate-11 pl-2"
+                >
+                  {{ $t('AUTOMATION.HINTS.REGEX_EXAMPLE') }}
+                </span>
+              </template>
+              <div>
+                <NextButton
+                  icon="i-lucide-plus"
+                  blue
+                  faded
+                  sm
+                  :label="$t('AUTOMATION.ADD.CONDITION_BUTTON_LABEL')"
+                  @click="appendNewCondition"
+                />
+              </div>
+            </ul>
+          </section>
+          <!-- Conditions End -->
+          <!-- Actions Start -->
+          <section>
+            <label>
+              {{ $t('AUTOMATION.ADD.FORM.ACTIONS.LABEL') }}
+            </label>
+            <ul
+              class="grid list-none p-3 mb-4 outline outline-1 rounded-xl -outline-offset-1 border-solid"
+              :class="
+                hasActionErrors
+                  ? 'outline-n-ruby-5 bg-n-ruby-2/50'
+                  : 'outline-n-weak dark:outline-n-strong'
+              "
+            >
+              <AutomationActionInput
+                v-for="(action, i) in automation.actions"
+                :key="i"
+                v-model="automation.actions[i]"
+                :action-types="automationActionTypes"
+                dropdown-max-height="max-h-[7.5rem]"
+                :dropdown-values="getActionDropdownValues(action.action_name)"
+                :show-action-input="
+                  showActionInput(automationActionTypes, action.action_name)
+                "
+                :conditions="automation.conditions"
+                :error-message="
+                  errors[`action_${i}`]
+                    ? $t(`AUTOMATION.ERRORS.${errors[`action_${i}`]}`)
+                    : ''
+                "
+                :initial-file-name="
+                  isEditMode ? getFileName(action, automation.files) : ''
+                "
+                @reset-action="resetAction(i)"
+                @remove-action="removeAction(i)"
+              />
+              <div class="pt-2">
+                <NextButton
+                  icon="i-lucide-plus"
+                  blue
+                  faded
+                  sm
+                  :label="$t('AUTOMATION.ADD.ACTION_BUTTON_LABEL')"
+                  @click="appendNewAction"
+                />
+              </div>
+            </ul>
+          </section>
+          <!-- Actions End -->
+          <SettingsToggleSection
+            v-model="automation.abort_on_fail"
+            :header="$t('AUTOMATION.FORM.ABORT_ON_FAIL_HEADER')"
+            :description="$t('AUTOMATION.FORM.ABORT_ON_FAIL_DESC')"
+            class="mt-4"
           />
         </div>
+      </template>
+      <template #runs>
+        <ExecutionsList
+          v-if="isEditMode && automation.id"
+          :rule-id="automation.id"
+        />
+        <p v-else class="text-body-main text-n-slate-9">
+          {{ $t('AUTOMATION.RUNS.SAVE_RULE_FIRST') }}
+        </p>
+      </template>
+      <template #test>
+        <DryRunPanel v-if="isEditMode && automation.id" :rule="automation" />
+        <p v-else class="text-body-main text-n-slate-9">
+          {{ $t('AUTOMATION.DRY_RUN.SAVE_RULE_FIRST') }}
+        </p>
+      </template>
+    </RuleEditorTabs>
+    <div v-if="automation" class="w-full mt-2">
+      <div
+        class="flex flex-row justify-end w-full gap-2 px-6 py-4 border-t border-n-weak"
+      >
+        <NextButton
+          faded
+          slate
+          type="reset"
+          :label="$t(cancelKey)"
+          @click.prevent="close"
+        />
+        <NextButton
+          solid
+          blue
+          type="submit"
+          :label="$t(submitKey)"
+          @click="emitSaveAutomation"
+        />
       </div>
     </div>
   </Dialog>
