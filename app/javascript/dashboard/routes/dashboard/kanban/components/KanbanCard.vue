@@ -127,7 +127,7 @@ const agingLevel = computed(() => {
 
 const agingBorderClass = computed(() => {
   if (agingLevel.value === 'danger') return 'border-l-4 border-l-red-500';
-  if (agingLevel.value === 'warn') return 'border-l-4 border-l-amber-500';
+  if (agingLevel.value === 'warn') return 'border-l-4 border-l-yellow-500';
   return '';
 });
 
