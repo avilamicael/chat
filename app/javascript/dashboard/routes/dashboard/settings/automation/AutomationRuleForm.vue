@@ -330,6 +330,12 @@ defineExpose({ open, close });
               show-query-operator
               @remove="removeFilter(i)"
             />
+            <span
+              v-if="condition.filter_operator === 'matches_regex'"
+              class="text-xs text-n-slate-11 pl-2"
+            >
+              {{ $t('AUTOMATION.HINTS.REGEX_EXAMPLE') }}
+            </span>
           </template>
           <div>
             <NextButton

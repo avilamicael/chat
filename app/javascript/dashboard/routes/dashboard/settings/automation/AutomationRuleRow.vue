@@ -4,6 +4,7 @@ import { messageStamp } from 'shared/helpers/timeHelper';
 import Button from 'dashboard/components-next/button/Button.vue';
 import ToggleSwitch from 'dashboard/components-next/switch/Switch.vue';
 import { BaseTableRow, BaseTableCell } from 'dashboard/components-next/table';
+import RuleStatusBadge from './RuleStatusBadge.vue';
 
 const props = defineProps({
   automation: {
@@ -48,6 +49,14 @@ const automationActive = computed({
             {{ automation.description }}
           </span>
         </div>
+      </BaseTableCell>
+
+      <BaseTableCell>
+        <RuleStatusBadge
+          :status="automation.last_execution_status"
+          :at="automation.last_executed_at"
+          :error="automation.last_execution_error"
+        />
       </BaseTableCell>
 
       <BaseTableCell>

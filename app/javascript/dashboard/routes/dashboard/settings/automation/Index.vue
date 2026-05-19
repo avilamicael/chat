@@ -128,11 +128,19 @@ const submitAutomation = async (payload, mode) => {
     hideAddPopup();
     hideEditPopup();
   } catch (error) {
-    const errorMessage =
+    const backendErrors = error?.response?.data?.errors;
+    const baseError = Array.isArray(backendErrors?.base)
+      ? backendErrors.base.join(', ')
+      : backendErrors?.base;
+    const conditionsError = Array.isArray(backendErrors?.conditions)
+      ? backendErrors.conditions.join(', ')
+      : backendErrors?.conditions;
+    const detailedMessage = baseError || conditionsError;
+    const genericMessage =
       mode === 'edit'
         ? t('AUTOMATION.EDIT.API.ERROR_MESSAGE')
         : t('AUTOMATION.ADD.API.ERROR_MESSAGE');
-    useAlert(errorMessage);
+    useAlert(detailedMessage || genericMessage);
   }
 };
 const toggleAutomation = async ({ id, name, status }) => {
@@ -174,6 +182,7 @@ const toggleAutomation = async ({ id, name, status }) => {
 const tableHeaders = computed(() => {
   return [
     t('AUTOMATION.LIST.TABLE_HEADER.NAME'),
+    t('AUTOMATION.LIST.TABLE_HEADER.STATUS'),
     t('AUTOMATION.LIST.TABLE_HEADER.ACTIVE'),
     t('AUTOMATION.LIST.TABLE_HEADER.CREATED_ON'),
     t('AUTOMATION.LIST.TABLE_HEADER.ACTIONS'),
