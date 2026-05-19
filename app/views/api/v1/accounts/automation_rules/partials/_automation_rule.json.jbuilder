@@ -10,4 +10,5 @@ json.active automation_rule.active?
 json.last_execution_status automation_rule.last_execution_status
 json.last_executed_at automation_rule.last_executed_at&.iso8601
 json.last_execution_error automation_rule.last_execution_error
+json.abort_on_fail automation_rule.abort_on_fail
 json.files automation_rule.file_base_data if automation_rule.files.any?
