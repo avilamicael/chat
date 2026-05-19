@@ -131,6 +131,15 @@ const agingBorderClass = computed(() => {
   return '';
 });
 
+// Phase 3 KAN-08 fallback badge: card fell through auto-assignment because
+// no eligible agent was online / under cap / present. Plan A backend sets
+// auto_assignment_fell_through=true; the badge disappears the moment any
+// agent is manually assigned (assignee_ids becomes non-empty).
+const showUnassignedBadge = computed(() => {
+  if (props.card.auto_assignment_fell_through !== true) return false;
+  return !props.card.assignee_ids || props.card.assignee_ids.length === 0;
+});
+
 const openDetail = () => emit('open-detail', props.card);
 </script>
 
@@ -199,6 +208,21 @@ const openDetail = () => emit('open-detail', props.card);
       >
         <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-n-slate-7" />
         {{ t('KANBAN.CARD.STATUS_SNOOZED') }}
+      </span>
+    </div>
+
+    <!-- Unassigned badge: auto-assignment fell through (KAN-08 Plan A) -->
+    <div v-if="showUnassignedBadge" class="mb-2">
+      <span
+        class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-medium bg-amber-500/15 text-amber-600 dark:text-amber-400"
+        :aria-label="t('KANBAN.CARD.UNASSIGNED_ARIA')"
+      >
+        <Icon
+          icon="i-lucide-alert-triangle"
+          class="size-3"
+          aria-hidden="true"
+        />
+        {{ t('KANBAN.CARD.UNASSIGNED_BADGE') }}
       </span>
     </div>
 
