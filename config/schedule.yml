@@ -96,3 +96,10 @@ archive_audit_partitions_job:
   cron: '0 3 * * *'
   class: 'Cron::ArchiveAuditPartitionsJob'
   queue: scheduled_jobs
+
+# Phase 3 D-E9 — purges automation_rule_runs > 30 days old.
+# Roda as 0315 UTC (offset 15min de archive_audit_partitions_job para nao competir por DB locks).
+purge_automation_rule_runs_job:
+  cron: '15 3 * * *'
+  class: 'Cron::PurgeAutomationRuleRunsJob'
+  queue: scheduled_jobs
