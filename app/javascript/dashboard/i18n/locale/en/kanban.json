@@ -86,6 +86,12 @@
     },
     "WIP_EXCEEDED_BADGE": "{count} / {limit} (exceeded)",
     "WIP_BADGE": "{count} / {limit}",
+    "COLUMN_METRICS": {
+      "COUNT": "({count})",
+      "EMPTY_TIME": "—",
+      "TOOLTIP": "Average time the cards currently in this column have been sitting here.",
+      "ARIA_LABEL": "Average dwell time: {value}"
+    },
     "ACTIVITY": {
       "TITLE": "Activity",
       "SYSTEM": "System",
