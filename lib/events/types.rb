@@ -82,4 +82,6 @@ module Events::Types
   KANBAN_CARD_REMOVED = 'kanban.card_removed'
   KANBAN_BOARD_UPDATED = 'kanban.board_updated'
   KANBAN_WIP_EXCEEDED = 'kanban.wip_exceeded'
+  # Phase 3 KAN-09: broadcast count + avg_dwell_seconds para o header da coluna
+  KANBAN_COLUMN_METRICS_UPDATED = 'kanban.column_metrics_updated'
 end
