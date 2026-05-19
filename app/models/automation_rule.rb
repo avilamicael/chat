@@ -70,6 +70,13 @@ class AutomationRule < ApplicationRecord
     end
   end
 
+  # Plan C (D-D2): Notification#primary_actor_data chama push_event_data quando
+  # uma notificação é criada (sino do admin). AutomationRule pode ser primary_actor
+  # de notification_type='automation_rule_loop_aborted', portanto precisa expor o payload mínimo.
+  def push_event_data
+    { id: id, name: name }
+  end
+
   private
 
   def json_conditions_format

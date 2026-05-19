@@ -102,21 +102,34 @@ class AutomationRuleListener < BaseListener
   end
 
   def abort_loop_and_disable!(event_name, account)
-    # TODO(Plan C): expandir helper para invocar NotificationBuilder (automation_rule_loop_aborted)
-    # + cadeia de rule_ids visitados. Stub atual loga + flips active=false para impedir cascata.
+    # AUT-04 Plan C: desativa rules, marca last_execution_error com cadeia rule_ids,
+    # invalida cache e notifica administrators via AutomationLoopAbortedNotificationBuilder.
+    # update_columns (não update!) propositadamente: evita cascade de callbacks/audits
+    # E impede que o after_commit :invalidate_rules_cache dispare outro evento de
+    # mudança em meio à cascata abortada (já invalidamos manualmente aqui).
+    chain = Array(Current.automation_chain).compact
     current_account_rules(event_name, account).each do |rule|
       Rails.logger.warn(
-        "[automation_loop_aborted] rule_id=#{rule.id} account_id=#{account.id} event=#{event_name} depth=#{Current.automation_depth}"
+        "[automation_loop_aborted] rule_id=#{rule.id} account_id=#{account.id} event=#{event_name} " \
+        "depth=#{Current.automation_depth} chain=#{chain.inspect}"
       )
       rule.update_columns( # rubocop:disable Rails/SkipsModelValidations
         active: false,
         last_execution_status: 'error',
-        last_execution_error: "[loop_aborted] depth=#{Current.automation_depth}",
+        last_execution_error: "[loop_aborted] depth=#{Current.automation_depth}, chain=[#{chain.join('->')}]",
         last_executed_at: Time.current
       )
       Rails.cache.delete("automation_rules:#{account.id}:#{event_name}")
+      notify_admins_about_aborted_loop(rule, account, chain)
     end
     nil
+  end
+
+  def notify_admins_about_aborted_loop(rule, account, chain)
+    AutomationLoopAbortedNotificationBuilder.new(rule: rule, account: account, chain: chain).perform
+  rescue StandardError => e
+    # Notificação eh best-effort; falha aqui nao re-eleva (ja flipamos active=false e gravamos last_execution_error).
+    Rails.logger.error "[automation_loop_aborted] notify_admins falhou rule_id=#{rule.id}: #{e.class}: #{e.message}"
   end
 
   def rule_present?(event_name, account)

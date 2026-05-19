@@ -25,8 +25,11 @@ class NotificationBuilder
   def build_notification
     # Create conversation_creation notification only if user is subscribed to it
     return if notification_type == 'conversation_creation' && !user_subscribed_to_notification?
-    # skip notifications for blocked conversations except for user mentions
-    return if primary_actor.contact.blocked? && notification_type != 'conversation_mention'
+    # skip notifications for blocked conversations except for user mentions.
+    # Guard com is_a?(Conversation) — Phase 2 introduz primary_actor de outros tipos (ex: AutomationRule)
+    # que nao respondem a .contact (Builder dedicado trata esses casos diretamente, sem passar aqui,
+    # mas o guard mantem este builder robusto para extensoes futuras).
+    return if primary_actor.is_a?(Conversation) && primary_actor.contact.blocked? && notification_type != 'conversation_mention'
 
     user.notifications.create!(
       notification_type: notification_type,

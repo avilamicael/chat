@@ -43,7 +43,8 @@ class Notification < ApplicationRecord
     participating_conversation_new_message: 5,
     sla_missed_first_response: 6,
     sla_missed_next_response: 7,
-    sla_missed_resolution: 8
+    sla_missed_resolution: 8,
+    automation_rule_loop_aborted: 9
   }.freeze
 
   enum notification_type: NOTIFICATION_TYPES
@@ -53,7 +54,7 @@ class Notification < ApplicationRecord
   after_destroy_commit :dispatch_destroy_event
   after_update_commit :dispatch_update_event
 
-  PRIMARY_ACTORS = ['Conversation'].freeze
+  PRIMARY_ACTORS = %w[Conversation AutomationRule].freeze
 
   def push_event_data
     # Secondary actor could be nil for cases like system assigning conversation
@@ -95,7 +96,8 @@ class Notification < ApplicationRecord
       'conversation_mention' => 'notifications.notification_title.conversation_mention',
       'sla_missed_first_response' => 'notifications.notification_title.sla_missed_first_response',
       'sla_missed_next_response' => 'notifications.notification_title.sla_missed_next_response',
-      'sla_missed_resolution' => 'notifications.notification_title.sla_missed_resolution'
+      'sla_missed_resolution' => 'notifications.notification_title.sla_missed_resolution',
+      'automation_rule_loop_aborted' => 'notifications.notification_title.automation_rule_loop_aborted'
     }
 
     i18n_key = notification_title_map[notification_type]
@@ -106,6 +108,8 @@ class Notification < ApplicationRecord
     elsif %w[conversation_assignment assigned_conversation_new_message participating_conversation_new_message
              conversation_mention].include?(notification_type)
       I18n.t(i18n_key, display_id: conversation.display_id)
+    elsif notification_type == 'automation_rule_loop_aborted'
+      I18n.t(i18n_key, rule_name: primary_actor.try(:name).to_s)
     else
       I18n.t(i18n_key, display_id: primary_actor.display_id)
     end
@@ -120,6 +124,10 @@ class Notification < ApplicationRecord
       message_body(secondary_actor)
     when 'conversation_assignment', 'sla_missed_next_response', 'sla_missed_resolution'
       message_body((conversation.messages.incoming.last || conversation.messages.outgoing.last))
+    when 'automation_rule_loop_aborted'
+      I18n.t('notifications.notification_body.automation_rule_loop_aborted',
+             chain: Array(meta && meta['chain']).join(' -> '),
+             rule_name: primary_actor.try(:name).to_s)
     else
       ''
     end

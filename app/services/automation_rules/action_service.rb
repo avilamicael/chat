@@ -8,7 +8,7 @@ class AutomationRules::ActionService < ActionService
   end
 
   def perform
-    Current.automation_depth = Current.automation_depth.to_i + 1
+    push_automation_frame
     any_error = nil
     any_error_message = nil
 
@@ -26,11 +26,21 @@ class AutomationRules::ActionService < ActionService
 
     record_execution_result(any_error, any_error_message)
   ensure
-    Current.automation_depth = Current.automation_depth.to_i - 1
-    Current.reset if Current.automation_depth.to_i <= 0
+    pop_automation_frame
   end
 
   private
+
+  def push_automation_frame
+    Current.automation_depth = Current.automation_depth.to_i + 1
+    Current.automation_chain = (Current.automation_chain || []) + [@rule.id]
+  end
+
+  def pop_automation_frame
+    Current.automation_depth = Current.automation_depth.to_i - 1
+    Current.automation_chain = Current.automation_chain.is_a?(Array) ? Current.automation_chain[0...-1] : nil
+    Current.reset if Current.automation_depth.to_i <= 0
+  end
 
   def record_execution_result(any_error, any_error_message)
     if any_error
