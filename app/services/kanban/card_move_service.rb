@@ -14,6 +14,8 @@ class Kanban::CardMoveService
   end
 
   def perform # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+    column_changed_for_metrics = false
+
     ActiveRecord::Base.transaction do
       # DEBT-05: advisory lock per card.id — serializa movimentação concorrente.
       # Namespace global — atualmente único user de advisory locks no Chatwoot.
@@ -24,6 +26,7 @@ class Kanban::CardMoveService
 
       @target_column = @card.kanban_board.kanban_columns.find(@target_column_id)
       column_changed = @source_column.id != @target_column.id
+      column_changed_for_metrics = column_changed
 
       @card.without_auditing do
         @card.update!(kanban_column_id: @target_column.id, position: @new_position)
@@ -48,6 +51,13 @@ class Kanban::CardMoveService
       run_auto_assignment(column_changed)
 
       dispatch_card_moved(column_changed)
+    end
+
+    # Phase 3 KAN-09: broadcast metrics POST-commit para source + target column.
+    # AVG query roda fora do advisory_lock para não inflar tempo do lock (PATTERNS §3.2 + RESEARCH anti-pattern).
+    if column_changed_for_metrics
+      Kanban::ColumnMetricsService.new(@source_column).dispatch_update
+      Kanban::ColumnMetricsService.new(@target_column).dispatch_update
     end
 
     @card

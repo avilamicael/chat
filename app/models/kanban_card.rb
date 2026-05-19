@@ -97,6 +97,11 @@ class KanbanCard < ApplicationRecord
   before_save :sync_primary_assignee
   before_save :sync_primary_team
 
+  # Phase 3 KAN-09: archive/unarchive muda count da coluna → broadcast metrics.
+  # Coberto por CardMoveService quando archive vem via move para won/lost; este callback
+  # cobre archive standalone (ex: admin clica "archive" no UI direto, sem mover coluna).
+  after_update_commit :dispatch_metrics_on_archive_change, if: :saved_change_to_archived_at?
+
   def archive!(outcome_value, reason = nil)
     update!(archived_at: Time.current, outcome: outcome_value, outcome_reason: reason)
   end
@@ -116,6 +121,12 @@ class KanbanCard < ApplicationRecord
   end
 
   private
+
+  def dispatch_metrics_on_archive_change
+    return unless kanban_column
+
+    Kanban::ColumnMetricsService.new(kanban_column).dispatch_update
+  end
 
   def sync_primary_assignee
     self.assignee_id = (assignee_ids || []).first

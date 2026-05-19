@@ -77,6 +77,8 @@ class KanbanListener < BaseListener
       # populado quando as actions de coluna rodam (relevante para action send_message etc).
       Kanban::AutoAssignmentService.new(card: card, column: card.kanban_column, trigger: :card_added).perform
       Kanban::ColumnActionsService.new(card, card.kanban_column, :enter_actions).perform
+      # Phase 3 (KAN-09): broadcast metrics da coluna após criação (cobre cards_controller + AutoPopulateService).
+      Kanban::ColumnMetricsService.new(card.kanban_column).dispatch_update
     end
 
     card = KanbanCard.includes(conversation: [:contact, :inbox, :assignee], assignee: []).find(card.id)
@@ -137,6 +139,15 @@ class KanbanListener < BaseListener
       active_count: event.data[:active_count],
       wip_limit: event.data[:wip_limit]
     })
+  end
+
+  # Phase 3 (KAN-09): broadcast count + avg_dwell_seconds para todas as abas autenticadas.
+  def kanban_column_metrics_updated(event)
+    account = Account.find_by(id: event.data[:account_id])
+    return unless account
+
+    payload = event.data.slice(:board_id, :column_id, :count, :avg_dwell_seconds)
+    broadcast(account, [account_token(account)], 'kanban.column_metrics_updated', payload)
   end
 
   def kanban_board_updated(event)
