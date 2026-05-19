@@ -13,7 +13,7 @@ class Kanban::CardMoveService
     @wip_active_count = nil
   end
 
-  def perform
+  def perform # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
     ActiveRecord::Base.transaction do
       # DEBT-05: advisory lock per card.id — serializa movimentação concorrente.
       # Namespace global — atualmente único user de advisory locks no Chatwoot.
@@ -43,6 +43,10 @@ class Kanban::CardMoveService
       # Advisory_lock acima já garante serialização sem race.
       check_wip!(column_changed)
 
+      # Phase 3 (KAN-07): auto-assignment dispara em column_changed=true. Service tem rescue
+      # StandardError interno → falha nao da rollback da transaction.
+      run_auto_assignment(column_changed)
+
       dispatch_card_moved(column_changed)
     end
 
@@ -54,6 +58,12 @@ class Kanban::CardMoveService
   end
 
   private
+
+  def run_auto_assignment(column_changed)
+    return unless column_changed
+
+    Kanban::AutoAssignmentService.new(card: @card, column: @target_column, trigger: :card_moved).perform
+  end
 
   def check_wip!(column_changed)
     return unless column_changed

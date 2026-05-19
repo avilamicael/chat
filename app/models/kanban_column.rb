@@ -58,6 +58,9 @@ class KanbanColumn < ApplicationRecord
   validates :position, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
   before_validation :set_account_from_board
+  # Phase 3 (KAN-07): flush round-robin queue Redis quando toggle de auto_assignment_enabled muda.
+  # Garante reset explicito sem depender de validate_queue? rebuild on next call.
+  after_update :flush_round_robin_queue, if: :saved_change_to_auto_assignment_enabled?
   after_save :ensure_single_intake_column, if: :has_auto_create_task?
 
   # Phase 3 (KAN-07): KanbanColumn pode ser secondary_actor de notification_type='kanban_card_unassignable'.
@@ -66,6 +69,12 @@ class KanbanColumn < ApplicationRecord
   end
 
   private
+
+  def flush_round_robin_queue
+    ::Redis::Alfred.delete(format(::Redis::Alfred::KANBAN_ROUND_ROBIN_AGENTS, column_id: id))
+  rescue StandardError => e
+    Rails.logger.warn("[03-A] Failed to flush round-robin queue for column #{id}: #{e.message}")
+  end
 
   def has_auto_create_task?
     enter_actions.any? { |a| a.is_a?(Hash) && a['action_name'] == 'auto_create_task' }

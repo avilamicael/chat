@@ -73,6 +73,9 @@ class KanbanListener < BaseListener
     return unless card && board
 
     if card.kanban_column
+      # Phase 3 (KAN-07): auto-assignment ANTES de ColumnActionsService — assignee_id ja
+      # populado quando as actions de coluna rodam (relevante para action send_message etc).
+      Kanban::AutoAssignmentService.new(card: card, column: card.kanban_column, trigger: :card_added).perform
       Kanban::ColumnActionsService.new(card, card.kanban_column, :enter_actions).perform
     end
 
