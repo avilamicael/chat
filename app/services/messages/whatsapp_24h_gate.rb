@@ -26,7 +26,9 @@ class Messages::Whatsapp24hGate
   end
 
   def self.override_enabled?(action_params)
-    return false unless action_params.respond_to?(:[])
+    # action_params pode ser Array (formato legado AutomationRule.actions[i].action_params = ["msg"])
+    # ou Hash (formato novo com toggle). Só Hash carrega o flag.
+    return false unless action_params.is_a?(Hash)
 
     value = action_params['outside_24h_window_allowed'] || action_params[:outside_24h_window_allowed]
     value == true || value == 'true'

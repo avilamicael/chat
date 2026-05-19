@@ -4,12 +4,14 @@ class AutomationRules::ActionService < ActionService
     @rule = rule
     @account = account
     @card = card
-    @run = run                   # Plan C — opcional, populado pelo listener wrap
-    @current_action_params = nil # Plan D — consumido pelo gate 24h dentro de send_message
+    @run = run                       # Plan C — opcional, populado pelo listener wrap
+    @current_action_params = nil     # Plan D — consumido pelo gate 24h dentro de send_message
+    @current_action_index = nil      # Plan D — usado por finalize_current_action
+    @current_action_finalized = false # Plan D — sinaliza ao loop pular o push 'ok' default
     Current.executed_by = rule
   end
 
-  def perform # rubocop:disable Metrics/MethodLength,Metrics/AbcSize
+  def perform # rubocop:disable Metrics/MethodLength,Metrics/AbcSize,Metrics/CyclomaticComplexity
     push_automation_frame
     any_error = nil
     any_error_message = nil
@@ -18,9 +20,13 @@ class AutomationRules::ActionService < ActionService
       @conversation&.reload
       action = action.with_indifferent_access
       @current_action_params = action[:action_params]
+      @current_action_index = idx
+      @current_action_finalized = false
       started_at = Time.current
       begin
         send(action[:action_name], action[:action_params])
+        next if @current_action_finalized
+
         @run&.push_action_log(idx, action[:action_name], status: 'ok',
                                                          duration_ms: ((Time.current - started_at) * 1000).to_i)
       rescue StandardError => e
@@ -105,9 +111,38 @@ class AutomationRules::ActionService < ActionService
   def send_message(message)
     return if @conversation.nil?
     return if conversation_a_tweet?
+    return if blocked_by_whatsapp_24h_gate?
+    return if queued_by_whatsapp_throttle?(message)
 
     params = { content: message[0], private: false, content_attributes: { automation_rule_id: @rule.id } }
     Messages::MessageBuilder.new(nil, @conversation, params).perform
+  end
+
+  # Phase 3 D-F2 — 24h window gate (Channel::Whatsapp only; outras canais passam reto).
+  def blocked_by_whatsapp_24h_gate?
+    return false unless Messages::Whatsapp24hGate.allowed?(conversation: @conversation,
+                                                           action_params: @current_action_params) == :blocked
+
+    finalize_current_action('send_message', status: 'blocked_24h', error: 'WhatsApp 24h window expired')
+    true
+  end
+
+  # Phase 3 D-G3 — throttle per inbox (Channel::Whatsapp only); overflow reagenda via Sidekiq.
+  def queued_by_whatsapp_throttle?(message)
+    acquire = AutomationRules::ThrottleService.new(inbox: @conversation.inbox).acquire
+    return false unless acquire.is_a?(Integer)
+
+    AutomationRules::SendMessageRescheduledJob
+      .set(wait: acquire.seconds)
+      .perform_later(@rule.id, message, @conversation.id, @run&.id)
+    finalize_current_action('send_message', status: 'queued', rescheduled_to: acquire.seconds.from_now.iso8601)
+    true
+  end
+
+  # Marca o action_log do índice atual + sinaliza ao loop perform para pular o push default 'ok'.
+  def finalize_current_action(action_name, **attrs)
+    @run&.push_action_log(@current_action_index, action_name, **attrs)
+    @current_action_finalized = true
   end
 
   def add_private_note(message)
