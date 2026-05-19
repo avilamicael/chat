@@ -240,6 +240,38 @@ const emitSaveAutomation = () => {
   }
 };
 
+// AUT-09: outside_24h_window_allowed toggle helpers.
+// action.action_params can be Array (legacy: [msg]) or Hash
+// ({ message, outside_24h_window_allowed }). When the toggle flips on we
+// migrate Array -> Hash so the backend (Plan D) sees the override flag.
+const isOutside24hAllowed = action => {
+  const params = action?.action_params;
+  if (!params || typeof params !== 'object' || Array.isArray(params)) {
+    return false;
+  }
+  return params.outside_24h_window_allowed === true;
+};
+
+const messageFromParams = params => {
+  if (Array.isArray(params)) return params[0] || '';
+  if (params && typeof params === 'object') return params.message || '';
+  if (typeof params === 'string') return params;
+  return '';
+};
+
+const onToggleOutside24h = (i, event) => {
+  const checked = event.target.checked;
+  const action = automation.value.actions[i];
+  const message = messageFromParams(action.action_params);
+  automation.value.actions[i] = {
+    ...action,
+    action_params: {
+      message,
+      outside_24h_window_allowed: checked,
+    },
+  };
+};
+
 defineExpose({ open, close });
 </script>
 
@@ -378,28 +410,67 @@ defineExpose({ open, close });
                   : 'outline-n-weak dark:outline-n-strong'
               "
             >
-              <AutomationActionInput
-                v-for="(action, i) in automation.actions"
-                :key="i"
-                v-model="automation.actions[i]"
-                :action-types="automationActionTypes"
-                dropdown-max-height="max-h-[7.5rem]"
-                :dropdown-values="getActionDropdownValues(action.action_name)"
-                :show-action-input="
-                  showActionInput(automationActionTypes, action.action_name)
-                "
-                :conditions="automation.conditions"
-                :error-message="
-                  errors[`action_${i}`]
-                    ? $t(`AUTOMATION.ERRORS.${errors[`action_${i}`]}`)
-                    : ''
-                "
-                :initial-file-name="
-                  isEditMode ? getFileName(action, automation.files) : ''
-                "
-                @reset-action="resetAction(i)"
-                @remove-action="removeAction(i)"
-              />
+              <template v-for="(action, i) in automation.actions" :key="i">
+                <AutomationActionInput
+                  v-model="automation.actions[i]"
+                  :action-types="automationActionTypes"
+                  dropdown-max-height="max-h-[7.5rem]"
+                  :dropdown-values="getActionDropdownValues(action.action_name)"
+                  :show-action-input="
+                    showActionInput(automationActionTypes, action.action_name)
+                  "
+                  :conditions="automation.conditions"
+                  :error-message="
+                    errors[`action_${i}`]
+                      ? $t(`AUTOMATION.ERRORS.${errors[`action_${i}`]}`)
+                      : ''
+                  "
+                  :initial-file-name="
+                    isEditMode ? getFileName(action, automation.files) : ''
+                  "
+                  @reset-action="resetAction(i)"
+                  @remove-action="removeAction(i)"
+                />
+                <div
+                  v-if="action.action_name === 'send_message'"
+                  class="pl-2 pb-2"
+                >
+                  <label
+                    class="flex items-center gap-2 cursor-pointer select-none"
+                  >
+                    <input
+                      type="checkbox"
+                      :checked="isOutside24hAllowed(action)"
+                      @change="onToggleOutside24h(i, $event)"
+                    />
+                    <span class="text-body-main text-n-slate-12">
+                      {{
+                        $t('AUTOMATION.ACTION.SEND_MESSAGE.OVERRIDE_24H_HEADER')
+                      }}
+                    </span>
+                  </label>
+                  <p class="text-xs text-n-slate-10 ml-6">
+                    {{ $t('AUTOMATION.ACTION.SEND_MESSAGE.OVERRIDE_24H_DESC') }}
+                  </p>
+                  <div
+                    v-if="isOutside24hAllowed(action)"
+                    class="ml-6 mt-2 flex items-start gap-2 p-3 rounded-lg bg-yellow-500/15 dark:bg-yellow-500/10"
+                    aria-live="polite"
+                  >
+                    <span
+                      class="i-lucide-alert-triangle size-4 text-amber-500 mt-0.5 flex-shrink-0"
+                      aria-hidden="true"
+                    />
+                    <p
+                      class="text-body-main text-amber-700 dark:text-amber-300"
+                    >
+                      {{
+                        $t('AUTOMATION.ACTION.SEND_MESSAGE.OVERRIDE_24H_RISK')
+                      }}
+                    </p>
+                  </div>
+                </div>
+              </template>
               <div class="pt-2">
                 <NextButton
                   icon="i-lucide-plus"

@@ -50,7 +50,8 @@
         "CREATED_ON": "Created on",
         "ACTIONS": "Actions"
       },
-      "404": "No automation rules found"
+      "404": "No automation rules found",
+      "RISK_TOOLTIP": "This rule sends WhatsApp messages outside the 24h window."
     },
     "STATUS": {
       "OK": "Success",
@@ -97,7 +98,79 @@
       "CREATE": "Create",
       "DELETE": "Delete",
       "CANCEL": "Cancel",
-      "RESET_MESSAGE": "Changing event type will reset the conditions and events you have added below"
+      "RESET_MESSAGE": "Changing event type will reset the conditions and events you have added below",
+      "TAB_EDIT": "Edit",
+      "TAB_RUNS": "Runs",
+      "TAB_TEST": "Test",
+      "ABORT_ON_FAIL_HEADER": "Abort if an action fails",
+      "ABORT_ON_FAIL_DESC": "When off (default) the rule keeps running remaining actions even if one fails."
+    },
+    "DRY_RUN": {
+      "REAL_EVENT_HEADER": "Test with a real event",
+      "REAL_EVENT_PLACEHOLDER": "Pick one of the last 5 matching events…",
+      "REAL_EVENT_DESC": "Replays one of the latest events that would have matched this rule. Nothing is sent or persisted.",
+      "NO_RECENT_EVENTS": "No recent events to replay.",
+      "MANUAL_LINK": "Or build a manual scenario →",
+      "MANUAL_LINK_CLOSE": "Hide manual scenario",
+      "MANUAL_HEADER": "Manual scenario",
+      "MANUAL_DESC": "Hand-pick a card, column, conversation or message to simulate.",
+      "MANUAL_FIELD_CARD_ID": "Card ID",
+      "MANUAL_FIELD_TARGET_COLUMN_ID": "Target column ID",
+      "MANUAL_FIELD_SOURCE_COLUMN_ID": "Source column ID",
+      "MANUAL_FIELD_CONVERSATION_ID": "Conversation ID",
+      "MANUAL_FIELD_MESSAGE_ID": "Message ID (optional)",
+      "MANUAL_FIELD_ID_PLACEHOLDER": "42",
+      "MANUAL_NO_FIELDS": "This event has no manual fields configured. Use a real event instead.",
+      "MANUAL_HINT_IDS": "Type the numeric IDs you want to simulate. You can find them in the URL or in the database.",
+      "RUN_BUTTON": "Run test",
+      "EMPTY_TITLE": "Nothing simulated yet",
+      "EMPTY_STATE": "Pick a real event above or build a manual scenario.",
+      "RESULT_HEADING": "Simulation result",
+      "CONDITIONS_MATCHED": "Conditions matched",
+      "CONDITIONS_NOT_MATCHED": "Conditions did not match — no action would run.",
+      "ACTIONS_HEADER": "Actions that would run",
+      "RESOLVED_PAYLOAD_LABEL": "Resolved values",
+      "NOT_PERSISTED_HINT": "Nothing was sent or saved. This is a preview.",
+      "WOULD_BLOCK_24H": "Would be blocked — 24h window expired.",
+      "LOADING": "Simulating…",
+      "ERROR_PREFIX": "Simulation failed:",
+      "SAVE_RULE_FIRST": "Save the rule first to test it."
+    },
+    "RUNS": {
+      "EMPTY_TITLE": "No runs yet",
+      "EMPTY_STATE": "This rule has not fired since it was activated.",
+      "COLUMN_TIME": "Time",
+      "COLUMN_TRIGGER": "Trigger",
+      "COLUMN_STATUS": "Status",
+      "COLUMN_ACTIONS_COUNT": "Actions",
+      "STATUS_OK": "Succeeded",
+      "STATUS_ERROR": "Failed",
+      "STATUS_PARTIAL": "Partial",
+      "STATUS_SKIPPED": "Skipped (loop guard)",
+      "STATUS_ABORTED": "Aborted (action failed)",
+      "ACTION_NOT_EXECUTED": "Not run — previous action failed",
+      "ACTION_QUEUED": "Queued (throttle)",
+      "ACTION_BLOCKED_24H": "Blocked — 24h window expired",
+      "SEE_GLOBAL_HISTORY": "See in global history →",
+      "LOAD_OLDER": "Load older",
+      "LOADING": "Loading…",
+      "LOAD_ERROR": "Could not load runs.",
+      "RETRY": "Retry",
+      "SAVE_RULE_FIRST": "Save the rule first to see runs.",
+      "RESOLVED_VALUES_TOGGLE": "Resolved values"
+    },
+    "GLOBAL_HISTORY": {
+      "TITLE": "Automation history",
+      "OPEN_BUTTON": "History",
+      "FILTER_RULE": "Rule",
+      "FILTER_STATUS": "Status",
+      "FILTER_PERIOD": "Period",
+      "ALL_RULES": "All rules",
+      "ALL_STATUSES": "All statuses",
+      "PERIOD_24H": "Last 24h",
+      "PERIOD_7D": "Last 7 days",
+      "PERIOD_30D": "Last 30 days",
+      "EMPTY_STATE": "No runs in the selected period."
     },
     "CONDITION": {
       "DELETE_MESSAGE": "You need to have atleast one condition to save",
@@ -114,7 +187,12 @@
       "ATTACHMENT_ADD": "Add attachment",
       "TEMPLATE_SELECT": "Use template",
       "TEMPLATE_SELECTED": "Template: {name}",
-      "TEMPLATE_USE": "Use this template"
+      "TEMPLATE_USE": "Use this template",
+      "SEND_MESSAGE": {
+        "OVERRIDE_24H_HEADER": "Send even after the 24h window (risk accepted)",
+        "OVERRIDE_24H_DESC": "By default, automated WhatsApp messages are blocked after 24h of customer silence to protect your number.",
+        "OVERRIDE_24H_RISK": "Risk of getting your WhatsApp number banned is accepted by you. Do not use for promotional campaigns."
+      }
     },
     "TOGGLE": {
       "ACTIVATION_TITLE": "Activate Automation Rule",

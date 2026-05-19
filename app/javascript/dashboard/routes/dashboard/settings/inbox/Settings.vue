@@ -103,6 +103,7 @@ export default {
       widgetBubblePosition: 'right',
       widgetBubbleType: 'standard',
       widgetBubbleLauncherTitle: '',
+      maxAutomationMessagesPerMinute: null,
     };
   },
   computed: {
@@ -114,6 +115,12 @@ export default {
     }),
     selectedTabKey() {
       return this.tabs[this.selectedTabIndex]?.key;
+    },
+    // AUT-10: max_automation_messages_per_minute lives on Channel::Whatsapp
+    // (Baileys/Cloud/360Dialog/Zapi). Twilio WhatsApp is Channel::TwilioSms —
+    // out of scope for this milestone.
+    isAWhatsAppNonTwilioChannel() {
+      return this.isAWhatsAppChannel && !this.isATwilioWhatsAppChannel;
     },
     shouldShowWhatsAppConfiguration() {
       return this.isAWhatsAppCloudChannel;
@@ -400,6 +407,11 @@ export default {
         ? this.inbox.help_center.slug
         : '';
 
+      // AUT-10: read throttle from channel (NULL = unlimited)
+      const channel = this.inbox.channel || this.inbox;
+      this.maxAutomationMessagesPerMinute =
+        channel?.max_automation_messages_per_minute ?? null;
+
       const savedBubbleSettings = LocalStorage.get(
         this.widgetBuilderStorageKey
       );
@@ -521,6 +533,15 @@ export default {
             selectedFeatureFlags: this.selectedFeatureFlags,
             reply_time: this.replyTime || 'in_a_few_minutes',
             continuity_via_email: this.continuityViaEmail,
+            ...(this.isAWhatsAppNonTwilioChannel
+              ? {
+                  max_automation_messages_per_minute:
+                    this.maxAutomationMessagesPerMinute === '' ||
+                    this.maxAutomationMessagesPerMinute === null
+                      ? null
+                      : Number(this.maxAutomationMessagesPerMinute),
+                }
+              : {}),
           },
         };
         if (this.avatarFile) {
@@ -746,6 +767,30 @@ export default {
                 type="text"
                 disabled
                 class="!mb-0"
+              />
+            </SettingsFieldSection>
+
+            <!-- AUT-10: WhatsApp automation throttle (Channel::Whatsapp only) -->
+            <SettingsFieldSection
+              v-if="isAWhatsAppNonTwilioChannel"
+              :label="$t('INBOX_MGMT.WHATSAPP.AUTOMATION_SECTION')"
+              :help-text="$t('INBOX_MGMT.WHATSAPP.AUTOMATION_THROTTLE_HINT')"
+            >
+              <label
+                class="text-sm font-medium text-n-slate-12 block mb-1"
+                for="whatsapp-throttle"
+              >
+                {{ $t('INBOX_MGMT.WHATSAPP.AUTOMATION_THROTTLE_LABEL') }}
+              </label>
+              <input
+                id="whatsapp-throttle"
+                v-model="maxAutomationMessagesPerMinute"
+                type="number"
+                min="1"
+                :placeholder="
+                  $t('INBOX_MGMT.WHATSAPP.AUTOMATION_THROTTLE_PLACEHOLDER')
+                "
+                class="!mb-0 max-w-xs"
               />
             </SettingsFieldSection>
 

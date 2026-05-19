@@ -751,6 +751,13 @@
       }
     },
     "SETTINGS": "Settings",
+    "WHATSAPP": {
+      "AUTOMATION_SECTION": "Automation",
+      "AUTOMATION_THROTTLE_LABEL": "Max automated messages per minute",
+      "AUTOMATION_THROTTLE_HINT": "Messages above this limit are queued for the following minutes (none are lost). Leave empty for no limit.",
+      "AUTOMATION_THROTTLE_PLACEHOLDER": "20",
+      "AUTOMATION_THROTTLE_INVALID": "Must be 1 or greater."
+    },
     "FEATURES": {
       "LABEL": "Features",
       "DISPLAY_FILE_PICKER": "Display file picker on the widget",
