@@ -1,3 +1,34 @@
+# == Schema Information
+#
+# Table name: automation_rule_runs
+#
+#  id                 :bigint           not null, primary key
+#  actions_log        :jsonb            not null
+#  error_summary      :text
+#  event_name         :string           not null
+#  finished_at        :datetime
+#  status             :integer          default("started"), not null
+#  succeeded_actions  :integer          default(0)
+#  total_actions      :integer          default(0)
+#  triggered_at       :datetime         not null
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  account_id         :bigint           not null
+#  automation_rule_id :bigint           not null
+#  trigger_event_id   :string(36)
+#
+# Indexes
+#
+#  idx_runs_by_account_failures                      (account_id,created_at DESC) WHERE (status <> 0)
+#  idx_runs_by_rule_desc                             (automation_rule_id,created_at DESC)
+#  index_automation_rule_runs_on_account_id          (account_id)
+#  index_automation_rule_runs_on_automation_rule_id  (automation_rule_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (account_id => accounts.id)
+#  fk_rails_...  (automation_rule_id => automation_rules.id) ON DELETE => cascade
+#
 class AutomationRuleRun < ApplicationRecord
   belongs_to :automation_rule
   belongs_to :account
