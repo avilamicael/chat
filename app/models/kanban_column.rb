@@ -2,17 +2,31 @@
 #
 # Table name: kanban_columns
 #
-#  id              :bigint           not null, primary key
-#  color           :string           default("#6B7280")
-#  column_type     :string           default("normal"), not null
-#  enter_actions   :jsonb            not null
-#  exit_actions    :jsonb            not null
-#  name            :string           not null
-#  position        :integer          default(0), not null
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  account_id      :bigint           not null
-#  kanban_board_id :bigint           not null
+#  id                                  :bigint           not null, primary key
+#  aging_danger_days                   :integer
+#  aging_warn_days                     :integer
+#  auto_assignment_enabled             :boolean          default(FALSE), not null
+#  auto_assignment_max_cards_per_agent :integer
+#  auto_assignment_online_only         :boolean          default(FALSE), not null
+#  auto_assignment_override            :boolean          default(FALSE), not null
+#  auto_assignment_reassign_on_return  :boolean          default(FALSE), not null
+#  color                               :string           default("#6B7280")
+#  column_type                         :string           default("normal"), not null
+#  conversation_status                 :string
+#  enter_actions                       :jsonb            not null
+#  exit_actions                        :jsonb            not null
+#  last_executed_at                    :datetime
+#  last_execution_error                :text
+#  last_execution_status               :string
+#  name                                :string           not null
+#  position                            :integer          default(0), not null
+#  webhook_secret                      :string           not null
+#  wip_limit                           :integer
+#  created_at                          :datetime         not null
+#  updated_at                          :datetime         not null
+#  account_id                          :bigint           not null
+#  kanban_board_id                     :bigint           not null
+#  last_assigned_agent_id              :integer
 #
 # Indexes
 #

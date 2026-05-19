@@ -44,7 +44,8 @@ class Notification < ApplicationRecord
     sla_missed_first_response: 6,
     sla_missed_next_response: 7,
     sla_missed_resolution: 8,
-    automation_rule_loop_aborted: 9
+    automation_rule_loop_aborted: 9,
+    kanban_card_unassignable: 10
   }.freeze
 
   enum notification_type: NOTIFICATION_TYPES
@@ -86,7 +87,7 @@ class Notification < ApplicationRecord
     }
   end
 
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def push_message_title
     notification_title_map = {
       'conversation_creation' => 'notifications.notification_title.conversation_creation',
@@ -97,7 +98,8 @@ class Notification < ApplicationRecord
       'sla_missed_first_response' => 'notifications.notification_title.sla_missed_first_response',
       'sla_missed_next_response' => 'notifications.notification_title.sla_missed_next_response',
       'sla_missed_resolution' => 'notifications.notification_title.sla_missed_resolution',
-      'automation_rule_loop_aborted' => 'notifications.notification_title.automation_rule_loop_aborted'
+      'automation_rule_loop_aborted' => 'notifications.notification_title.automation_rule_loop_aborted',
+      'kanban_card_unassignable' => 'notifications.notification_title.kanban_card_unassignable'
     }
 
     i18n_key = notification_title_map[notification_type]
@@ -110,12 +112,15 @@ class Notification < ApplicationRecord
       I18n.t(i18n_key, display_id: conversation.display_id)
     elsif notification_type == 'automation_rule_loop_aborted'
       I18n.t(i18n_key, rule_name: primary_actor.try(:name).to_s)
+    elsif notification_type == 'kanban_card_unassignable'
+      I18n.t(i18n_key, card_id: primary_actor&.id, column_name: meta&.dig('column_name').to_s)
     else
       I18n.t(i18n_key, display_id: primary_actor.display_id)
     end
   end
-  # rubocop:enable Metrics/MethodLength
+  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
+  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
   def push_message_body
     case notification_type
     when 'conversation_creation', 'sla_missed_first_response'
@@ -128,10 +133,13 @@ class Notification < ApplicationRecord
       I18n.t('notifications.notification_body.automation_rule_loop_aborted',
              chain: Array(meta && meta['chain']).join(' -> '),
              rule_name: primary_actor.try(:name).to_s)
+    when 'kanban_card_unassignable'
+      I18n.t('notifications.notification_body.kanban_card_unassignable')
     else
       ''
     end
   end
+  # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity
 
   def conversation
     primary_actor

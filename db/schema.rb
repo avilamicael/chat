@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_05_19_143524) do
+ActiveRecord::Schema[7.1].define(version: 2026_05_19_215008) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -1269,6 +1269,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_19_143524) do
     t.integer "lock_version", default: 0, null: false
     t.datetime "last_moved_at"
     t.jsonb "custom_attributes", default: {}, null: false
+    t.boolean "auto_assignment_fell_through", default: false, null: false
     t.index ["account_id"], name: "index_kanban_cards_on_account_id"
     t.index ["archived_at"], name: "index_kanban_cards_on_archived_at"
     t.index ["assignee_id"], name: "index_kanban_cards_on_assignee_id"
@@ -1302,6 +1303,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_19_143524) do
     t.integer "wip_limit"
     t.integer "aging_warn_days"
     t.integer "aging_danger_days"
+    t.boolean "auto_assignment_enabled", default: false, null: false
+    t.boolean "auto_assignment_online_only", default: false, null: false
+    t.boolean "auto_assignment_override", default: false, null: false
+    t.boolean "auto_assignment_reassign_on_return", default: false, null: false
+    t.integer "auto_assignment_max_cards_per_agent"
+    t.integer "last_assigned_agent_id"
     t.index ["account_id"], name: "index_kanban_columns_on_account_id"
     t.index ["column_type"], name: "index_kanban_columns_on_column_type"
     t.index ["kanban_board_id", "position"], name: "index_kanban_columns_on_kanban_board_id_and_position"

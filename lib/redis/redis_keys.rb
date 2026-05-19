@@ -50,6 +50,10 @@ module Redis::RedisKeys
   ASSIGNMENT_KEY = 'ASSIGNMENT::%<inbox_id>d::AGENT::%<agent_id>d::CONVERSATION::%<conversation_id>d'.freeze
   ASSIGNMENT_KEY_PATTERN = 'ASSIGNMENT::%<inbox_id>d::AGENT::%<agent_id>d::*'.freeze
 
+  ## Kanban Auto-assignment (Phase 3 KAN-07/08)
+  # Ordered list of agent ids per kanban column for round-robin assignment
+  KANBAN_ROUND_ROBIN_AGENTS = 'KANBAN_ROUND_ROBIN_AGENTS:%<column_id>d'.freeze
+
   ## Account Email Rate Limiting
   ACCOUNT_OUTBOUND_EMAIL_COUNT_KEY = 'OUTBOUND_EMAIL_COUNT::%<account_id>d::%<date>s'.freeze
 end

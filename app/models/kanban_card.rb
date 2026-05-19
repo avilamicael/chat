@@ -2,31 +2,32 @@
 #
 # Table name: kanban_cards
 #
-#  id                :bigint           not null, primary key
-#  archived_at       :datetime
-#  assignee_ids      :integer          default([]), is an Array
-#  custom_attributes :jsonb            not null
-#  description       :text
-#  due_date          :datetime
-#  last_moved_at     :datetime
-#  lock_version      :integer          default(0), not null
-#  outcome           :string
-#  outcome_reason    :text
-#  position          :float            default(0.0), not null
-#  priority          :integer
-#  reminder_at       :datetime
-#  task_status       :string           default("open")
-#  team_ids          :integer          default([]), is an Array
-#  title             :string
-#  created_at        :datetime         not null
-#  updated_at        :datetime         not null
-#  account_id        :bigint           not null
-#  assignee_id       :bigint
-#  conversation_id   :bigint
-#  created_by_id     :bigint
-#  kanban_board_id   :bigint           not null
-#  kanban_column_id  :bigint           not null
-#  team_id           :bigint
+#  id                           :bigint           not null, primary key
+#  archived_at                  :datetime
+#  assignee_ids                 :integer          default([]), is an Array
+#  auto_assignment_fell_through :boolean          default(FALSE), not null
+#  custom_attributes            :jsonb            not null
+#  description                  :text
+#  due_date                     :datetime
+#  last_moved_at                :datetime
+#  lock_version                 :integer          default(0), not null
+#  outcome                      :string
+#  outcome_reason               :text
+#  position                     :float            default(0.0), not null
+#  priority                     :integer
+#  reminder_at                  :datetime
+#  task_status                  :string           default("open")
+#  team_ids                     :integer          default([]), is an Array
+#  title                        :string
+#  created_at                   :datetime         not null
+#  updated_at                   :datetime         not null
+#  account_id                   :bigint           not null
+#  assignee_id                  :bigint
+#  conversation_id              :bigint
+#  created_by_id                :bigint
+#  kanban_board_id              :bigint           not null
+#  kanban_column_id             :bigint           not null
+#  team_id                      :bigint
 #
 # Indexes
 #
