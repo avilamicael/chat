@@ -3,16 +3,17 @@
 #
 # Table name: channel_whatsapp
 #
-#  id                             :bigint           not null, primary key
-#  message_templates              :jsonb
-#  message_templates_last_updated :datetime
-#  phone_number                   :string           not null
-#  provider                       :string           default("default")
-#  provider_config                :jsonb
-#  provider_connection            :jsonb
-#  created_at                     :datetime         not null
-#  updated_at                     :datetime         not null
-#  account_id                     :integer          not null
+#  id                                 :bigint           not null, primary key
+#  max_automation_messages_per_minute :integer
+#  message_templates                  :jsonb
+#  message_templates_last_updated     :datetime
+#  phone_number                       :string           not null
+#  provider                           :string           default("default")
+#  provider_config                    :jsonb
+#  provider_connection                :jsonb
+#  created_at                         :datetime         not null
+#  updated_at                         :datetime         not null
+#  account_id                         :integer          not null
 #
 # Indexes
 #
@@ -34,6 +35,9 @@ class Channel::Whatsapp < ApplicationRecord
 
   validates :provider, inclusion: { in: PROVIDERS }
   validates :phone_number, presence: true, uniqueness: true
+  validates :max_automation_messages_per_minute,
+            numericality: { only_integer: true, greater_than: 0 },
+            allow_nil: true
   validate :validate_provider_config
 
   has_one :inbox, as: :channel, dependent: :destroy

@@ -54,6 +54,10 @@ module Redis::RedisKeys
   # Ordered list of agent ids per kanban column for round-robin assignment
   KANBAN_ROUND_ROBIN_AGENTS = 'KANBAN_ROUND_ROBIN_AGENTS:%<column_id>d'.freeze
 
+  ## Automation throttle (Phase 3 AUT-10)
+  # Counter per inbox per minute bucket — sliding window
+  AUTOMATION_THROTTLE_BUCKET = 'automation_throttle:inbox:%<inbox_id>d:%<bucket>s'.freeze
+
   ## Account Email Rate Limiting
   ACCOUNT_OUTBOUND_EMAIL_COUNT_KEY = 'OUTBOUND_EMAIL_COUNT::%<account_id>d::%<date>s'.freeze
 end
