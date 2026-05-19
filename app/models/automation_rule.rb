@@ -2,16 +2,19 @@
 #
 # Table name: automation_rules
 #
-#  id          :bigint           not null, primary key
-#  actions     :jsonb            not null
-#  active      :boolean          default(TRUE), not null
-#  conditions  :jsonb            not null
-#  description :text
-#  event_name  :string           not null
-#  name        :string           not null
-#  created_at  :datetime         not null
-#  updated_at  :datetime         not null
-#  account_id  :bigint           not null
+#  id                    :bigint           not null, primary key
+#  actions               :jsonb            not null
+#  active                :boolean          default(TRUE), not null
+#  conditions            :jsonb            not null
+#  description           :text
+#  event_name            :string           not null
+#  last_executed_at      :datetime
+#  last_execution_error  :text
+#  last_execution_status :string
+#  name                  :string           not null
+#  created_at            :datetime         not null
+#  updated_at            :datetime         not null
+#  account_id            :bigint           not null
 #
 # Indexes
 #

@@ -2,40 +2,45 @@
 #
 # Table name: kanban_cards
 #
-#  id               :bigint           not null, primary key
-#  archived_at      :datetime
-#  assignee_ids     :integer          default([]), is an Array
-#  description      :text
-#  due_date         :datetime
-#  outcome          :string
-#  outcome_reason   :text
-#  position         :float            default(0.0), not null
-#  priority         :integer
-#  reminder_at      :datetime
-#  task_status      :string           default("open")
-#  team_ids         :integer          default([]), is an Array
-#  title            :string
-#  created_at       :datetime         not null
-#  updated_at       :datetime         not null
-#  account_id       :bigint           not null
-#  assignee_id      :bigint
-#  conversation_id  :bigint
-#  created_by_id    :bigint
-#  kanban_board_id  :bigint           not null
-#  kanban_column_id :bigint           not null
-#  team_id          :bigint
+#  id                :bigint           not null, primary key
+#  archived_at       :datetime
+#  assignee_ids      :integer          default([]), is an Array
+#  custom_attributes :jsonb            not null
+#  description       :text
+#  due_date          :datetime
+#  last_moved_at     :datetime
+#  lock_version      :integer          default(0), not null
+#  outcome           :string
+#  outcome_reason    :text
+#  position          :float            default(0.0), not null
+#  priority          :integer
+#  reminder_at       :datetime
+#  task_status       :string           default("open")
+#  team_ids          :integer          default([]), is an Array
+#  title             :string
+#  created_at        :datetime         not null
+#  updated_at        :datetime         not null
+#  account_id        :bigint           not null
+#  assignee_id       :bigint
+#  conversation_id   :bigint
+#  created_by_id     :bigint
+#  kanban_board_id   :bigint           not null
+#  kanban_column_id  :bigint           not null
+#  team_id           :bigint
 #
 # Indexes
 #
-#  idx_unique_kanban_card_board_conversation            (kanban_board_id,conversation_id) UNIQUE WHERE (conversation_id IS NOT NULL)
+#  idx_kanban_card_board_conversation                   (kanban_board_id,conversation_id) WHERE (conversation_id IS NOT NULL)
 #  index_kanban_cards_on_account_id                     (account_id)
 #  index_kanban_cards_on_archived_at                    (archived_at)
 #  index_kanban_cards_on_assignee_id                    (assignee_id)
 #  index_kanban_cards_on_conversation_id                (conversation_id)
 #  index_kanban_cards_on_created_by_id                  (created_by_id)
+#  index_kanban_cards_on_custom_attributes              (custom_attributes) USING gin
 #  index_kanban_cards_on_kanban_board_id                (kanban_board_id)
 #  index_kanban_cards_on_kanban_column_id               (kanban_column_id)
 #  index_kanban_cards_on_kanban_column_id_and_position  (kanban_column_id,position)
+#  index_kanban_cards_on_last_moved_at                  (last_moved_at)
 #  index_kanban_cards_on_team_id                        (team_id)
 #
 # Foreign Keys
