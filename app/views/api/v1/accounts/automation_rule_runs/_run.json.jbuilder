@@ -1,0 +1,13 @@
+json.id run.id
+json.rule_id run.automation_rule_id
+json.rule_name run.automation_rule.name
+json.event_name run.event_name
+json.trigger_event_id run.trigger_event_id
+json.triggered_at run.triggered_at&.iso8601
+json.finished_at run.finished_at&.iso8601
+json.status run.status
+json.total_actions run.total_actions
+json.succeeded_actions run.succeeded_actions
+json.actions_log run.actions_log
+json.error_summary run.error_summary
+json.created_at run.created_at.to_i
