@@ -6,6 +6,7 @@ import BaseSettingsHeader from '../components/BaseSettingsHeader.vue';
 import SettingsLayout from '../SettingsLayout.vue';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import { useStoreGetters, useStore } from 'dashboard/composables/store';
 import { picoSearch } from '@scmmishra/pico-search';
 import AutomationRuleRow from './AutomationRuleRow.vue';
@@ -14,8 +15,13 @@ import { BaseTable } from 'dashboard/components-next/table';
 
 const getters = useStoreGetters();
 const store = useStore();
+const router = useRouter();
 const { t } = useI18n();
 const confirmDialog = ref(null);
+
+const openGlobalHistory = () => {
+  router.push({ name: 'settings_automation_history' });
+};
 
 const loading = ref({});
 const addDialogRef = ref(null);
@@ -212,6 +218,14 @@ const tableHeaders = computed(() => {
           </span>
         </template>
         <template #actions>
+          <Button
+            :label="$t('AUTOMATION.GLOBAL_HISTORY.OPEN_BUTTON')"
+            size="sm"
+            faded
+            slate
+            icon="i-lucide-history"
+            @click="openGlobalHistory"
+          />
           <Button
             :label="$t('AUTOMATION.HEADER_BTN_TXT')"
             size="sm"
