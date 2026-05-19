@@ -5,6 +5,7 @@ import Button from 'dashboard/components-next/button/Button.vue';
 import ToggleSwitch from 'dashboard/components-next/switch/Switch.vue';
 import { BaseTableRow, BaseTableCell } from 'dashboard/components-next/table';
 import RuleStatusBadge from './RuleStatusBadge.vue';
+import RuleRiskBadge from 'dashboard/components-next/Automation/RuleRiskBadge.vue';
 
 const props = defineProps({
   automation: {
@@ -34,6 +35,18 @@ const automationActive = computed({
     });
   },
 });
+
+const hasRisk = computed(() => {
+  const actions = props.automation.actions || [];
+  return actions.some(action => {
+    if (action.action_name !== 'send_message') return false;
+    const params = action.action_params;
+    if (!params || typeof params !== 'object' || Array.isArray(params)) {
+      return false;
+    }
+    return params.outside_24h_window_allowed === true;
+  });
+});
 </script>
 
 <template>
@@ -52,11 +65,14 @@ const automationActive = computed({
       </BaseTableCell>
 
       <BaseTableCell>
-        <RuleStatusBadge
-          :status="automation.last_execution_status"
-          :at="automation.last_executed_at"
-          :error="automation.last_execution_error"
-        />
+        <div class="flex items-center gap-2">
+          <RuleStatusBadge
+            :status="automation.last_execution_status"
+            :at="automation.last_executed_at"
+            :error="automation.last_execution_error"
+          />
+          <RuleRiskBadge v-if="hasRisk" />
+        </div>
       </BaseTableCell>
 
       <BaseTableCell>
