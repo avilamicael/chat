@@ -29,6 +29,7 @@
       "FILTER_OPEN": "Conversas abertas",
       "FILTER_PENDING": "Conversas pendentes"
     },
+    "CONFLICT_RELOAD": "Outro agente moveu este card. O funil foi atualizado.",
     "COLUMN": {
       "ADD": "Adicionar Etapa",
       "RENAME": "Renomear",
@@ -73,7 +74,55 @@
       "CONV_STATUS_OPEN": "Aberta",
       "CONV_STATUS_PENDING": "Pendente",
       "CONV_STATUS_RESOLVED": "Resolvida",
-      "CONV_STATUS_SNOOZED": "Adiada"
+      "CONV_STATUS_SNOOZED": "Adiada",
+      "WIP_LIMIT_LABEL": "Limite WIP (aviso suave)",
+      "WIP_LIMIT_DESC": "Aviso visual quando a etapa ultrapassa este número de cards ativos. Não bloqueia a movimentação.",
+      "WIP_LIMIT_PLACEHOLDER": "Sem limite",
+      "AGING_LABEL": "Envelhecimento (card parado)",
+      "AGING_DESC": "Cards sem movimentação que passarem destes limites ganham uma borda colorida.",
+      "AGING_WARN_DAYS_LABEL": "Dias para alerta (amarelo)",
+      "AGING_DANGER_DAYS_LABEL": "Dias para crítico (vermelho)",
+      "AGING_DAYS_PLACEHOLDER": "Desativado"
+    },
+    "WIP_EXCEEDED_BADGE": "{count} / {limit} (excedido)",
+    "WIP_BADGE": "{count} / {limit}",
+    "ACTIVITY": {
+      "TITLE": "Atividade",
+      "SYSTEM": "Sistema",
+      "PERFORMED": "fez {count} alteração | fez {count} alterações",
+      "LOAD_MORE": "Carregar mais antigas",
+      "LOADING": "Carregando...",
+      "RETENTION_NOTICE": "Mostrando os últimos 6 meses. Para histórico mais antigo, consulte a página de relatórios.",
+      "FIELD": {
+        "kanban_column_id": "moveu para a etapa {to}",
+        "kanban_column_name": "moveu de {from} para {to}",
+        "assignee_id": "alterou o responsável principal",
+        "assignee_ids": "alterou os responsáveis",
+        "priority": "alterou prioridade de {from} para {to}",
+        "task_status": "alterou status de {from} para {to}",
+        "outcome": "definiu o resultado como {to}",
+        "title": "alterou o título"
+      }
+    },
+    "FILTERS": {
+      "ASSIGNEE_LABEL": "Responsáveis",
+      "ASSIGNEE_PLACEHOLDER": "Todos os agentes",
+      "TEAM_LABEL": "Times",
+      "TEAM_PLACEHOLDER": "Todos os times",
+      "INBOX_LABEL": "Caixas de entrada",
+      "INBOX_PLACEHOLDER": "Todas as caixas de entrada",
+      "LABEL_LABEL": "Etiquetas",
+      "LABEL_PLACEHOLDER": "Todas as etiquetas",
+      "PRIORITY_LABEL": "Prioridade",
+      "PRIORITY_PLACEHOLDER": "Qualquer prioridade",
+      "TASK_STATUS_LABEL": "Status",
+      "TASK_STATUS_PLACEHOLDER": "Qualquer status",
+      "CREATED_AT_GTE_LABEL": "Criado após",
+      "CREATED_AT_LTE_LABEL": "Criado antes de",
+      "SEARCH_LABEL": "Buscar",
+      "SEARCH_PLACEHOLDER": "Buscar cards…",
+      "CLEAR": "Limpar filtros",
+      "TOGGLE": "Filtros"
     },
     "CARD": {
       "ADD_TO_BOARD": "Adicionar ao Funil",
