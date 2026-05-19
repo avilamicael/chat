@@ -45,11 +45,21 @@
     "LIST": {
       "TABLE_HEADER": {
         "NAME": "Name",
+        "STATUS": "Status",
         "ACTIVE": "Active",
         "CREATED_ON": "Created on",
         "ACTIONS": "Actions"
       },
       "404": "No automation rules found"
+    },
+    "STATUS": {
+      "OK": "Success",
+      "ERROR": "Error",
+      "PENDING": "Pending",
+      "NO_EXECUTION": "No execution yet"
+    },
+    "HINTS": {
+      "REGEX_EXAMPLE": "Use regex like \\bpix\\b or cobran[çc]a (case-insensitive, validated on save). Avoid nested quantifiers like (a+)+"
     },
     "DELETE": {
       "TITLE": "Delete Automation Rule",
@@ -140,7 +150,10 @@
       "CONVERSATION_UPDATED": "Conversation Updated",
       "MESSAGE_CREATED": "Message Created",
       "CONVERSATION_RESOLVED": "Conversation Resolved",
-      "CONVERSATION_OPENED": "Conversation Opened"
+      "CONVERSATION_OPENED": "Conversation Opened",
+      "KANBAN_CARD_MOVED": "Kanban Card Moved",
+      "KANBAN_CARD_ADDED": "Kanban Card Added",
+      "KANBAN_CARD_REMOVED": "Kanban Card Removed"
     },
     "ACTIONS": {
       "ASSIGN_AGENT": "Assign to Agent",
@@ -178,6 +191,7 @@
       "MESSAGE_CONTAINS": "Message Contains",
       "EMAIL": "Email",
       "INBOX": "Inbox",
+      "INBOX_CHANNEL_TYPE": "Channel Type",
       "CONVERSATION_LANGUAGE": "Conversation Language",
       "PHONE_NUMBER": "Phone Number",
       "STATUS": "Status",
@@ -188,7 +202,13 @@
       "ASSIGNEE_NAME": "Assignee",
       "TEAM_NAME": "Team",
       "PRIORITY": "Priority",
-      "LABELS": "Labels"
+      "LABELS": "Labels",
+      "KANBAN_TARGET_COLUMN": "Target Column",
+      "KANBAN_SOURCE_COLUMN": "Source Column",
+      "KANBAN_BOARD": "Kanban Board",
+      "KANBAN_PRIORITY": "Card Priority",
+      "KANBAN_TASK_STATUS": "Task Status",
+      "KANBAN_ASSIGNEE": "Card Assignee"
     }
   }
 }

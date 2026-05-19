@@ -7,4 +7,7 @@ json.conditions automation_rule.conditions
 json.actions automation_rule.actions
 json.created_on automation_rule.created_at.to_i
 json.active automation_rule.active?
+json.last_execution_status automation_rule.last_execution_status
+json.last_executed_at automation_rule.last_executed_at&.iso8601
+json.last_execution_error automation_rule.last_execution_error
 json.files automation_rule.file_base_data if automation_rule.files.any?

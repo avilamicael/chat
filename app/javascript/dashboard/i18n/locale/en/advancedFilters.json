@@ -29,6 +29,8 @@
       "is_less_than": "Is lesser than",
       "days_before": "Is x days before",
       "starts_with": "Starts with",
+      "ends_with": "Ends with",
+      "matches_regex": "Matches regex",
       "equalTo": "Equal to",
       "notEqualTo": "Not equal to",
       "contains": "Contains",
@@ -38,7 +40,9 @@
       "isGreaterThan": "Is greater than",
       "isLessThan": "Is lesser than",
       "daysBefore": "Is x days before",
-      "startsWith": "Starts with"
+      "startsWith": "Starts with",
+      "endsWith": "Ends with",
+      "matchesRegex": "Matches regex"
     },
     "ATTRIBUTE_LABELS": {
       "TRUE": "True",
