@@ -5,6 +5,7 @@ import { useStore } from 'dashboard/composables/store.js';
 import Draggable from 'vuedraggable';
 import KanbanCard from './KanbanCard.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
+import ColumnMetricsHeader from 'dashboard/components-next/Kanban/ColumnMetricsHeader.vue';
 
 const props = defineProps({
   column: { type: Object, required: true },
@@ -154,11 +155,12 @@ const onDragChange = async event => {
     >
       <div class="flex items-center gap-2">
         <span class="text-sm font-semibold text-white">{{ column.name }}</span>
-        <span
-          class="text-xs text-white bg-white/20 px-1.5 py-0.5 rounded font-medium"
-        >
-          {{ localCards.length }}
-        </span>
+        <ColumnMetricsHeader
+          :count="column.card_count ?? column.cards_count ?? localCards.length"
+          :avg-dwell-seconds="column.avg_dwell_seconds ?? null"
+          :column-color="column.color"
+          class="bg-white/20 px-1.5 py-0.5 rounded font-medium"
+        />
         <span
           v-if="column.wip_limit"
           class="text-xs px-1.5 py-0.5 rounded font-medium"
