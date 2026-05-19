@@ -122,6 +122,10 @@ class User < ApplicationRecord
   before_validation :set_password_and_uid, on: :create
   after_destroy :remove_macros
 
+  # Phase 3 (KAN-07 D-A1 sub-toggle 3): enfileira reassignment de cards `fell_through=true`
+  # quando agente transita offline/busy → online em colunas com auto_assignment_reassign_on_return.
+  after_update_commit :enqueue_kanban_reassign_on_return, if: :saved_change_to_availability?
+
   scope :order_by_full_name, -> { order('lower(name) ASC') }
 
   before_validation do
@@ -234,6 +238,15 @@ class User < ApplicationRecord
 
   def remove_macros
     macros.personal.destroy_all
+  end
+
+  # Phase 3 (KAN-07 D-A1 sub-toggle 3): apenas transicoes offline/busy → online disparam reassign.
+  # Idempotente — AutoAssignmentService recalcula eligibility (no double-side-effect).
+  def enqueue_kanban_reassign_on_return
+    return unless availability == 'online'
+    return unless availability_before_last_save.in?(%w[offline busy])
+
+    Kanban::ReassignFellThroughCardsJob.perform_later(id)
   end
 end
 
