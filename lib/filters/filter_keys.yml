@@ -228,5 +228,61 @@ messages:
       - "not_equal_to"
       - "contains"
       - "does_not_contain"
+      - "starts_with"     # NEW — Phase 2 D-C1
+      - "ends_with"       # NEW — Phase 2 D-C1
+      - "matches_regex"   # NEW — Phase 2 D-C1 (Postgres ~* case-insensitive)
+  channel_type:           # NEW — Phase 2 D-C4 (lê de inboxes.channel_type via JOIN)
+    attribute_type: "standard"
+    data_type: "text"
+    filter_operators:
+      - "equal_to"
+      - "not_equal_to"
 
 ### ----- End of Message Filters ----- ###
+
+### ----- Kanban Card Filters (Phase 2) ----- ###
+kanban_cards:
+  target_column_id:
+    attribute_type: "standard"
+    data_type: "number"
+    filter_operators:
+      - "equal_to"
+      - "not_equal_to"
+  source_column_id:
+    # Transient — vem de event.data[:source_column_id], só faz sentido em kanban_card_moved.
+    attribute_type: "standard"
+    data_type: "number"
+    filter_operators:
+      - "equal_to"
+      - "not_equal_to"
+  kanban_board_id:
+    attribute_type: "standard"
+    data_type: "number"
+    filter_operators:
+      - "equal_to"
+      - "not_equal_to"
+  priority:
+    # KanbanCard.priority é enum integer (low/medium/high/urgent). Mapping no service.
+    attribute_type: "standard"
+    data_type: "text"
+    filter_operators:
+      - "equal_to"
+      - "not_equal_to"
+      - "is_present"
+      - "is_not_present"
+  task_status:
+    attribute_type: "standard"
+    data_type: "text"
+    filter_operators:
+      - "equal_to"
+      - "not_equal_to"
+  assignee_id:
+    attribute_type: "standard"
+    data_type: "number"
+    filter_operators:
+      - "equal_to"
+      - "not_equal_to"
+      - "is_present"
+      - "is_not_present"
+
+### ----- End of Kanban Card Filters ----- ###

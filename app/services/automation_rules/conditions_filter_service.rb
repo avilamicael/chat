@@ -1,5 +1,6 @@
 require 'json'
 
+# rubocop:disable Metrics/ClassLength -- engine principal acumulou helpers para 4 sections (D-C1/D-C4)
 class AutomationRules::ConditionsFilterService < FilterService
   ATTRIBUTE_MODEL = 'contact_attribute'.freeze
 
@@ -52,9 +53,16 @@ class AutomationRules::ConditionsFilterService < FilterService
   end
 
   def filter_operation(query_hash, current_index)
-    if query_hash[:filter_operator] == 'starts_with'
+    case query_hash[:filter_operator]
+    when 'starts_with'
       @filter_values["value_#{current_index}"] = "#{string_filter_values(query_hash)}%"
       like_filter_string(query_hash[:filter_operator], current_index)
+    when 'ends_with'
+      @filter_values["value_#{current_index}"] = "%#{string_filter_values(query_hash)}"
+      like_filter_string(query_hash[:filter_operator], current_index)
+    when 'matches_regex'
+      @filter_values["value_#{current_index}"] = string_filter_values(query_hash)
+      "~* :value_#{current_index}"
     else
       super
     end
@@ -111,6 +119,15 @@ class AutomationRules::ConditionsFilterService < FilterService
   def message_query_string(current_filter, query_hash, current_index)
     attribute_key = query_hash['attribute_key']
     query_operator = query_hash['query_operator']
+
+    # channel_type vive em inboxes.channel_type (JOIN feito em base_relation);
+    # display name (UI) → class name (DB) via Channel::TypeNormalizer — D-B4/D-C4.
+    if attribute_key == 'channel_type'
+      normalized = Array(query_hash['values']).map { |v| Channel::TypeNormalizer.normalize(v) || v }
+      @filter_values["value_#{current_index}"] = normalized
+      filter_operator_value = equals_to_filter_string(query_hash[:filter_operator], current_index)
+      return " inboxes.channel_type #{filter_operator_value} #{query_operator} "
+    end
 
     attribute_key = 'processed_message_content' if attribute_key == 'content'
 
@@ -199,6 +216,8 @@ class AutomationRules::ConditionsFilterService < FilterService
       )
     end
 
+    records = records.joins('LEFT OUTER JOIN inboxes ON conversations.inbox_id = inboxes.id') if inbox_channel_conditions?
+
     records = records.where(messages: { id: @options[:message].id }) if @options[:message].present?
     records
   end
@@ -206,4 +225,9 @@ class AutomationRules::ConditionsFilterService < FilterService
   def label_conditions?
     @rule.conditions.any? { |condition| condition['attribute_key'] == 'labels' }
   end
+
+  def inbox_channel_conditions?
+    @rule.conditions.any? { |condition| condition['attribute_key'] == 'channel_type' }
+  end
 end
+# rubocop:enable Metrics/ClassLength

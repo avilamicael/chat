@@ -11,6 +11,7 @@ class AutomationRules::ConditionValidationService
     @conversation_filters = @filters['conversations']
     @contact_filters = @filters['contacts']
     @message_filters = @filters['messages']
+    @kanban_filters = @filters['kanban_cards'] || {}
   end
 
   def perform
@@ -34,16 +35,17 @@ class AutomationRules::ConditionValidationService
 
   def valid_condition?(condition)
     key = condition['attribute_key']
+    filter = lookup_filter(key)
 
-    conversation_filter = @conversation_filters[key]
-    contact_filter = @contact_filters[key]
-    message_filter = @message_filters[key]
-
-    if conversation_filter || contact_filter || message_filter
-      operation_valid?(condition, conversation_filter || contact_filter || message_filter)
+    if filter
+      operation_valid?(condition, filter)
     else
       custom_attribute_present?(key, condition['custom_attribute_type'])
     end
+  end
+
+  def lookup_filter(key)
+    @conversation_filters[key] || @contact_filters[key] || @message_filters[key] || @kanban_filters[key]
   end
 
   def operation_valid?(condition, filter)
