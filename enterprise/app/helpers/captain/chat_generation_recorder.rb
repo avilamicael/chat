@@ -7,6 +7,8 @@ module Captain::ChatGenerationRecorder
   def record_llm_generation(chat, message)
     return unless valid_llm_message?(message)
 
+    record_usage_event(message)
+
     # Create a generation span with model and token info for Langfuse cost calculation.
     # Note: span duration will be near-zero since we create and end it immediately, but token counts are what Langfuse uses for cost calculation.
     tracer.in_span("llm.captain.#{feature_name}.generation") do |span|
@@ -15,6 +17,18 @@ module Captain::ChatGenerationRecorder
   rescue StandardError => e
     Rails.logger.warn "Failed to record LLM generation: #{e.message}"
   end
+
+  # rubocop:disable Rails/HelperInstanceVariable
+  def record_usage_event(message)
+    Captain::UsageRecorder.record(
+      account: Account.find_by(id: resolved_account_id), feature: feature_name, model: model,
+      input_tokens: message.input_tokens,
+      output_tokens: (message.respond_to?(:output_tokens) ? message.output_tokens : nil),
+      assistant: @assistant,
+      conversation: (Conversation.find_by(account_id: resolved_account_id, display_id: @conversation_id) if @conversation_id)
+    )
+  end
+  # rubocop:enable Rails/HelperInstanceVariable
 
   # Skip non-LLM messages (e.g., tool results that RubyLLM processes internally).
   # Check for assistant role rather than token presence - some providers/streaming modes

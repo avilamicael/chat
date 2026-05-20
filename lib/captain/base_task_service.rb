@@ -51,6 +51,8 @@ class Captain::BaseTaskService
       execute_ruby_llm_request(model: model, messages: messages, schema: schema, tools: tools)
     end
 
+    record_task_usage(model, response)
+
     return response unless build_follow_up_context? && response[:message].present?
 
     response.merge(follow_up_context: build_follow_up_context(messages, response))
@@ -91,6 +93,17 @@ class Captain::BaseTaskService
     conversation_messages[0...-1].each do |msg|
       chat.add_message(role: msg[:role].to_sym, content: msg[:content])
     end
+  end
+
+  def record_task_usage(model, response)
+    usage = response[:usage]
+    return if usage.blank?
+
+    Captain::UsageRecorder.record(
+      account: account, feature: 'task', model: model,
+      input_tokens: usage['prompt_tokens'], output_tokens: usage['completion_tokens'],
+      conversation: conversation
+    )
   end
 
   def build_ruby_llm_response(response, messages)

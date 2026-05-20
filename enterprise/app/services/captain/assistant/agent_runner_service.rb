@@ -1,7 +1,7 @@
 require 'agents'
 require 'agents/instrumentation'
 
-class Captain::Assistant::AgentRunnerService
+class Captain::Assistant::AgentRunnerService # rubocop:disable Metrics/ClassLength
   include Integrations::LlmInstrumentationConstants
   include Captain::Assistant::RunnerCallbacksHelper
   include Captain::Assistant::TracePayloadHelper
@@ -101,7 +101,18 @@ class Captain::Assistant::AgentRunnerService
     # Extract agent name from context
     response['agent_name'] = result.context&.dig(:current_agent)
 
+    record_usage(result)
+
     response
+  end
+
+  def record_usage(result)
+    model = InstallationConfig.find_by(name: 'CAPTAIN_OPEN_AI_MODEL')&.value.presence || LlmConstants::DEFAULT_MODEL
+    Captain::UsageRecorder.record(
+      account: @assistant.account, feature: 'agent', model: model,
+      input_tokens: result.usage&.input_tokens, output_tokens: result.usage&.output_tokens,
+      assistant: @assistant, conversation: @conversation
+    )
   end
 
   def format_response(output)
