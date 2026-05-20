@@ -104,6 +104,7 @@ class Account < ApplicationRecord
   has_many :assignment_policies, dependent: :destroy_async
   has_many :automation_rules, dependent: :destroy_async
   has_many :automation_rule_runs, dependent: :destroy_async
+  has_many :captain_usage_events, class_name: 'Captain::UsageEvent', dependent: :destroy_async
   has_many :macros, dependent: :destroy_async
   has_many :campaigns, dependent: :destroy_async
   has_many :canned_responses, dependent: :destroy_async
@@ -156,6 +157,17 @@ class Account < ApplicationRecord
 
   def agents
     users.where(account_users: { role: :agent })
+  end
+
+  def captain_usage_summary(period: :current_month)
+    scope = captain_usage_events
+    scope = scope.where(created_at: Time.current.beginning_of_month..Time.current) if period == :current_month
+    {
+      responses_count: scope.count,
+      input_tokens: scope.sum(:input_tokens),
+      output_tokens: scope.sum(:output_tokens),
+      cost_cents: scope.sum(:cost_cents)
+    }
   end
 
   def administrators
