@@ -4,7 +4,7 @@ class Captain::UsageRecorder
     # rubocop:enable Metrics/ParameterLists
     return if account.nil?
 
-    cost_cents = Captain::UsageCostCalculator.cost_cents(model: model, input_tokens: input_tokens, output_tokens: output_tokens)
+    cost_micros = Captain::UsageCostCalculator.cost_micros(model: model, input_tokens: input_tokens, output_tokens: output_tokens)
 
     Captain::UsageEvent.create!(
       account: account,
@@ -14,7 +14,7 @@ class Captain::UsageRecorder
       model: model,
       input_tokens: input_tokens.to_i,
       output_tokens: output_tokens.to_i,
-      cost_cents: cost_cents
+      cost_micros: cost_micros
     )
   rescue StandardError => e
     ChatwootExceptionTracker.new(e, account: account).capture_exception

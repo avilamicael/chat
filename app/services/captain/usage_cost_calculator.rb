@@ -10,10 +10,12 @@ class Captain::UsageCostCalculator
   DEFAULT_MODEL_KEY = 'gpt-4o-mini'.freeze
   DEFAULT_USD_BRL_RATE = 5.4
 
-  def self.cost_cents(model:, input_tokens:, output_tokens:)
+  # Returns cost in micros of BRL (1 R$ = 1_000_000 micros) using integer precision,
+  # avoiding the rounding-to-zero that happens when sub-cent responses are stored as cents.
+  def self.cost_micros(model:, input_tokens:, output_tokens:)
     price = prices[model] || prices[DEFAULT_MODEL_KEY]
     usd = ((input_tokens.to_i / 1_000_000.0) * price[:input]) + ((output_tokens.to_i / 1_000_000.0) * price[:output])
-    (usd * usd_brl_rate * 100).round
+    (usd * usd_brl_rate * 1_000_000).round
   end
 
   def self.prices
