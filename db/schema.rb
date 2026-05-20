@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_05_19_230102) do
+ActiveRecord::Schema[7.1].define(version: 2026_05_20_230651) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -672,6 +672,20 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_19_230102) do
     t.index ["assistant_id", "enabled"], name: "index_captain_scenarios_on_assistant_id_and_enabled"
     t.index ["assistant_id"], name: "index_captain_scenarios_on_assistant_id"
     t.index ["enabled"], name: "index_captain_scenarios_on_enabled"
+  end
+
+  create_table "captain_usage_events", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "assistant_id"
+    t.bigint "conversation_id"
+    t.string "feature", null: false
+    t.string "model", null: false
+    t.integer "input_tokens", default: 0, null: false
+    t.integer "output_tokens", default: 0, null: false
+    t.integer "cost_cents", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "created_at"], name: "index_captain_usage_events_on_account_id_and_created_at"
   end
 
   create_table "categories", force: :cascade do |t|
