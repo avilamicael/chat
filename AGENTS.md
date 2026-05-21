@@ -78,10 +78,12 @@
 
 ## Project-Specific
 
-- **Translations**:
-  - Only update `en.yml` and `en.json`
-  - Other languages are handled by the community
-  - Backend i18n → `en.yml`, Frontend i18n → `en.json`
+- **Translations** (project override — this fork ships in pt-BR):
+  - **Always add pt-BR alongside English** for any UI string we add or change. Upstream's "English only / community handles the rest" rule does NOT apply here — features shipped without pt-BR show up untranslated for the user.
+  - Backend: update **both** `config/locales/en.yml` **and** `config/locales/pt_BR.yml` (mirror the same keys).
+  - Frontend (dashboard): update **both** `app/javascript/dashboard/i18n/locale/en/<file>.json` **and** `app/javascript/dashboard/i18n/locale/pt_BR/<file>.json` (same file name, same key tree).
+  - Widget/survey strings have their own `pt_BR.json` under `app/javascript/{widget,survey}/i18n/locale/` — mirror there too when touched.
+  - Definition of done for any UI change includes the pt-BR keys, not just English.
 - **Frontend**:
   - Use `components-next/` for message bubbles (the rest is being deprecated)
 

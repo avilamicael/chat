@@ -47,9 +47,11 @@
         "NAME": "Nome",
         "ACTIVE": "Ativo",
         "CREATED_ON": "Criado em",
-        "ACTIONS": "Ações"
+        "ACTIONS": "Ações",
+        "STATUS": "Status"
       },
-      "404": "Nenhuma regra de automação encontrada"
+      "404": "Nenhuma regra de automação encontrada",
+      "RISK_TOOLTIP": "Esta regra envia mensagens de WhatsApp fora da janela de 24h."
     },
     "DELETE": {
       "TITLE": "Excluir regra de automação",
@@ -87,7 +89,12 @@
       "CREATE": "Criar",
       "DELETE": "Excluir",
       "CANCEL": "Cancelar",
-      "RESET_MESSAGE": "Alterar o evento irá redefinir as condições e eventos que você adicionou abaixo"
+      "RESET_MESSAGE": "Alterar o evento irá redefinir as condições e eventos que você adicionou abaixo",
+      "TAB_EDIT": "Editar",
+      "TAB_RUNS": "Execuções",
+      "TAB_TEST": "Testar",
+      "ABORT_ON_FAIL_HEADER": "Abortar se uma ação falhar",
+      "ABORT_ON_FAIL_DESC": "Quando desligado (padrão), a regra continua executando as ações restantes mesmo se uma falhar."
     },
     "CONDITION": {
       "DELETE_MESSAGE": "Você precisa ter pelo menos uma condição para salvar",
@@ -104,7 +111,12 @@
       "ATTACHMENT_ADD": "Adicionar anexo",
       "TEMPLATE_SELECT": "Usar template",
       "TEMPLATE_SELECTED": "Template: {name}",
-      "TEMPLATE_USE": "Usar este template"
+      "TEMPLATE_USE": "Usar este template",
+      "SEND_MESSAGE": {
+        "OVERRIDE_24H_HEADER": "Enviar mesmo após a janela de 24h (risco assumido)",
+        "OVERRIDE_24H_DESC": "Por padrão, mensagens automáticas de WhatsApp são bloqueadas após 24h de silêncio do cliente para proteger seu número.",
+        "OVERRIDE_24H_RISK": "O risco de ter seu número de WhatsApp banido é assumido por você. Não use para campanhas promocionais."
+      }
     },
     "TOGGLE": {
       "ACTIVATION_TITLE": "Ativar regra de automação",
@@ -140,7 +152,10 @@
       "CONVERSATION_UPDATED": "Conversa Atualizada",
       "MESSAGE_CREATED": "Mensagem Criada",
       "CONVERSATION_RESOLVED": "Conversa Resolvida",
-      "CONVERSATION_OPENED": "Conversa Aberta"
+      "CONVERSATION_OPENED": "Conversa Aberta",
+      "KANBAN_CARD_MOVED": "Card do Kanban movido",
+      "KANBAN_CARD_ADDED": "Card do Kanban adicionado",
+      "KANBAN_CARD_REMOVED": "Card do Kanban removido"
     },
     "ACTIONS": {
       "ASSIGN_AGENT": "Atribuir ao Agente",
@@ -188,7 +203,90 @@
       "ASSIGNEE_NAME": "Agente atribuído",
       "TEAM_NAME": "Time",
       "PRIORITY": "Prioridade",
-      "LABELS": "Etiquetas"
+      "LABELS": "Etiquetas",
+      "INBOX_CHANNEL_TYPE": "Tipo de canal",
+      "KANBAN_TARGET_COLUMN": "Coluna de destino",
+      "KANBAN_SOURCE_COLUMN": "Coluna de origem",
+      "KANBAN_BOARD": "Funil Kanban",
+      "KANBAN_PRIORITY": "Prioridade do card",
+      "KANBAN_TASK_STATUS": "Status da tarefa",
+      "KANBAN_ASSIGNEE": "Responsável pelo card"
+    },
+    "STATUS": {
+      "OK": "Sucesso",
+      "ERROR": "Erro",
+      "PENDING": "Pendente",
+      "NO_EXECUTION": "Nenhuma execução ainda"
+    },
+    "HINTS": {
+      "REGEX_EXAMPLE": "Use regex como \\bpix\\b ou cobran[çc]a (sem distinção de maiúsculas, validado ao salvar). Evite quantificadores aninhados como (a+)+"
+    },
+    "DRY_RUN": {
+      "REAL_EVENT_HEADER": "Testar com um evento real",
+      "REAL_EVENT_PLACEHOLDER": "Escolha um dos últimos 5 eventos correspondentes…",
+      "REAL_EVENT_DESC": "Reproduz um dos eventos mais recentes que teriam correspondido a esta regra. Nada é enviado ou salvo.",
+      "NO_RECENT_EVENTS": "Nenhum evento recente para reproduzir.",
+      "MANUAL_LINK": "Ou montar um cenário manual →",
+      "MANUAL_LINK_CLOSE": "Ocultar cenário manual",
+      "MANUAL_HEADER": "Cenário manual",
+      "MANUAL_DESC": "Escolha manualmente um card, coluna, conversa ou mensagem para simular.",
+      "MANUAL_FIELD_CARD_ID": "ID do card",
+      "MANUAL_FIELD_TARGET_COLUMN_ID": "ID da coluna de destino",
+      "MANUAL_FIELD_SOURCE_COLUMN_ID": "ID da coluna de origem",
+      "MANUAL_FIELD_CONVERSATION_ID": "ID da conversa",
+      "MANUAL_FIELD_MESSAGE_ID": "ID da mensagem (opcional)",
+      "MANUAL_FIELD_ID_PLACEHOLDER": "42",
+      "MANUAL_NO_FIELDS": "Este evento não tem campos manuais configurados. Use um evento real.",
+      "MANUAL_HINT_IDS": "Digite os IDs numéricos que quer simular. Você os encontra na URL ou no banco de dados.",
+      "RUN_BUTTON": "Executar teste",
+      "EMPTY_TITLE": "Nada simulado ainda",
+      "EMPTY_STATE": "Escolha um evento real acima ou monte um cenário manual.",
+      "RESULT_HEADING": "Resultado da simulação",
+      "CONDITIONS_MATCHED": "Condições atendidas",
+      "CONDITIONS_NOT_MATCHED": "As condições não foram atendidas — nenhuma ação seria executada.",
+      "ACTIONS_HEADER": "Ações que seriam executadas",
+      "RESOLVED_PAYLOAD_LABEL": "Valores resolvidos",
+      "NOT_PERSISTED_HINT": "Nada foi enviado ou salvo. Isto é uma prévia.",
+      "WOULD_BLOCK_24H": "Seria bloqueada — janela de 24h expirada.",
+      "LOADING": "Simulando…",
+      "ERROR_PREFIX": "Falha na simulação:",
+      "SAVE_RULE_FIRST": "Salve a regra primeiro para testá-la."
+    },
+    "RUNS": {
+      "EMPTY_TITLE": "Nenhuma execução ainda",
+      "EMPTY_STATE": "Esta regra não disparou desde que foi ativada.",
+      "COLUMN_TIME": "Horário",
+      "COLUMN_TRIGGER": "Gatilho",
+      "COLUMN_STATUS": "Status",
+      "COLUMN_ACTIONS_COUNT": "Ações",
+      "STATUS_OK": "Sucesso",
+      "STATUS_ERROR": "Falhou",
+      "STATUS_PARTIAL": "Parcial",
+      "STATUS_SKIPPED": "Ignorada (proteção de loop)",
+      "STATUS_ABORTED": "Abortada (ação falhou)",
+      "ACTION_NOT_EXECUTED": "Não executada — ação anterior falhou",
+      "ACTION_QUEUED": "Na fila (limite de envio)",
+      "ACTION_BLOCKED_24H": "Bloqueada — janela de 24h expirada",
+      "SEE_GLOBAL_HISTORY": "Ver no histórico global →",
+      "LOAD_OLDER": "Carregar mais antigas",
+      "LOADING": "Carregando…",
+      "LOAD_ERROR": "Não foi possível carregar as execuções.",
+      "RETRY": "Tentar novamente",
+      "SAVE_RULE_FIRST": "Salve a regra primeiro para ver as execuções.",
+      "RESOLVED_VALUES_TOGGLE": "Valores resolvidos"
+    },
+    "GLOBAL_HISTORY": {
+      "TITLE": "Histórico de automações",
+      "OPEN_BUTTON": "Histórico",
+      "FILTER_RULE": "Regra",
+      "FILTER_STATUS": "Status",
+      "FILTER_PERIOD": "Período",
+      "ALL_RULES": "Todas as regras",
+      "ALL_STATUSES": "Todos os status",
+      "PERIOD_24H": "Últimas 24h",
+      "PERIOD_7D": "Últimos 7 dias",
+      "PERIOD_30D": "Últimos 30 dias",
+      "EMPTY_STATE": "Nenhuma execução no período selecionado."
     }
   }
 }

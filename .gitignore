@@ -106,3 +106,8 @@ local/
 Procfile.worktree
 
 docs/*
+
+# Local-only dev/deploy configs (not part of the image)
+docker-compose.minimal.yaml
+docker-compose.override.yaml
+vps/

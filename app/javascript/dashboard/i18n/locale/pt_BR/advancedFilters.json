@@ -38,7 +38,11 @@
       "isGreaterThan": "É maior que",
       "isLessThan": "É menor que",
       "daysBefore": "É X dias antes",
-      "startsWith": "Começa com"
+      "startsWith": "Começa com",
+      "ends_with": "Termina com",
+      "matches_regex": "Corresponde à regex",
+      "endsWith": "Termina com",
+      "matchesRegex": "Corresponde à regex"
     },
     "ATTRIBUTE_LABELS": {
       "TRUE": "Verdadeiro",

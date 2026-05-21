@@ -53,6 +53,7 @@ pt_BR:
       scheduled_message:
         delay_out_of_range: O atraso deve ser entre 1 minuto e 999 dias
         content_attachment_or_template_required: A mensagem agendada deve ter conteúdo, anexo ou template
+      invalid_regex: "Regex inválida na condição %{index}: %{error}"
     saml:
       feature_not_enabled: SAML não está habilitado para esta conta
       sso_not_enabled: O SSO via SAML não está habilitado para esta instalação
@@ -210,8 +211,16 @@ pt_BR:
       sla_missed_first_response: 'Meta de SLA de Primeira Resposta não alcançada para a conversa (#%{display_id})'
       sla_missed_next_response: 'Meta de SLA de Próxima Resposta não alcançada para a conversa (#%{display_id})'
       sla_missed_resolution: 'Meta de SLA de Resolução não alcançada para a conversa (#%{display_id})'
+      automation_rule_loop_aborted: "A regra de automação '%{rule_name}' foi desativada — loop em cascata detectado (>5 níveis)."
+      kanban_card_unassignable: "O card #%{card_id} entrou em '%{column_name}' sem agente elegível."
+    notification_body:
+      automation_rule_loop_aborted: 'Cadeia de regras: %{chain}. Clique para revisar e reativar manualmente.'
+      kanban_card_unassignable: 'Configure agentes ou flexibilize os filtros de atribuição automática para manter a coluna fluindo.'
     attachment: 'Anexo'
     no_content: 'Sem conteúdo'
+  kanban:
+    errors:
+      card_was_modified: "O card foi modificado por outro usuário. Atualize a página e tente novamente."
   conversations:
     captain:
       handoff: 'Transferindo para que outro agente dê assistência.'
