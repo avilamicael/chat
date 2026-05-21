@@ -1,0 +1,25 @@
+<% summary = page.resource.captain_usage_summary %>
+<section class="main-content__body">
+  <hr/>
+  <h3 class="pb-3">Consumo de IA do Captain (mês corrente)</h3>
+  <table>
+    <tbody>
+      <tr>
+        <th>Respostas</th>
+        <td><%= number_with_delimiter(summary[:responses_count]) %></td>
+      </tr>
+      <tr>
+        <th>Tokens (entrada)</th>
+        <td><%= number_with_delimiter(summary[:input_tokens]) %></td>
+      </tr>
+      <tr>
+        <th>Tokens (saída)</th>
+        <td><%= number_with_delimiter(summary[:output_tokens]) %></td>
+      </tr>
+      <tr>
+        <th>Custo</th>
+        <td><%= number_to_currency(summary[:cost_brl], unit: "R$ ", separator: ",", delimiter: ".", precision: 4) %></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
