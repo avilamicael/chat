@@ -32,6 +32,7 @@ as defined by the routes in the `admin/` namespace
 
     <ul class="my-4">
       <%= render partial: "nav_item", locals: { icon: 'icon-grid-line', url: super_admin_root_url, label: 'Dashboard' } %>
+      <%= render partial: "nav_item", locals: { icon: 'icon-robot-line', url: super_admin_captain_usage_index_url, label: 'Captain Usage' } %>
       <% Administrate::Namespace.new(namespace).resources.each do |resource| %>
         <% next if ["account_users", "access_tokens", "installation_configs", "dashboard", "devise/sessions", "app_configs", "instance_statuses", "settings"].include?  resource.resource %>
         <%= render partial: "nav_item", locals: {

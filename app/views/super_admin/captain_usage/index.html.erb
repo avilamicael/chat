@@ -1,0 +1,63 @@
+<% content_for(:title) do %>
+  Custo de IA do Captain — Mês Corrente
+<% end %>
+
+<header class="main-content__header" role="banner">
+  <h1 class="main-content__page-title">
+    <%= content_for(:title) %>
+  </h1>
+</header>
+
+<section class="main-content__body">
+  <div class="flex flex-wrap gap-4 mb-8">
+    <div class="border border-n-weak rounded p-4">
+      <div class="text-xs text-slate-600">Custo total estimado (OpenAI)</div>
+      <div class="text-2xl font-semibold">
+        <%= number_to_currency(@total_cost_brl, unit: "R$ ", separator: ",", delimiter: ".", precision: 4) %>
+      </div>
+    </div>
+    <div class="border border-n-weak rounded p-4">
+      <div class="text-xs text-slate-600">Total de respostas</div>
+      <div class="text-2xl font-semibold"><%= number_with_delimiter(@total_responses_count) %></div>
+    </div>
+    <div class="border border-n-weak rounded p-4">
+      <div class="text-xs text-slate-600">Total de tokens</div>
+      <div class="text-2xl font-semibold"><%= number_with_delimiter(@total_input_tokens + @total_output_tokens) %></div>
+    </div>
+  </div>
+
+  <% if @rows.empty? %>
+    <p>Nenhum uso de IA registrado neste mês.</p>
+  <% else %>
+    <table>
+      <thead>
+        <tr>
+          <th>Conta</th>
+          <th>Respostas</th>
+          <th>Tokens (entrada + saída)</th>
+          <th>Custo (R$)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @rows.each do |row| %>
+          <tr>
+            <td>
+              <%= link_to row[:account_name], super_admin_account_path(row[:account_id]) %>
+            </td>
+            <td><%= number_with_delimiter(row[:responses_count]) %></td>
+            <td><%= number_with_delimiter(row[:input_tokens] + row[:output_tokens]) %></td>
+            <td><%= number_to_currency(row[:cost_brl], unit: "R$ ", separator: ",", delimiter: ".", precision: 4) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>Total</th>
+          <th><%= number_with_delimiter(@total_responses_count) %></th>
+          <th><%= number_with_delimiter(@total_input_tokens + @total_output_tokens) %></th>
+          <th><%= number_to_currency(@total_cost_brl, unit: "R$ ", separator: ",", delimiter: ".", precision: 4) %></th>
+        </tr>
+      </tfoot>
+    </table>
+  <% end %>
+</section>
