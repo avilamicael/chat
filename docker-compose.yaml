@@ -117,8 +117,8 @@ services:
 
   baileys:
     build:
-      context: /home/micael/baileys-api
-      dockerfile: /home/micael/chatwoot/docker/dockerfiles/baileys.dev.Dockerfile
+      context: /home/micael/chatwoot_vps/baileys-api
+      dockerfile: /home/micael/chatwoot_vps/chatwoot/docker/dockerfiles/baileys.dev.Dockerfile
     image: baileys-api:development
     restart: always
     depends_on:

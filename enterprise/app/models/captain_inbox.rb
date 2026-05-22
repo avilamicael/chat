@@ -3,6 +3,7 @@
 # Table name: captain_inboxes
 #
 #  id                   :bigint           not null, primary key
+#  respond_to_groups    :boolean          default(FALSE), not null
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  captain_assistant_id :bigint           not null

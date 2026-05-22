@@ -1007,6 +1007,11 @@
       "OPTIONS": {
         "DISCONNECT": "Disconnect"
       },
+      "RESPOND_TO_GROUPS": {
+        "LABEL": "Respond to group conversations",
+        "SUCCESS_MESSAGE": "Group response setting updated.",
+        "ERROR_MESSAGE": "Could not update the group response setting, please try again."
+      },
       "DELETE": {
         "TITLE": "Are you sure to disconnect the inbox?",
         "DESCRIPTION": "",

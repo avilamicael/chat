@@ -2,6 +2,8 @@
 import { computed, watch, ref, nextTick } from 'vue';
 import { useMapGetter, useStore } from 'dashboard/composables/store';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { useAlert } from 'dashboard/composables';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
 
 import DeleteDialog from 'dashboard/components-next/captain/pageComponents/DeleteDialog.vue';
@@ -13,6 +15,7 @@ import InboxPageEmptyState from 'dashboard/components-next/captain/pageComponent
 const store = useStore();
 const dialogType = ref('');
 const route = useRoute();
+const { t } = useI18n();
 
 const assistantId = computed(() => route.params.assistantId);
 const assistantUiFlags = useMapGetter('captainAssistants/getUIFlags');
@@ -35,7 +38,24 @@ const handleCreate = () => {
   dialogType.value = 'create';
   nextTick(() => connectInboxDialog.value.dialogRef.open());
 };
-const handleAction = ({ action, id }) => {
+const handleRespondToGroups = async (id, value) => {
+  try {
+    await store.dispatch('captainInboxes/update', {
+      assistantId: assistantId.value,
+      inboxId: id,
+      respondToGroups: value,
+    });
+    useAlert(t('CAPTAIN.INBOXES.RESPOND_TO_GROUPS.SUCCESS_MESSAGE'));
+  } catch (error) {
+    useAlert(t('CAPTAIN.INBOXES.RESPOND_TO_GROUPS.ERROR_MESSAGE'));
+  }
+};
+
+const handleAction = ({ action, id, value }) => {
+  if (action === 'updateRespondToGroups') {
+    handleRespondToGroups(id, value);
+    return;
+  }
   selectedInbox.value = captainInboxes.value.find(inbox => id === inbox.id);
   nextTick(() => {
     if (action === 'delete') {

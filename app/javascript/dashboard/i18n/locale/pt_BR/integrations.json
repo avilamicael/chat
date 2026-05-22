@@ -1009,6 +1009,11 @@
       "OPTIONS": {
         "DISCONNECT": "Desconectar"
       },
+      "RESPOND_TO_GROUPS": {
+        "LABEL": "Responder conversas de grupo",
+        "SUCCESS_MESSAGE": "Configuração de resposta a grupos atualizada.",
+        "ERROR_MESSAGE": "Não foi possível atualizar a configuração de resposta a grupos, tente novamente."
+      },
       "DELETE": {
         "TITLE": "Tem certeza que deseja desconectar a caixa de entrada?",
         "DESCRIPTION": "",

@@ -42,6 +42,7 @@ if kanban_card.association(:conversation).loaded? && kanban_card.conversation
     json.created_at conv.created_at
     json.inbox_id conv.inbox_id
     json.channel conv.inbox&.channel_type
+    json.waiting_since conv.waiting_since
     json.meta do
       json.sender do
         json.id conv.contact&.id

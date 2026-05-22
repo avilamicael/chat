@@ -21,8 +21,8 @@
 #
 # Foreign Keys
 #
-#  fk_rails_...  (card_id => kanban_cards.id)
-#  fk_rails_...  (column_id => kanban_columns.id)
+#  fk_rails_...  (card_id => kanban_cards.id) ON DELETE => cascade
+#  fk_rails_...  (column_id => kanban_columns.id) ON DELETE => cascade
 #
 class KanbanCardActionExecution < ApplicationRecord
   belongs_to :card, class_name: 'KanbanCard'

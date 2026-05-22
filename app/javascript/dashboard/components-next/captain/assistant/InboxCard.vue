@@ -1,11 +1,12 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useToggle } from '@vueuse/core';
 import { useI18n } from 'vue-i18n';
 
 import CardLayout from 'dashboard/components-next/CardLayout.vue';
 import DropdownMenu from 'dashboard/components-next/dropdown-menu/DropdownMenu.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
+import Switch from 'dashboard/components-next/switch/Switch.vue';
 import Policy from 'dashboard/components/policy.vue';
 import { INBOX_TYPES, getInboxIconByType } from 'dashboard/helper/inbox';
 
@@ -62,6 +63,20 @@ const icon = computed(() => {
   return getInboxIconByType(type, medium, 'outline');
 });
 
+const isWhatsAppChannel = computed(
+  () => props.inbox.channel_type === INBOX_TYPES.WHATSAPP
+);
+
+const respondToGroups = ref(props.inbox.captain_respond_to_groups ?? false);
+
+const handleGroupToggle = () => {
+  emit('action', {
+    action: 'updateRespondToGroups',
+    value: respondToGroups.value,
+    id: props.id,
+  });
+};
+
 const handleAction = ({ action, value }) => {
   toggleDropdown(false);
   emit('action', { action, value, id: props.id });
@@ -70,33 +85,44 @@ const handleAction = ({ action, value }) => {
 
 <template>
   <CardLayout>
-    <div class="flex justify-between w-full gap-1">
-      <span
-        class="text-base text-n-slate-12 line-clamp-1 flex items-center gap-2"
-      >
-        <span :class="icon" />
-        {{ inboxName }}
-      </span>
-      <div class="flex items-center gap-2">
-        <Policy
-          v-on-clickaway="() => toggleDropdown(false)"
-          :permissions="['administrator']"
-          class="relative flex items-center group"
+    <div class="flex flex-col w-full gap-3">
+      <div class="flex justify-between w-full gap-1">
+        <span
+          class="text-base text-n-slate-12 line-clamp-1 flex items-center gap-2"
         >
-          <Button
-            icon="i-lucide-ellipsis-vertical"
-            color="slate"
-            size="xs"
-            class="rounded-md group-hover:bg-n-alpha-2"
-            @click="toggleDropdown()"
-          />
-          <DropdownMenu
-            v-if="showActionsDropdown"
-            :menu-items="menuItems"
-            class="mt-1 ltr:right-0 rtl:left-0 top-full"
-            @action="handleAction($event)"
-          />
-        </Policy>
+          <span :class="icon" />
+          {{ inboxName }}
+        </span>
+        <div class="flex items-center gap-2">
+          <Policy
+            v-on-clickaway="() => toggleDropdown(false)"
+            :permissions="['administrator']"
+            class="relative flex items-center group"
+          >
+            <Button
+              icon="i-lucide-ellipsis-vertical"
+              color="slate"
+              size="xs"
+              class="rounded-md group-hover:bg-n-alpha-2"
+              @click="toggleDropdown()"
+            />
+            <DropdownMenu
+              v-if="showActionsDropdown"
+              :menu-items="menuItems"
+              class="mt-1 ltr:right-0 rtl:left-0 top-full"
+              @action="handleAction($event)"
+            />
+          </Policy>
+        </div>
+      </div>
+      <div
+        v-if="isWhatsAppChannel"
+        class="flex items-center justify-between w-full gap-2"
+      >
+        <span class="text-sm text-n-slate-11">
+          {{ t('CAPTAIN.INBOXES.RESPOND_TO_GROUPS.LABEL') }}
+        </span>
+        <Switch v-model="respondToGroups" @change="handleGroupToggle" />
       </div>
     </div>
   </CardLayout>

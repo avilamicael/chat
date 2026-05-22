@@ -537,7 +537,6 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
 
   def attachment_message_content # rubocop:disable Metrics/MethodLength
     attachment = @message.attachments.first
-    buffer = attachment_to_base64(attachment)
 
     content = {
       fileName: attachment.file.filename,
@@ -545,20 +544,33 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
     }
     case attachment.file_type
     when 'image'
-      content[:image] = buffer
+      content[:image] = { url: attachment_stream_url(attachment) }
     when 'audio'
-      content[:audio] = buffer
+      # Audio is small and is transcoded by the API from a buffer, so keep base64.
+      content[:audio] = attachment_to_base64(attachment)
       content[:ptt] = attachment.meta&.dig('is_recorded_audio')
     when 'file'
-      content[:document] = buffer
+      content[:document] = { url: attachment_stream_url(attachment) }
       content[:mimetype] = attachment.file.content_type
     when 'sticker'
-      content[:sticker] = buffer
+      content[:sticker] = attachment_to_base64(attachment)
     when 'video'
-      content[:video] = buffer
+      content[:video] = { url: attachment_stream_url(attachment) }
     end
 
     content.compact
+  end
+
+  # URL the Baileys API fetches the attachment from. When the channel uses the
+  # internal host (BAILEYS_PROVIDER_USE_INTERNAL_HOST_URL), the public host is
+  # unreachable from the API container, so swap it for INTERNAL_HOST_URL — same
+  # convention as Inbox#callback_webhook_url. Public (S3) URLs are used as-is.
+  def attachment_stream_url(attachment)
+    url = attachment.download_url
+    return url unless whatsapp_channel.use_internal_host?
+
+    internal_host = ENV.fetch('INTERNAL_HOST_URL', nil)
+    internal_host.present? ? url.sub(%r{\Ahttps?://[^/]+}, internal_host) : url
   end
 
   def send_message_request
@@ -568,10 +580,14 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
       body: {
         jid: remote_jid,
         messageContent: @message_content
-      }.to_json
+      }.to_json,
+      timeout: 300
     )
 
-    raise ProviderUnavailableError unless process_response(response)
+    unless process_response(response)
+      mark_message_failed(response)
+      raise ProviderUnavailableError
+    end
 
     update_external_created_at(response)
     response.parsed_response.dig('data', 'key', 'id')
@@ -580,6 +596,14 @@ class Whatsapp::Providers::WhatsappBaileysService < Whatsapp::Providers::BaseSer
   def process_response(response)
     Rails.logger.error response.body unless response.success?
     response.success?
+  end
+
+  # Outgoing messages default to `sent`; without this a failed send would keep
+  # showing as "sent" even though it never left. Mark it failed so the agent sees
+  # the truth. A successful retry/delivery webhook moves it back to sent/delivered.
+  def mark_message_failed(response)
+    error = response.body.to_s.strip.presence || "Baileys send failed (HTTP #{response.code})"
+    @message&.update!(status: :failed, external_error: error.truncate(1000))
   end
 
   def check_participant_errors(response, action)

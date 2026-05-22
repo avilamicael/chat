@@ -50,7 +50,10 @@ module Enterprise::MessageTemplates::HookExecutionService
   end
 
   def should_process_captain_response?
-    conversation.pending? && message.incoming? && inbox.captain_assistant.present?
+    return false unless conversation.pending? && message.incoming? && inbox.captain_assistant.present?
+    return true unless conversation.group_type_group?
+
+    inbox.captain_inbox&.respond_to_groups || false
   end
 
   def perform_handoff

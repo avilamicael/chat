@@ -13,6 +13,12 @@ class Api::V1::Accounts::Captain::InboxesController < Api::V1::Accounts::BaseCon
     @captain_inbox.save!
   end
 
+  def update
+    @captain_inbox = @assistant.captain_inboxes.find_by!(inbox_id: permitted_params[:inbox_id])
+    @captain_inbox.update!(respond_to_groups: permitted_params[:respond_to_groups])
+    @inbox = @captain_inbox.inbox
+  end
+
   def destroy
     @captain_inbox = @assistant.captain_inboxes.find_by!(inbox_id: permitted_params[:inbox_id])
     @captain_inbox.destroy!
@@ -30,7 +36,7 @@ class Api::V1::Accounts::Captain::InboxesController < Api::V1::Accounts::BaseCon
   end
 
   def permitted_params
-    params.permit(:assistant_id, :id, :account_id, :inbox_id)
+    params.permit(:assistant_id, :id, :account_id, :inbox_id, :respond_to_groups)
   end
 
   def assistant_params
