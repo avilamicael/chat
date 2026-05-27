@@ -4,10 +4,12 @@
 #
 #  id              :bigint           not null, primary key
 #  cost_micros     :bigint           default(0), not null
+#  cost_usd_micros :bigint
 #  feature         :string           not null
 #  input_tokens    :integer          default(0), not null
 #  model           :string           not null
 #  output_tokens   :integer          default(0), not null
+#  units           :integer
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  account_id      :bigint           not null
