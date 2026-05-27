@@ -18,7 +18,10 @@
       </tr>
       <tr>
         <th>Custo (US$)</th>
-        <td><%= number_to_currency(summary[:cost_usd], unit: "US$ ", separator: ".", delimiter: ",", precision: 4) %></td>
+        <td>
+          <%= number_to_currency(summary[:cost_usd], unit: "US$ ", separator: ".", delimiter: ",", precision: 4) %>
+          <div class="text-xs text-slate-500">inclui apenas eventos a partir de mai/2026 (novos eventos)</div>
+        </td>
       </tr>
       <tr>
         <th>Custo</th>

@@ -21,6 +21,7 @@
     <div class="border border-n-weak rounded p-4">
       <div class="text-xs text-slate-600">Custo total (US$)</div>
       <div class="text-2xl font-semibold"><%= number_to_currency(@total_cost_usd, unit: "US$ ", separator: ".", delimiter: ",", precision: 2) %></div>
+      <div class="text-xs text-slate-500">inclui apenas eventos a partir de mai/2026 (novos eventos)</div>
     </div>
     <div class="border border-n-weak rounded p-4">
       <div class="text-xs text-slate-600">Custo base total (R$)</div>
