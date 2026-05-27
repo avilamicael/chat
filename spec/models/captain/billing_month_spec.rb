@@ -39,6 +39,24 @@ RSpec.describe Captain::BillingMonth do
       expect(dup).not_to be_valid
       expect(dup.errors[:period]).to be_present
     end
+
+    it 'rejects a non-numeric unidades_inclusas (WR-05)' do
+      record = described_class.new(period: '2026-05', unidades_inclusas: 'abc')
+      expect(record).not_to be_valid
+      expect(record.errors[:unidades_inclusas]).to be_present
+    end
+
+    it 'rejects a fractional unidades_inclusas (WR-05)' do
+      record = described_class.new(period: '2026-05', unidades_inclusas: 1000.9)
+      expect(record).not_to be_valid
+      expect(record.errors[:unidades_inclusas]).to be_present
+    end
+
+    it 'rejects a negative money input (WR-05)' do
+      record = described_class.new(period: '2026-05', mensalidade_micros: -1)
+      expect(record).not_to be_valid
+      expect(record.errors[:mensalidade_micros]).to be_present
+    end
   end
 
   describe 'scope global_defaults' do

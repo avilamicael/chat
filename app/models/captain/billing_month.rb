@@ -6,6 +6,12 @@ class Captain::BillingMonth < ApplicationRecord
   validates :period, presence: true, format: { with: /\A\d{4}-\d{2}\z/ }
   validates :period, uniqueness: { scope: :account_id }
 
+  # WR-05: reject non-numeric/fractional money inputs instead of silently coercing to 0.
+  validates :unidades_inclusas, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :total_brl_pago_micros, :mensalidade_micros, :preco_excedente_micros,
+            numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :taxa_paga, :taxa_atual, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+
   scope :global_defaults, -> { where(account_id: nil) }
   scope :for_period, ->(period) { where(period: period) }
   scope :for_account, ->(account_id) { where(account_id: account_id) }
