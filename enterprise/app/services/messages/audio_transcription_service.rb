@@ -60,6 +60,7 @@ class Messages::AudioTranscriptionService< Llm::LegacyBaseOpenAiService
     return transcribed_text if transcribed_text.present?
 
     temp_file_path = fetch_audio_file
+    @last_temp_path = temp_file_path
     transcribed_text = nil
 
     File.open(temp_file_path, 'rb') do |file|
@@ -92,13 +93,38 @@ class Messages::AudioTranscriptionService< Llm::LegacyBaseOpenAiService
   def update_transcription(transcribed_text)
     return if transcribed_text.blank?
 
+    duration_seconds = attachment.meta&.dig('duration_seconds')
     attachment.update!(meta: { transcribed_text: transcribed_text })
     message.reload.send_update_event
     message.account.increment_response_usage
+    record_audio_usage(duration_seconds)
 
     return unless ChatwootApp.advanced_search_allowed?
 
     message.reindex
+  end
+
+  def record_audio_usage(seconds = nil)
+    seconds ||= audio_duration_from_file
+    return if seconds.blank? || seconds.to_i <= 0
+
+    Captain::UsageRecorder.record(
+      account: account,
+      feature: 'audio_transcription',
+      model: WHISPER_MODEL,
+      input_tokens: 0,
+      output_tokens: 0,
+      units: seconds.to_i,
+      conversation: message&.conversation
+    )
+  end
+
+  def audio_duration_from_file
+    return if @last_temp_path.blank?
+
+    FFMPEG::Movie.new(@last_temp_path).duration.to_i
+  rescue StandardError
+    nil
   end
 
   def extension_from_content_type(content_type)
