@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_05_27_000001) do
+ActiveRecord::Schema[7.1].define(version: 2026_05_27_000002) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -611,6 +611,21 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_27_000001) do
     t.jsonb "response_guidelines", default: []
     t.jsonb "guardrails", default: []
     t.index ["account_id"], name: "index_captain_assistants_on_account_id"
+  end
+
+  create_table "captain_billing_months", force: :cascade do |t|
+    t.bigint "account_id"
+    t.string "period", null: false
+    t.decimal "taxa_paga", precision: 10, scale: 4
+    t.decimal "taxa_atual", precision: 10, scale: 4
+    t.bigint "total_brl_pago_micros"
+    t.bigint "mensalidade_micros"
+    t.integer "unidades_inclusas"
+    t.bigint "preco_excedente_micros"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "period"], name: "idx_captain_billing_months_account_period", unique: true
+    t.index ["period"], name: "idx_captain_billing_months_global_period", unique: true, where: "(account_id IS NULL)"
   end
 
   create_table "captain_custom_tools", force: :cascade do |t|
