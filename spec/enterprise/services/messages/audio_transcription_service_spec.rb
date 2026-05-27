@@ -84,4 +84,68 @@ RSpec.describe Messages::AudioTranscriptionService, type: :service do
       FileUtils.rm_f(temp_file_path) if temp_file_path.present?
     end
   end
+
+  describe '#update_transcription cost recording' do
+    let(:service) { described_class.new(attachment) }
+
+    before do
+      allow(message).to receive(:reload).and_return(message)
+      allow(message).to receive(:send_update_event)
+      allow(message.account).to receive(:increment_response_usage)
+      allow(ChatwootApp).to receive(:advanced_search_allowed?).and_return(false)
+    end
+
+    context 'when attachment meta carries duration_seconds' do
+      before do
+        attachment.update!(meta: { 'duration_seconds' => 120 })
+      end
+
+      it 'records exactly one audio_transcription usage event with units from meta' do
+        expect do
+          service.send(:update_transcription, 'transcribed text')
+        end.to change(Captain::UsageEvent, :count).by(1)
+
+        event = Captain::UsageEvent.last
+        expect(event.feature).to eq('audio_transcription')
+        expect(event.model).to eq(described_class::WHISPER_MODEL)
+        expect(event.units).to eq(120)
+        expect(event.cost_usd_micros).to be > 0
+      end
+
+      it 'still increments the response usage counter' do
+        expect(message.account).to receive(:increment_response_usage)
+
+        service.send(:update_transcription, 'transcribed text')
+      end
+    end
+
+    context 'when duration_seconds is absent but the temp file is readable (ffprobe fallback)' do
+      before do
+        attachment.update!(meta: {})
+        service.instance_variable_set(:@last_temp_path, '/tmp/audio-fallback.ogg')
+        movie = instance_double(FFMPEG::Movie, duration: 60.0)
+        allow(FFMPEG::Movie).to receive(:new).with('/tmp/audio-fallback.ogg').and_return(movie)
+      end
+
+      it 'records the usage event with units read from the file' do
+        expect do
+          service.send(:update_transcription, 'transcribed text')
+        end.to change(Captain::UsageEvent, :count).by(1)
+
+        expect(Captain::UsageEvent.last.units).to eq(60)
+      end
+    end
+
+    context 'when duration cannot be determined (no meta and no fallback)' do
+      before do
+        attachment.update!(meta: {})
+      end
+
+      it 'does not create a usage event and does not raise' do
+        expect do
+          service.send(:update_transcription, 'transcribed text')
+        end.not_to change(Captain::UsageEvent, :count)
+      end
+    end
+  end
 end
