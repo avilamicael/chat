@@ -1,0 +1,31 @@
+<%= form_with url: update_billing_super_admin_captain_usage_index_path, method: :post, local: true, class: "flex flex-wrap items-end gap-2" do %>
+  <input type="hidden" name="period" value="<%= period %>" />
+  <input type="hidden" name="account_id" value="<%= account_id %>" />
+
+  <label class="flex flex-col text-xs text-slate-600">
+    Taxa do dólar paga
+    <input type="number" step="0.0001" min="0" name="billing[taxa_paga]" value="<%= billing&.taxa_paga %>" class="border border-n-weak rounded px-2 py-1 mt-1 w-28" />
+  </label>
+  <label class="flex flex-col text-xs text-slate-600">
+    OU total R$ pago (micros)
+    <input type="number" step="1" min="0" name="billing[total_brl_pago_micros]" value="<%= billing&.total_brl_pago_micros %>" class="border border-n-weak rounded px-2 py-1 mt-1 w-32" />
+  </label>
+  <label class="flex flex-col text-xs text-slate-600">
+    Cotação atual
+    <input type="number" step="0.0001" min="0" name="billing[taxa_atual]" value="<%= billing&.taxa_atual %>" class="border border-n-weak rounded px-2 py-1 mt-1 w-28" />
+  </label>
+  <label class="flex flex-col text-xs text-slate-600">
+    Mensalidade (micros)
+    <input type="number" step="1" min="0" name="billing[mensalidade_micros]" value="<%= billing&.mensalidade_micros %>" class="border border-n-weak rounded px-2 py-1 mt-1 w-32" />
+  </label>
+  <label class="flex flex-col text-xs text-slate-600">
+    Unidades inclusas (X)
+    <input type="number" step="1" min="0" name="billing[unidades_inclusas]" value="<%= billing&.unidades_inclusas %>" class="border border-n-weak rounded px-2 py-1 mt-1 w-28" />
+  </label>
+  <label class="flex flex-col text-xs text-slate-600">
+    Preço excedente (micros)
+    <input type="number" step="1" min="0" name="billing[preco_excedente_micros]" value="<%= billing&.preco_excedente_micros %>" class="border border-n-weak rounded px-2 py-1 mt-1 w-32" />
+  </label>
+
+  <button type="submit" class="border border-n-weak rounded px-3 py-1 bg-slate-100 hover:bg-slate-200">Salvar</button>
+<% end %>

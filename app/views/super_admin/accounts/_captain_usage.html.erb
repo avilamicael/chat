@@ -17,6 +17,10 @@
         <td><%= number_with_delimiter(summary[:output_tokens]) %></td>
       </tr>
       <tr>
+        <th>Custo (US$)</th>
+        <td><%= number_to_currency(summary[:cost_usd], unit: "US$ ", separator: ".", delimiter: ",", precision: 4) %></td>
+      </tr>
+      <tr>
         <th>Custo</th>
         <td><%= number_to_currency(summary[:cost_brl], unit: "R$ ", separator: ",", delimiter: ".", precision: 4) %></td>
       </tr>

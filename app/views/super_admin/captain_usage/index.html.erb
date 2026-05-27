@@ -1,5 +1,5 @@
 <% content_for(:title) do %>
-  Custo de IA do Captain — Mês Corrente
+  Calculadora de Custos do Captain
 <% end %>
 
 <header class="main-content__header" role="banner">
@@ -9,55 +9,74 @@
 </header>
 
 <section class="main-content__body">
+  <form method="get" class="flex items-end gap-2 mb-6">
+    <label class="flex flex-col text-xs text-slate-600">
+      Mês de referência
+      <input type="month" name="month" value="<%= @period %>" class="border border-n-weak rounded px-2 py-1 mt-1" />
+    </label>
+    <button type="submit" class="border border-n-weak rounded px-3 py-1 bg-slate-100 hover:bg-slate-200">Ver mês</button>
+  </form>
+
   <div class="flex flex-wrap gap-4 mb-8">
     <div class="border border-n-weak rounded p-4">
-      <div class="text-xs text-slate-600">Custo total estimado (OpenAI)</div>
-      <div class="text-2xl font-semibold">
-        <%= number_to_currency(@total_cost_brl, unit: "R$ ", separator: ",", delimiter: ".", precision: 4) %>
-      </div>
+      <div class="text-xs text-slate-600">Custo total (US$)</div>
+      <div class="text-2xl font-semibold"><%= number_to_currency(@total_cost_usd, unit: "US$ ", separator: ".", delimiter: ",", precision: 2) %></div>
     </div>
     <div class="border border-n-weak rounded p-4">
-      <div class="text-xs text-slate-600">Total de respostas</div>
-      <div class="text-2xl font-semibold"><%= number_with_delimiter(@total_responses_count) %></div>
+      <div class="text-xs text-slate-600">Custo base total (R$)</div>
+      <div class="text-2xl font-semibold"><%= number_to_currency(@total_custo_base, unit: "R$ ", separator: ",", delimiter: ".", precision: 2) %></div>
     </div>
     <div class="border border-n-weak rounded p-4">
-      <div class="text-xs text-slate-600">Total de tokens</div>
-      <div class="text-2xl font-semibold"><%= number_with_delimiter(@total_input_tokens + @total_output_tokens) %></div>
+      <div class="text-xs text-slate-600">Preço de venda total (R$)</div>
+      <div class="text-2xl font-semibold"><%= number_to_currency(@total_preco_venda, unit: "R$ ", separator: ",", delimiter: ".", precision: 2) %></div>
+    </div>
+    <div class="border border-n-weak rounded p-4">
+      <div class="text-xs text-slate-600">Margem total (R$)</div>
+      <div class="text-2xl font-semibold"><%= number_to_currency(@total_margem, unit: "R$ ", separator: ",", delimiter: ".", precision: 2) %></div>
     </div>
   </div>
 
+  <h2 class="text-lg font-semibold mb-2">Padrão global de cobrança</h2>
+  <p class="text-xs text-slate-600 mb-2">
+    Informe o câmbio pago de uma das duas formas: a <strong>taxa do dólar</strong> que você pagou, ou o
+    <strong>total em R$ pago</strong> na fatura da OpenAI (o sistema deriva a taxa efetiva). Preencha uma OU outra.
+  </p>
+  <%= render 'billing_form', account_id: nil, billing: @billing_by_account[nil], period: @period %>
+
   <% if @rows.empty? %>
-    <p>Nenhum uso de IA registrado neste mês.</p>
+    <p class="mt-6">Nenhum uso de IA registrado neste mês.</p>
   <% else %>
-    <table>
+    <table class="mt-6">
       <thead>
         <tr>
           <th>Conta</th>
-          <th>Respostas</th>
-          <th>Tokens (entrada + saída)</th>
-          <th>Custo (R$)</th>
+          <th>Composição (Texto / Áudio / OCR)</th>
+          <th>Custo (US$)</th>
+          <th>R$ (taxa paga)</th>
+          <th>R$ (cotação atual)</th>
+          <th>Preço de venda</th>
+          <th>Margem</th>
+          <th>Ajustes da conta</th>
         </tr>
       </thead>
       <tbody>
         <% @rows.each do |row| %>
           <tr>
-            <td>
-              <%= link_to row[:account_name], super_admin_account_path(row[:account_id]) %>
+            <td><%= link_to row[:account_name], super_admin_account_path(row[:account_id]) %></td>
+            <td><%= number_with_delimiter(row[:text_count]) %> / <%= number_with_delimiter(row[:audio_count]) %> / <%= number_with_delimiter(row[:ocr_count]) %></td>
+            <td><%= row[:cost_usd_micros].zero? ? "—" : number_to_currency(row[:cost_usd], unit: "US$ ", separator: ".", delimiter: ",", precision: 4) %></td>
+            <td class="<%= 'font-semibold text-green-700' if row[:base_sugerida] == :paga %>">
+              <%= number_to_currency(row[:base_paga], unit: "R$ ", separator: ",", delimiter: ".", precision: 2) %>
             </td>
-            <td><%= number_with_delimiter(row[:responses_count]) %></td>
-            <td><%= number_with_delimiter(row[:input_tokens] + row[:output_tokens]) %></td>
-            <td><%= number_to_currency(row[:cost_brl], unit: "R$ ", separator: ",", delimiter: ".", precision: 4) %></td>
+            <td class="<%= 'font-semibold text-green-700' if row[:base_sugerida] == :atual %>">
+              <%= number_to_currency(row[:base_atual], unit: "R$ ", separator: ",", delimiter: ".", precision: 2) %>
+            </td>
+            <td><%= number_to_currency(row[:preco_venda], unit: "R$ ", separator: ",", delimiter: ".", precision: 2) %></td>
+            <td><%= number_to_currency(row[:margem], unit: "R$ ", separator: ",", delimiter: ".", precision: 2) %></td>
+            <td><%= render 'billing_form', account_id: row[:account_id], billing: @billing_by_account[row[:account_id]], period: @period %></td>
           </tr>
         <% end %>
       </tbody>
-      <tfoot>
-        <tr>
-          <th>Total</th>
-          <th><%= number_with_delimiter(@total_responses_count) %></th>
-          <th><%= number_with_delimiter(@total_input_tokens + @total_output_tokens) %></th>
-          <th><%= number_to_currency(@total_cost_brl, unit: "R$ ", separator: ",", delimiter: ".", precision: 4) %></th>
-        </tr>
-      </tfoot>
     </table>
   <% end %>
 </section>

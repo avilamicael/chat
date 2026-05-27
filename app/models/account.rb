@@ -162,13 +162,13 @@ class Account < ApplicationRecord
   def captain_usage_summary(period: :current_month)
     scope = captain_usage_events
     scope = scope.where(created_at: Time.current.beginning_of_month..Time.current) if period == :current_month
-    cost_micros = scope.sum(:cost_micros)
     {
       responses_count: scope.count,
       input_tokens: scope.sum(:input_tokens),
       output_tokens: scope.sum(:output_tokens),
-      cost_micros: cost_micros,
-      cost_brl: cost_micros / 1_000_000.0
+      cost_micros: scope.sum(:cost_micros),
+      cost_brl: scope.sum(:cost_micros) / 1_000_000.0,
+      cost_usd: scope.sum(:cost_usd_micros) / 1_000_000.0
     }
   end
 
