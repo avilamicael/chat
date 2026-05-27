@@ -94,7 +94,8 @@ class Messages::AudioTranscriptionService< Llm::LegacyBaseOpenAiService
     return if transcribed_text.blank?
 
     duration_seconds = attachment.meta&.dig('duration_seconds')
-    attachment.update!(meta: { transcribed_text: transcribed_text })
+    # Merge (not replace) so duration_seconds / is_recorded_audio captured by the Baileys handler survive (WR-02).
+    attachment.update!(meta: (attachment.meta || {}).merge('transcribed_text' => transcribed_text))
     message.reload.send_update_event
     message.account.increment_response_usage
     record_audio_usage(duration_seconds)

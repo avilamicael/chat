@@ -117,6 +117,14 @@ RSpec.describe Messages::AudioTranscriptionService, type: :service do
 
         service.send(:update_transcription, 'transcribed text')
       end
+
+      it 'preserves duration_seconds in meta after writing the transcription (WR-02)' do
+        service.send(:update_transcription, 'transcribed text')
+
+        attachment.reload
+        expect(attachment.meta['transcribed_text']).to eq('transcribed text')
+        expect(attachment.meta['duration_seconds']).to eq(120)
+      end
     end
 
     context 'when duration_seconds is absent but the temp file is readable (ffprobe fallback)' do
