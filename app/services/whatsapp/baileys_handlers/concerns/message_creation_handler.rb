@@ -50,7 +50,12 @@ module Whatsapp::BaileysHandlers::Concerns::MessageCreationHandler
       file_type: file_content_type.to_s,
       file: { io: attachment_file, filename: build_attachment_filename, content_type: message_mimetype }
     )
-    attachment.meta = { is_recorded_audio: true } if msg.dig(:audioMessage, :ptt)
+    if (audio = msg[:audioMessage])
+      attachment.meta = (attachment.meta || {}).merge(
+        is_recorded_audio: audio[:ptt].present?,
+        duration_seconds: audio[:seconds]
+      ).compact
+    end
   rescue Down::Error => e
     @message.is_unsupported = true
     Rails.logger.error "Failed to download attachment for message #{raw_message_id}: #{e.message}"
