@@ -5,10 +5,10 @@ RSpec.describe Captain::UsagePricing do
     Captain::BillingMonth.new({ period: '2026-04' }.merge(attrs))
   end
 
-  def row_for(feature_entries:, billing: nil, fallback_rate: 5.4)
+  def row_for(feature_entries:, billing: nil, taxa_paga: nil, fallback_rate: 5.4)
     described_class.new(
       account_id: 1, account_name: 'Acme',
-      feature_entries: feature_entries, billing: billing, fallback_rate: fallback_rate
+      feature_entries: feature_entries, billing: billing, taxa_paga: taxa_paga, fallback_rate: fallback_rate
     ).row
   end
 
@@ -16,7 +16,7 @@ RSpec.describe Captain::UsagePricing do
     let(:entries) { [['task', 1, 10_000_000]] } # US$ 10
 
     it 'flags the current-rate base as suggested when it is higher' do
-      row = row_for(feature_entries: entries, billing: billing(taxa_paga: 5.00, taxa_atual: 5.80))
+      row = row_for(feature_entries: entries, billing: billing(taxa_atual: 5.80), taxa_paga: 5.00)
       expect(row[:base_paga]).to be_within(0.001).of(50.0)
       expect(row[:base_atual]).to be_within(0.001).of(58.0)
       expect(row[:custo_base]).to be_within(0.001).of(58.0)
@@ -24,13 +24,13 @@ RSpec.describe Captain::UsagePricing do
     end
 
     it 'flags the paid-rate base as suggested when it is higher' do
-      row = row_for(feature_entries: entries, billing: billing(taxa_paga: 5.80, taxa_atual: 5.00))
+      row = row_for(feature_entries: entries, billing: billing(taxa_atual: 5.00), taxa_paga: 5.80)
       expect(row[:base_sugerida]).to eq(:paga)
       expect(row[:custo_base]).to be_within(0.001).of(58.0)
     end
 
     it 'uses the 5.4 fallback for both bases when there is no billing (D-06)' do
-      row = row_for(feature_entries: entries, billing: nil)
+      row = row_for(feature_entries: entries, billing: nil, taxa_paga: nil)
       expect(row[:base_paga]).to be_within(0.001).of(54.0)
       expect(row[:base_atual]).to be_within(0.001).of(54.0)
     end

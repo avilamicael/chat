@@ -7,12 +7,15 @@ class Captain::UsagePricing
   OCR_FEATURES = %w[ocr vision].freeze
 
   # feature_entries: array of [feature, count, cost_usd_micros]
-  # billing: Captain::BillingMonth or nil; fallback_rate: USD_BRL_RATE (D-06)
-  def initialize(account_id:, account_name:, feature_entries:, billing:, fallback_rate:)
+  # billing: Captain::BillingMonth or nil (sale-price + taxa_atual source);
+  # taxa_paga: already-resolved paid rate (D-01a derived month-wide / D-01b direct) or nil;
+  # fallback_rate: USD_BRL_RATE (D-06).
+  def initialize(account_id:, account_name:, feature_entries:, billing:, fallback_rate:, taxa_paga: nil) # rubocop:disable Metrics/ParameterLists
     @account_id = account_id
     @account_name = account_name
     @feature_entries = feature_entries
     @billing = billing
+    @taxa_paga = taxa_paga
     @fallback_rate = fallback_rate
   end
 
@@ -56,7 +59,9 @@ class Captain::UsagePricing
   end
 
   def compute_bases
-    taxa_paga = @billing&.effective_taxa_paga(total_usd_micros: cost_usd_micros) || @fallback_rate
+    # taxa_paga is resolved by the caller from the month-wide USD total (D-01a) — never divide
+    # the month invoice by this single account's USD slice here.
+    taxa_paga = @taxa_paga || @fallback_rate
     taxa_atual = @billing&.taxa_atual || @fallback_rate
 
     base_paga = brl(cost_usd_micros, taxa_paga)
