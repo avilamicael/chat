@@ -682,7 +682,11 @@ Rails.application.routes.draw do
         delete :avatar, on: :member, action: :destroy_avatar
       end
 
-      resources :captain_usage, only: [:index]
+      resources :captain_usage, only: [:index] do
+        collection do
+          post :update_billing
+        end
+      end
 
       resources :access_tokens, only: [:index, :show]
       resources :installation_configs, only: [:index, :new, :create, :show, :edit, :update]
