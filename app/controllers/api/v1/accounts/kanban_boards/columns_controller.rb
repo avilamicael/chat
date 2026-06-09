@@ -42,6 +42,8 @@ class Api::V1::Accounts::KanbanBoards::ColumnsController < Api::V1::Accounts::Ba
     params.require(:kanban_column).permit(
       :name, :position, :color, :column_type, :conversation_status,
       :wip_limit, :aging_warn_days, :aging_danger_days,
+      :auto_assignment_enabled, :auto_assignment_online_only, :auto_assignment_override,
+      :auto_assignment_reassign_on_return, :auto_assignment_max_cards_per_agent,
       enter_actions: [:action_name, :url, :agent_id, :team_id],
       exit_actions: [:action_name, :url]
     )

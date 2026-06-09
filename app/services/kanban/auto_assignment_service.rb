@@ -62,8 +62,22 @@ class Kanban::AutoAssignmentService
 
   def assign_to(agent)
     @card.update!(assignee_ids: [agent.id])
+    assign_conversations_to(agent)
     @card.update_columns(auto_assignment_fell_through: false) if @card.auto_assignment_fell_through # rubocop:disable Rails/SkipsModelValidations
     @column.update_columns(last_assigned_agent_id: agent.id) # rubocop:disable Rails/SkipsModelValidations
+  end
+
+  def assign_conversations_to(agent)
+    card_conversations.each do |conv|
+      next if conv.assignee_id == agent.id
+      next if conv.assignee_id.present? && !@column.auto_assignment_override
+
+      conv.update!(assignee_id: agent.id)
+    end
+  end
+
+  def card_conversations
+    ([@card.conversation] + @card.linked_conversations.to_a).compact.uniq
   end
 
   def handle_fallback
