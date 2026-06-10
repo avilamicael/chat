@@ -111,3 +111,6 @@ docs/*
 docker-compose.minimal.yaml
 docker-compose.override.yaml
 vps/
+
+# Notas pessoais locais (não versionar)
+notas-gateways-pagamento.md
