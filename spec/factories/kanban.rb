@@ -3,6 +3,10 @@ FactoryBot.define do
     sequence(:name) { |n| "Board #{n}" }
     description { 'Test funnel' }
     account
+
+    trait :default do
+      is_default { true }
+    end
   end
 
   factory :kanban_column do
@@ -19,5 +23,10 @@ FactoryBot.define do
     kanban_board
     kanban_column { association :kanban_column, kanban_board: kanban_board }
     account { kanban_board&.account }
+
+    trait :archived do
+      archived_at { Time.current }
+      outcome { 'won' }
+    end
   end
 end
