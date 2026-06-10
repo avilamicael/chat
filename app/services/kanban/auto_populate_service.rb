@@ -7,25 +7,36 @@ class Kanban::AutoPopulateService
   def perform
     default_board = @account.kanban_boards.default_board.first
     return unless default_board
-    return if already_on_board?(default_board)
     return unless matches_board_filters?(default_board)
 
-    first_column = find_target_column(default_board)
-    return unless first_column
-
-    card = Kanban::CardCreationService.new(default_board, first_column, conversation: @conversation).perform
-
-    Rails.configuration.dispatcher.dispatch(
-      Events::Types::KANBAN_CARD_ADDED,
-      Time.zone.now,
-      card: card,
-      board: default_board
-    )
+    create_card_with_lock(default_board)
   rescue StandardError => e
     ChatwootExceptionTracker.new(e, account: @account).capture_exception
   end
 
   private
+
+  # Serializa criacao por conversation_id (namespace 2; namespace 1 reservado a
+  # CardMoveService por card.id) + re-check do dedup ativo SOB o lock para impedir
+  # double-create em 2 eventos async concorrentes no mesmo reopen.
+  def create_card_with_lock(board)
+    ActiveRecord::Base.transaction do
+      ActiveRecord::Base.connection.execute("SELECT pg_advisory_xact_lock(2, #{@conversation.id.to_i})")
+      next if already_on_board?(board)
+
+      first_column = find_target_column(board)
+      next unless first_column
+
+      card = Kanban::CardCreationService.new(board, first_column, conversation: @conversation).perform
+
+      Rails.configuration.dispatcher.dispatch(
+        Events::Types::KANBAN_CARD_ADDED,
+        Time.zone.now,
+        card: card,
+        board: board
+      )
+    end
+  end
 
   def find_target_column(board)
     intake_id = board.filters&.dig('intake_column_id')
@@ -39,7 +50,7 @@ class Kanban::AutoPopulateService
   end
 
   def already_on_board?(board)
-    board.kanban_cards.exists?(conversation_id: @conversation.id)
+    board.kanban_cards.active.exists?(conversation_id: @conversation.id)
   end
 
   def matches_board_filters?(board)
