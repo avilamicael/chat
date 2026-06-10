@@ -52,9 +52,15 @@ class KanbanListener < BaseListener
     conversation = message.conversation
     return unless conversation
 
-    cards = KanbanCard.where(conversation_id: conversation.id)
-    return if cards.empty?
+    active_cards = KanbanCard.active.where(conversation_id: conversation.id)
+    return Kanban::AutoPopulateService.new(conversation).perform if active_cards.empty?
 
+    broadcast_card_updates(active_cards)
+  rescue StandardError => e
+    ChatwootExceptionTracker.new(e, account: message&.account).capture_exception
+  end
+
+  def broadcast_card_updates(cards)
     cards.each do |card|
       board = card.kanban_board
       card = KanbanCard.includes(conversation: [:contact, :inbox, :assignee], assignee: []).find(card.id)
@@ -63,8 +69,6 @@ class KanbanListener < BaseListener
         board_id: board.id
       })
     end
-  rescue StandardError => e
-    ChatwootExceptionTracker.new(e, account: message&.account).capture_exception
   end
 
   def kanban_card_added(event)
