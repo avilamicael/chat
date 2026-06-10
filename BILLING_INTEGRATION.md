@@ -212,10 +212,34 @@ Backend Externo:
   1. Identifica o plano comprado (pelo price_id)
   2. POST /users (cria usuário Chatwoot com email do cliente)
   3. POST /accounts (cria conta com limits/features do plano)
-  4. POST /accounts/:id/account_users { user_id, role: "administrator" }
-  5. GET /users/:id/login (gera SSO)
-  6. Envia email para cliente com link de acesso (SSO URL)
+  4. PATCH /accounts/:id  → fixa o plano real e LIMPA o trial (ver aviso abaixo)
+  5. POST /accounts/:id/account_users { user_id, role: "administrator" }
+  6. GET /users/:id/login (gera SSO)
+  7. Envia email para cliente com link de acesso (SSO URL)
 ```
+
+> ⚠️ **TRIAL É FORÇADO NA CRIAÇÃO — leia antes de criar cliente pagante.**
+>
+> Quando `TRIAL_PERIOD_DAYS > 0` no ambiente (hoje o VPS está com **7 dias**), o
+> Chatwoot **ignora o `plan_name` que você enviou no POST /accounts e força
+> `plan_name: "trial"`** + seta `trial_ends_at = hoje + TRIAL_PERIOD_DAYS`. Isso é
+> automático (callback `after_create_commit → Billing::StartTrialService`).
+>
+> **O trial expira de verdade.** Um job nativo (`Billing::TrialExpiryJob`, cron diário
+> 01:00 UTC, ver `config/schedule.yml`) procura contas com `plan_name = "trial"` e,
+> quando `trial_ends_at` vence, roda `Billing::DowngradeToFreeService` que
+> **desliga TODAS as features** e muda o plano para `"free"`.
+>
+> **Regra prática:**
+> - **Cliente pagante:** logo após o `POST /accounts`, faça um `PATCH /accounts/:id`
+>   setando o `plan_name` real (`starter`/`pro`/`business`) e **omitindo / limpando
+>   `trial_ends_at`**. O job só mexe em contas `trial`, então fixar o `plan_name`
+>   já blinda a conta. (É o passo 4 do fluxo acima.)
+> - **Cliente que quer testar:** NÃO faça o PATCH de plano — deixe como `trial`. Ele
+>   expira sozinho em `TRIAL_PERIOD_DAYS` dias e cai para `free`.
+>
+> Como o PATCH **substitui `custom_attributes` inteiro** (não faz merge), reenvie o
+> objeto completo (`plan_name`, `allowed_channels`, etc.) sem a chave `trial_ends_at`.
 
 **Implementação Postman para testar:**
 
@@ -248,7 +272,20 @@ Content-Type: application/json
   }
 }
 
-### 3. Vincular usuário à conta
+### 3. Fixar o plano real e remover o trial (cliente PAGANTE)
+### Pular este passo se o cliente for um teste (deixar em trial).
+PATCH {{base_url}}/platform/api/v1/accounts/{{account_id}}
+api_access_token: {{token}}
+Content-Type: application/json
+
+{
+  "custom_attributes": {
+    "plan_name": "starter",
+    "allowed_channels": ["whatsapp"]
+  }
+}
+
+### 4. Vincular usuário à conta
 POST {{base_url}}/platform/api/v1/accounts/{{account_id}}/account_users
 api_access_token: {{token}}
 Content-Type: application/json
@@ -258,7 +295,7 @@ Content-Type: application/json
   "role": "administrator"
 }
 
-### 4. Gerar SSO para o cliente
+### 5. Gerar SSO para o cliente
 GET {{base_url}}/platform/api/v1/users/{{user_id}}/login
 api_access_token: {{token}}
 ```
@@ -302,14 +339,28 @@ Backend Externo:
   - Opção B (hard): PATCH status: "suspended"
 ```
 
-### 4.4 Expiração de plano (job diário)
+### 4.4 Expiração de plano / trial
 
-O Chatwoot **não** tem enforcement nativo de expiração. O backend externo deve rodar cron diário:
+**Há DOIS mecanismos de expiração — não confundir:**
+
+**(a) Expiração de TRIAL — nativa no Chatwoot (já existe).**
+O job `Billing::TrialExpiryJob` (cron diário 01:00 UTC, `config/schedule.yml`) varre
+contas com `custom_attributes.plan_name = "trial"`; quando `trial_ends_at` vence, roda
+`Billing::DowngradeToFreeService`, que **desliga todas as features** e seta
+`plan_name = "free"`, `trial_ends_at = nil`, `plan_expires_at = nil`.
+
+> Implicação: conta com `plan_name = "trial"` é descartável — vira `free` sozinha. Conta
+> com qualquer outro `plan_name` (`starter`/`pro`/`business`/`free`) é **ignorada** por
+> esse job. Por isso cliente pagante deve ter o `plan_name` fixado (ver aviso na seção 4.1).
+
+**(b) Expiração de PLANO PAGO (`plan_expires_at`) — NÃO é nativa.**
+O Chatwoot não enforça `plan_expires_at` de plano pago. O backend externo deve rodar
+cron diário:
 
 ```
 Cada 24h, backend externo:
   1. SELECT accounts WHERE plan_expires_at < NOW() AND status = 'active'
-  2. Para cada uma: PATCH /accounts/:id { status: "suspended" }
+  2. Para cada uma: PATCH /accounts/:id { status: "suspended" }  (ou downgrade)
   3. Notificar cliente por email
 ```
 
