@@ -63,4 +63,40 @@ describe KanbanListener do
       )
     end
   end
+
+  describe '#conversation_status_changed' do
+    let!(:open_column) do
+      create(:kanban_column, kanban_board: board, account: account, position: 1, conversation_status: 'open')
+    end
+    let!(:won_column) do
+      create(:kanban_column, kanban_board: board, account: account, position: 2,
+                             conversation_status: 'resolved', column_type: 'won')
+    end
+
+    def status_event
+      Events::Base.new('conversation_status_changed', Time.zone.now, { conversation: conversation })
+    end
+
+    it 'V11: does not move an archived (finalized) card when the conversation status changes (no resolve loop)' do
+      conversation.update!(status: :open)
+      archived_card = create(:kanban_card, :archived, kanban_board: board, kanban_column: won_column,
+                                                      account: account, conversation_id: conversation.id)
+
+      expect do
+        listener.conversation_status_changed(status_event)
+      end.not_to(change { archived_card.reload.kanban_column_id })
+
+      expect(archived_card.reload.kanban_column_id).to eq(won_column.id)
+    end
+
+    it 'V12: still syncs the ACTIVE card to the column matching the new status' do
+      conversation.update!(status: :open)
+      active_card = create(:kanban_card, kanban_board: board, kanban_column: won_column,
+                                         account: account, conversation_id: conversation.id)
+
+      listener.conversation_status_changed(status_event)
+
+      expect(active_card.reload.kanban_column_id).to eq(open_column.id)
+    end
+  end
 end

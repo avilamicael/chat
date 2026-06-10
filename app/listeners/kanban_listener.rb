@@ -12,7 +12,10 @@ class KanbanListener < BaseListener
     conversation = event.data[:conversation]
     return unless conversation
 
-    cards = KanbanCard.where(conversation_id: conversation.id)
+    # Apenas o card ATIVO sincroniza com o status da conversa. Cards arquivados
+    # (won/lost terminais) NAO podem ser arrastados de volta — isso, junto com a
+    # acao auto_resolve da coluna won, criava loop de resolve/reopen no reabrir.
+    cards = KanbanCard.active.where(conversation_id: conversation.id)
     return if cards.empty?
 
     status_map = { 'open' => 'open', 'resolved' => 'resolved', 'pending' => 'pending', 'snoozed' => 'snoozed' }
