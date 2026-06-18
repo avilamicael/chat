@@ -85,5 +85,24 @@ describe Kanban::AutoPopulateService do
 
       expect(active_card_count).to eq(1)
     end
+
+    it 'V9 (regression): dispatches KANBAN_CARD_ADDED only AFTER the creation transaction commits' do
+      # Bug: dispatch ocorria DENTRO da `transaction do`; o KanbanListener#kanban_card_added
+      # roda async e faz KanbanCard.find — podendo rodar antes do commit (RecordNotFound),
+      # entao o broadcast nunca chegava na tela (card so aparecia apos refresh).
+      # Garantia: no momento do dispatch a profundidade de transacao volta ao baseline do
+      # caller (dispatch fora do `transaction do`, ou seja, pos-commit).
+      tx_depth_at_dispatch = nil
+      allow(Rails.configuration.dispatcher).to receive(:dispatch) do |event_name, *_args|
+        if event_name == Events::Types::KANBAN_CARD_ADDED
+          tx_depth_at_dispatch = ActiveRecord::Base.connection.open_transactions
+        end
+      end
+
+      baseline_depth = ActiveRecord::Base.connection.open_transactions
+      described_class.new(conversation).perform
+
+      expect(tx_depth_at_dispatch).to eq(baseline_depth)
+    end
   end
 end

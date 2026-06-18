@@ -20,6 +20,8 @@ class Kanban::AutoPopulateService
   # CardMoveService por card.id) + re-check do dedup ativo SOB o lock para impedir
   # double-create em 2 eventos async concorrentes no mesmo reopen.
   def create_card_with_lock(board)
+    card = nil
+
     ActiveRecord::Base.transaction do
       ActiveRecord::Base.connection.execute("SELECT pg_advisory_xact_lock(2, #{@conversation.id.to_i})")
       next if already_on_board?(board)
@@ -28,14 +30,23 @@ class Kanban::AutoPopulateService
       next unless first_column
 
       card = Kanban::CardCreationService.new(board, first_column, conversation: @conversation).perform
-
-      Rails.configuration.dispatcher.dispatch(
-        Events::Types::KANBAN_CARD_ADDED,
-        Time.zone.now,
-        card: card,
-        board: board
-      )
     end
+
+    return unless card
+
+    # Dispatch SO depois do commit: o KanbanListener#kanban_card_added roda async
+    # (Sidekiq) e faz KanbanCard.find — se disparado dentro da transacao, o worker
+    # pode rodar antes do commit, find levanta RecordNotFound e o broadcast
+    # `kanban.card_added` nunca chega na tela (card so aparece apos refresh).
+    # INVARIANTE: este service NAO pode ser chamado dentro de uma transacao externa
+    # (a `transaction do` acima viraria savepoint e o dispatch ocorreria pre-commit,
+    # reintroduzindo a corrida). Hoje so e chamado de listeners async sem transacao.
+    Rails.configuration.dispatcher.dispatch(
+      Events::Types::KANBAN_CARD_ADDED,
+      Time.zone.now,
+      card: card,
+      board: board
+    )
   end
 
   def find_target_column(board)

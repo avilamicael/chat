@@ -98,5 +98,29 @@ describe KanbanListener do
 
       expect(active_card.reload.kanban_column_id).to eq(open_column.id)
     end
+
+    it 'V13 (regression): recreates a card on manual reopen when going to open and no active card exists' do
+      conversation.update!(status: :open)
+      archived = create(:kanban_card, :archived, kanban_board: board, kanban_column: won_column,
+                                                 account: account, conversation_id: conversation.id)
+
+      expect do
+        listener.conversation_status_changed(status_event)
+      end.to change { active_card_count }.from(0).to(1)
+
+      new_card = KanbanCard.active.find_by(conversation_id: conversation.id)
+      expect(new_card.id).not_to eq(archived.id)
+      expect(new_card.kanban_column_id).to eq(intake_column.id)
+    end
+
+    it 'V14 (regression): does not recreate a card when status changes to a non-open status' do
+      conversation.update!(status: :resolved)
+      create(:kanban_card, :archived, kanban_board: board, kanban_column: won_column,
+                                      account: account, conversation_id: conversation.id)
+
+      expect do
+        listener.conversation_status_changed(status_event)
+      end.not_to(change { active_card_count })
+    end
   end
 end

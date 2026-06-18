@@ -16,7 +16,16 @@ class KanbanListener < BaseListener
     # (won/lost terminais) NAO podem ser arrastados de volta — isso, junto com a
     # acao auto_resolve da coluna won, criava loop de resolve/reopen no reabrir.
     cards = KanbanCard.active.where(conversation_id: conversation.id)
-    return if cards.empty?
+
+    # Reabertura manual (sem mensagem nova): se a conversa voltou a 'open' e nao ha
+    # card ativo, recria o card — mesmo comportamento do message_created no reopen.
+    # AutoPopulateService tem advisory lock + dedup, entao concorrer com
+    # message_created nao gera card duplicado. So dispara no transition para 'open'
+    # (nunca em resolved/pending/snoozed), evitando o loop resolve/reopen da won.
+    if cards.empty?
+      Kanban::AutoPopulateService.new(conversation).perform if conversation.open?
+      return
+    end
 
     status_map = { 'open' => 'open', 'resolved' => 'resolved', 'pending' => 'pending', 'snoozed' => 'snoozed' }
     new_status = status_map[conversation.status]
